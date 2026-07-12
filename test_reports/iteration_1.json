@@ -1,0 +1,29 @@
+{
+  "summary": "Full backend + frontend E2E testing completed for HERA Turni app. All 17 pytest cases passed. Frontend: admin login, shift generation (44 shifts, 5 uncovered SCOPERTO), substitution modal with 7 candidates, assign/absence, week nav, all CRUD (drivers/vehicles/routes/skills), driver read-only board with 5 personal shifts, driver blocked from admin routes (redirect to /tabellone). No blocking issues.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "SubstitutionModal", "issues": ["Radix Dialog warning: missing DialogDescription/aria-describedby (accessibility a11y warning, not functional)"]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/backend_test.py", "/app/test_reports/pytest/pytest_results.xml"],
+  "action_items": [
+    "Optional: add DialogDescription to SubstitutionModal to silence Radix a11y warning."
+  ],
+  "critical_code_review_comments": [
+    "server.py uses deprecated FastAPI @app.on_event('startup'/'shutdown'); prefer lifespan context manager.",
+    "seed() only seeds on first-run (vehicles count > 0 short-circuit); acceptable but note driver user 'mario.rossi' is inserted OUTSIDE that gate on line 480 and would fail on 2nd startup with unique-email index — check logs before shipping. In practice DB already has him so fine, but if drivers collection wiped without users collection wipe it would 500 startup.",
+    "generate_shifts awaits _driver_can inside a list comprehension via [await ... in ...]; _driver_can is not truly async (just a bool). Cosmetic.",
+    "No pagination limits — .to_list(1000/5000) hardcoded."
+  ],
+  "updated_files": ["/app/backend/tests/backend_test.py", "/app/test_reports/pytest/pytest_results.xml"],
+  "success_rate": {"backend": "100% (17/17)", "frontend": "100%"},
+  "test_credentials": "admin@hera.it/admin123, mario.rossi@hera.it/autista123 (from /app/memory/test_credentials.md)",
+  "seed_data_creation": "None — used auto-seeded demo data. Test-created entities used TEST_ prefix and were cleaned up in the same test.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "backend_test.py is pytest with xdist parallel workers, uses REACT_APP_BACKEND_URL env or fallback to preview URL. Covers auth, role guards, CRUD, engine constraint (presto <=3/day), substitutes+patch. Frontend testids are comprehensive and stable.",
+  "rca of the issue": "N/A — no issues found."
+}

@@ -1,55 +1,73 @@
-import { useEffect } from "react";
-import "@/App.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import axios from "axios";
-import { HOME } from "@/constants/testIds";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { Toaster } from "sonner";
+import { AuthProvider, useAuth } from "./context/AuthContext";
+import Login from "./pages/Login";
+import Layout from "./components/Layout";
+import Dashboard from "./pages/Dashboard";
+import Drivers from "./pages/Drivers";
+import Fleet from "./pages/Fleet";
+import RoutesPage from "./pages/RoutesPage";
+import SkillMatrix from "./pages/SkillMatrix";
+import DriverView from "./pages/DriverView";
+import "./App.css";
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
-
-const Home = () => {
-  const helloWorldApi = async () => {
-    try {
-      const response = await axios.get(`${API}/`);
-      console.log(response.data.message);
-    } catch (e) {
-      console.error(e, `errored out requesting / api`);
-    }
-  };
-
-  useEffect(() => {
-    helloWorldApi();
-  }, []);
-
+function Loader() {
   return (
-    <div>
-      <header className="App-header">
-        <a
-          data-testid={HOME.emergentLink}
-          className="App-link"
-          href="https://emergent.sh"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <img src="https://avatars.githubusercontent.com/in/1201222?s=120&u=2686cf91179bbafbc7a71bfbc43004cf9ae1acea&v=4" />
-        </a>
-        <p className="mt-5">Building something incredible ~!</p>
-      </header>
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
     </div>
   );
-};
+}
+
+function Protected({ children, role }) {
+  const { user, loading } = useAuth();
+  if (loading || user === null) return <Loader />;
+  if (!user) return <Navigate to="/login" replace />;
+  if (role && user.role !== role) {
+    return <Navigate to={user.role === "admin" ? "/" : "/tabellone"} replace />;
+  }
+  return children;
+}
+
+function Root() {
+  const { user, loading } = useAuth();
+  if (loading || user === null) return <Loader />;
+  if (!user) return <Navigate to="/login" replace />;
+  return <Navigate to={user.role === "admin" ? "/dashboard" : "/tabellone"} replace />;
+}
 
 function App() {
   return (
-    <div className="App">
+    <AuthProvider>
+      <Toaster position="top-right" richColors />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Home />}>
-            <Route index element={<Home />} />
+          <Route path="/" element={<Root />} />
+          <Route path="/login" element={<Login />} />
+          <Route
+            path="/tabellone"
+            element={
+              <Protected>
+                <DriverView />
+              </Protected>
+            }
+          />
+          <Route
+            element={
+              <Protected role="admin">
+                <Layout />
+              </Protected>
+            }
+          >
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/autisti" element={<Drivers />} />
+            <Route path="/mezzi" element={<Fleet />} />
+            <Route path="/giri" element={<RoutesPage />} />
+            <Route path="/formazioni" element={<SkillMatrix />} />
           </Route>
         </Routes>
       </BrowserRouter>
-    </div>
+    </AuthProvider>
   );
 }
 

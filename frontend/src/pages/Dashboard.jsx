@@ -1,0 +1,164 @@
+import { useEffect, useState, useCallback } from "react";
+import api, { apiError } from "../lib/api";
+import { weekKey, weekLabel, shiftWeek } from "../lib/dates";
+import ScheduleBoard from "../components/ScheduleBoard";
+import SubstitutionModal from "../components/SubstitutionModal";
+import { Button } from "../components/ui/button";
+import { toast } from "sonner";
+import { ChevronLeft, ChevronRight, Sparkles, CheckCircle2, AlertTriangle, CalendarDays } from "lucide-react";
+
+export default function Dashboard() {
+  const [ref, setRef] = useState(new Date());
+  const [shifts, setShifts] = useState([]);
+  const [routes, setRoutes] = useState([]);
+  const [vehicles, setVehicles] = useState([]);
+  const [drivers, setDrivers] = useState([]);
+  const [generating, setGenerating] = useState(false);
+  const [selected, setSelected] = useState(null);
+  const [modalOpen, setModalOpen] = useState(false);
+
+  const wk = weekKey(ref);
+
+  const loadBase = useCallback(async () => {
+    const [r, v, d] = await Promise.all([api.get("/routes"), api.get("/vehicles"), api.get("/drivers")]);
+    setRoutes(r.data);
+    setVehicles(v.data);
+    setDrivers(d.data);
+  }, []);
+
+  const loadShifts = useCallback(async () => {
+    const { data } = await api.get(`/shifts?week_start=${wk}`);
+    setShifts(data);
+  }, [wk]);
+
+  useEffect(() => {
+    loadBase();
+  }, [loadBase]);
+  useEffect(() => {
+    loadShifts();
+  }, [loadShifts]);
+
+  const generate = async () => {
+    setGenerating(true);
+    try {
+      const { data } = await api.post("/shifts/generate", { week_start: wk });
+      await loadShifts();
+      toast.success(`Turni generati: ${data.covered}/${data.total} coperti`, {
+        description: data.uncovered ? `${data.uncovered} turni scoperti da assegnare manualmente.` : "Copertura completa!",
+      });
+    } catch (e) {
+      toast.error(apiError(e.response?.data?.detail));
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const openCell = (shift) => {
+    setSelected(shift);
+    setModalOpen(true);
+  };
+
+  const vehicleById = Object.fromEntries(vehicles.map((v) => [v.id, v]));
+  const total = shifts.length;
+  const covered = shifts.filter((s) => s.driver_id).length;
+  const uncovered = total - covered;
+
+  return (
+    <div className="space-y-6">
+      {/* header */}
+      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
+        <div>
+          <div className="overline text-primary mb-1">Pianificazione settimanale</div>
+          <h1 className="font-head font-black text-3xl sm:text-4xl tracking-tighter">Tabellone turni</h1>
+        </div>
+        <Button
+          data-testid="generate-shifts-btn"
+          onClick={generate}
+          disabled={generating}
+          className="rounded-sm bg-primary hover:bg-primary/90 font-semibold h-11 px-5"
+        >
+          <Sparkles size={17} className={`mr-2 ${generating ? "animate-pulse" : ""}`} />
+          {generating ? "Generazione in corso…" : "Genera Turni"}
+        </Button>
+      </div>
+
+      {/* controls + stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+        <div className="md:col-span-2 border border-border bg-card rounded-sm p-3 flex items-center justify-between">
+          <button
+            data-testid="prev-week-btn"
+            onClick={() => setRef(shiftWeek(ref, -1))}
+            className="h-9 w-9 flex items-center justify-center border border-border rounded-sm hover:bg-secondary transition-colors duration-150"
+          >
+            <ChevronLeft size={18} />
+          </button>
+          <div className="text-center">
+            <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+              <CalendarDays size={13} /> <span className="overline">Settimana</span>
+            </div>
+            <div className="font-head font-bold text-sm mt-0.5" data-testid="week-label">{weekLabel(ref)}</div>
+          </div>
+          <button
+            data-testid="next-week-btn"
+            onClick={() => setRef(shiftWeek(ref, 1))}
+            className="h-9 w-9 flex items-center justify-center border border-border rounded-sm hover:bg-secondary transition-colors duration-150"
+          >
+            <ChevronRight size={18} />
+          </button>
+        </div>
+        <Stat icon={CheckCircle2} label="Turni coperti" value={covered} total={total} tone="ok" tid="stat-covered" />
+        <Stat icon={AlertTriangle} label="Turni scoperti" value={uncovered} total={total} tone={uncovered ? "bad" : "ok"} tid="stat-uncovered" />
+      </div>
+
+      {total === 0 ? (
+        <div className="border border-dashed border-border rounded-sm p-12 text-center bg-card">
+          <Sparkles size={28} className="mx-auto text-primary mb-3" />
+          <div className="font-head font-bold text-lg">Nessun turno per questa settimana</div>
+          <p className="text-sm text-muted-foreground mt-1 mb-5">
+            Avvia il motore di assegnazione automatica per pianificare i giri di raccolta.
+          </p>
+          <Button data-testid="generate-empty-btn" onClick={generate} disabled={generating} className="rounded-sm bg-primary hover:bg-primary/90 font-semibold">
+            <Sparkles size={16} className="mr-2" /> Genera Turni
+          </Button>
+        </div>
+      ) : (
+        <ScheduleBoard
+          shifts={shifts}
+          routes={routes}
+          vehicles={vehicles}
+          drivers={drivers}
+          editable
+          onCellClick={openCell}
+        />
+      )}
+
+      <p className="text-xs text-muted-foreground">
+        Clicca su un turno per sostituire l'autista, gestire un'assenza o coprire un turno scoperto.
+      </p>
+
+      <SubstitutionModal
+        shift={selected}
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onChanged={loadShifts}
+        vehicleById={vehicleById}
+      />
+    </div>
+  );
+}
+
+function Stat({ icon: Icon, label, value, total, tone, tid }) {
+  return (
+    <div className="border border-border bg-card rounded-sm p-3" data-testid={tid}>
+      <div className="flex items-center gap-1.5 overline text-muted-foreground">
+        <Icon size={13} className={tone === "bad" ? "text-destructive" : "text-primary"} /> {label}
+      </div>
+      <div className="mt-1 flex items-baseline gap-1.5">
+        <span className={`font-head font-black text-3xl tracking-tighter ${tone === "bad" ? "text-destructive" : "text-foreground"}`}>
+          {value}
+        </span>
+        <span className="text-sm text-muted-foreground font-mono">/ {total}</span>
+      </div>
+    </div>
+  );
+}
