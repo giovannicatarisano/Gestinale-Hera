@@ -1,0 +1,134 @@
+{
+  "theme": "light_dark_toggle",
+  "typography": {
+    "headings": {
+      "family": "Chivo, sans-serif",
+      "weights": ["400", "700", "900"],
+      "usage": "Headers, main numerical stats, shift titles."
+    },
+    "body": {
+      "family": "IBM Plex Sans, sans-serif",
+      "weights": ["400", "500", "600"],
+      "usage": "Schedule tables, driver names, tooltips, secondary data."
+    },
+    "mono": {
+      "family": "IBM Plex Mono, monospace",
+      "weights": ["400"],
+      "usage": "Time codes (e.g., 05:30 - 11:50), vehicle license plates, ID numbers, driver skill tags."
+    },
+    "rules": [
+      "Use tracking-tighter for massive headings (H1/H2).",
+      "Use uppercase with tracking-[0.2em] for overlines and shift labels.",
+      "Never use Inter or standard system fonts."
+    ]
+  },
+  "colors": {
+    "archetype": "Swiss & High-Contrast (Archetype 4) merged with HERA Corporate Identity",
+    "primary": {
+      "name": "HERA Environment Green",
+      "hex": "#00A65A",
+      "tailwind": "emerald-600",
+      "usage": "Primary CTAs (Generate Shifts), active state indicators, completed assignments."
+    },
+    "secondary": {
+      "name": "HERA Energy Magenta",
+      "hex": "#E6007E",
+      "tailwind": "pink-600",
+      "usage": "Micro-accents, special priority markers (sparingly)."
+    },
+    "background": {
+      "light": "#F8F9FA",
+      "dark": "#0A0A0A"
+    },
+    "surface": {
+      "light": "#FFFFFF",
+      "dark": "#121212"
+    },
+    "status": {
+      "conflict": "#FF3B30",
+      "warning": "#FF9500",
+      "success": "#00A65A"
+    },
+    "rules": [
+      "Color is Function Only. 90% of the UI should be monochrome.",
+      "Avoid teal green (#1B93A4) completely.",
+      "Never use pure black or pure white without a subtle tint or border separation.",
+      "Use Signal Red (#FF3B30) specifically for uncovered shifts or overlapping conflicts."
+    ]
+  },
+  "visual_enhancers": {
+    "surface_strategy": "Grid Borders (Technical Look). Expose the skeleton. Heavy use of 1px borders (border-border/40) everywhere. No soft drop shadows.",
+    "glassmorphism": "Use 'Crystal Glass' ONLY for the Smart Substitution Modal overlay and Sticky Header. backdrop-blur-xl, bg-black/60 (dark mode) or bg-white/70 (light mode) with a 1px delicate inner stroke.",
+    "borders": "Square or extremely sharp corners. Max border-radius: rounded-sm (2px). Never use fully rounded pills for standard data.",
+    "textures": "Subtle noise overlay (opacity-5) on the main app background to remove digital flatness."
+  },
+  "grids_and_layouts": {
+    "dashboard_bento": "High Density Grid. grid-cols-1 md:grid-cols-12 tight gap (gap-px or gap-4).",
+    "schedule_matrix": "7-column grid for days of the week. Inside each day, 3 stacked rows for the 3 shifts (Morning Early, Morning Std, Afternoon).",
+    "rules": [
+      "Use 'border-collapse' style layouts for tables.",
+      "Every pixel must be utilized in the schedule grid. Use h-full to stretch children.",
+      "Ensure ample padding (p-4 or p-6) within modal containers."
+    ]
+  },
+  "motion": {
+    "interactions": "Hover: Slight background darkening (hover:bg-slate-100 dark:hover:bg-zinc-800). No scaling (no hover:-translate-y-1) for technical data.",
+    "transitions": "transition-colors duration-150 ease-out. Never use 'transition: all'.",
+    "modals": "Smart Substitution Modal must slide up from the bottom (framer-motion y: 50 -> 0) with a quick spring effect."
+  },
+  "component_instructions": {
+    "schedule_board": "The core UI. Use a CSS Grid (7 cols) or horizontal scroll on mobile. Each cell represents a day. Inside, stack 3 blocks (Mattino Presto, Mattino Standard, Pomeriggio). If a block is understaffed (e.g., Presto needs 3, has 2), highlight with a dashed red border and a 'Missing' badge.",
+    "smart_substitution_modal": "A side-drawer or center modal (Crystal Glass). Contains a list of drivers. MUST filter/sort by: Skill match (driver can drive the specific truck/route) and Availability (not already scheduled that day).",
+    "skill_matrix": "A dense table using Shadcn Table. Rows: Drivers. Columns: Vehicles & Routes. Cells: Custom Checkbox (Shadcn Checkbox customized with HERA Green).",
+    "driver_view": "Mobile-first approach. Read-only. Stacked cards showing their specific shifts for the next 7 days, highlighting today's/tomorrow's shift. Large typography for time codes.",
+    "buttons": "Sharp edges, 1px border. Primary button 'Genera Turni' uses HERA Green. Secondary buttons use transparent background with border."
+  },
+  "accessibility": {
+    "contrast": "Ensure IBM Plex Sans text on HERA Green primary buttons has sufficient contrast (use white text).",
+    "focus": "focus:ring-2 focus:ring-emerald-500 focus:outline-none focus:ring-offset-1.",
+    "aria": "Use aria-live='polite' for the auto-scheduling engine completion toast.",
+    "testing": "All interactive elements MUST have data-testid attributes (e.g., data-testid='generate-shifts-btn', data-testid='driver-skill-checkbox')."
+  },
+  "media": {
+    "image_urls": [
+      {
+        "url": "https://images.unsplash.com/photo-1633665503034-78f3628a86e7?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzB8MHwxfHNlYXJjaHwxfHxwb3J0cmFpdCUyMHRydWNrJTIwZHJpdmVyJTIwbWFsZXxlbnwwfHx8fDE3ODM4NjYyNTd8MA&ixlib=rb-4.1.0&q=85",
+        "category": "driver_avatar",
+        "description": "Avatar for a male truck driver in the Driver Management and Smart Substitute lists."
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1505165697550-710e168b709d?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzB8MHwxfHNlYXJjaHwyfHxwb3J0cmFpdCUyMHRydWNrJTIwZHJpdmVyJTIwbWFsZXxlbnwwfHx8fDE3ODM4NjYyNTd8MA&ixlib=rb-4.1.0&q=85",
+        "category": "driver_avatar",
+        "description": "Alternative avatar for driver management list."
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1618582948377-cd7eb0e8cb14?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA4Mzl8MHwxfHNlYXJjaHwxfHxjb21tZXJjaWFsJTIwdHJ1Y2slMjB0cmFuc3BvcnQlMjBoaWdod2F5fGVufDB8fHx8MTc4Mzg2NjI1Mnww&ixlib=rb-4.1.0&q=85",
+        "category": "background",
+        "description": "Subtle, dark-overlaid background for the Admin/Driver Login Page."
+      }
+    ]
+  },
+  "libraries": {
+    "icons": "@phosphor-icons/react (best for dense dashboards)",
+    "toasts": "sonner",
+    "date_handling": "date-fns",
+    "components": "shadcn/ui primitives heavily customized (NOTE: Use JavaScript .js / .jsx, do not use TypeScript .tsx)"
+  },
+  "instructions_to_main_agent": [
+    "Do not use generic SaaS styling. This is an industrial/enterprise tool for Hera S.p.A. The design should reflect precision and industrial utility.",
+    "Use Phosphor Icons for all iconography. Provide installation command if not present.",
+    "Enforce 'Grid Borders' style: data tables and schedules should look like Excel or a technical schematic (1px solid lines, no padding between structural sections, highly dense).",
+    "Smart Substitution Modal: when rendering driver options, clearly display matching 'Skills' as small mono-font tags.",
+    "Never use placehold.it or standard gray avatars. Use the provided image_urls or build initial-based avatars with HERA Green backgrounds.",
+    "For the Schedule Board, layout exactly 3 shifts per day: Mattino Presto (05:30-11:50, max 3 drivers), Mattino Standard (06:00-12:20), Pomeriggio (12:30-18:50). Build the logic to enforce the max 3 drivers for Mattino Presto.",
+    "Ensure the entire application uses React Javascript (.jsx/.js files), as no TS configuration is expected unless explicitly configured."
+  ],
+  "UNIVERSAL_GUIDELINES_FOR_MAIN_AGENT": [
+    "You MUST NOT apply universal transition (e.g., transition: all).",
+    "You MUST NOT center align the app container (.App { text-align: center; }).",
+    "Always use crisp, sharp button styles with interaction animations & HERA Green.",
+    "NEVER use AI assistant Emoji characters (🤖🧠💭💡🔮🎯) for icons.",
+    "Every interaction needs micro-animations (hover states, focus rings).",
+    "Use sonner for toasts (located in /app/src/components/ui/sonner.js)."
+  ]
+}
