@@ -1,10 +1,11 @@
 import { DAY_LABELS, DAY_FULL, SLOT_ORDER, initials } from "../lib/dates";
-import { AlertTriangle, Clock } from "lucide-react";
+import { AlertTriangle, Clock, Lock, RotateCcw } from "lucide-react";
 
 const SLOT_META = {
   presto: { label: "Mattino Presto", time: "05:30 – 11:50", max: 3 },
   standard: { label: "Mattino Standard", time: "06:00 – 12:20", max: null },
   pomeriggio: { label: "Pomeriggio", time: "12:30 – 18:50", max: null },
+  domenica: { label: "Turno Domenica", time: "06:00 – 12:20", max: 3 },
 };
 
 export default function ScheduleBoard({
@@ -45,7 +46,9 @@ export default function ScheduleBoard({
         </div>
 
         {/* slot rows */}
-        {SLOT_ORDER.map((slot) => {
+        {SLOT_ORDER.filter(
+          (slot) => slot !== "domenica" || shifts.some((s) => s.slot === "domenica")
+        ).map((slot) => {
           const meta = SLOT_META[slot];
           return (
             <div
@@ -81,6 +84,7 @@ export default function ScheduleBoard({
                       const drv = s.driver_id ? driverById[s.driver_id] : null;
                       const uncovered = !s.driver_id;
                       const mine = highlightDriverId && s.driver_id === highlightDriverId;
+                      const recovered = s.status === "recovered";
                       return (
                         <button
                           key={s.id}
@@ -89,7 +93,9 @@ export default function ScheduleBoard({
                           disabled={!editable}
                           onClick={() => editable && onCellClick?.(s)}
                           className={`w-full text-left rounded-sm border p-2 transition-colors duration-150 ${
-                            uncovered
+                            recovered
+                              ? "border-border bg-secondary/30 opacity-60"
+                              : uncovered
                               ? "border-dashed border-destructive bg-destructive/5 hover:bg-destructive/10"
                               : mine
                               ? "border-primary bg-primary/10"
@@ -97,7 +103,9 @@ export default function ScheduleBoard({
                           } ${editable ? "cursor-pointer" : "cursor-default"}`}
                         >
                           <div className="flex items-center justify-between gap-1">
-                            <span className="font-mono text-[10px] font-semibold text-muted-foreground truncate">
+                            <span className="font-mono text-[10px] font-semibold text-muted-foreground truncate flex items-center gap-1">
+                              {s.pinned && <Lock size={9} className="text-primary shrink-0" />}
+                              {s.recovery && <RotateCcw size={9} className="text-primary shrink-0" />}
                               {route?.code}
                             </span>
                             {veh && (
@@ -110,9 +118,13 @@ export default function ScheduleBoard({
                             {route?.name}
                           </div>
                           <div className="mt-1.5">
-                            {uncovered ? (
+                            {recovered ? (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-muted-foreground">
+                                <RotateCcw size={11} /> RIPROGRAMMATO
+                              </span>
+                            ) : uncovered ? (
                               <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-destructive">
-                                <AlertTriangle size={11} /> SCOPERTO
+                                <AlertTriangle size={11} /> SCOPERTO · DA RECUPERARE
                               </span>
                             ) : (
                               <span className="inline-flex items-center gap-1.5">

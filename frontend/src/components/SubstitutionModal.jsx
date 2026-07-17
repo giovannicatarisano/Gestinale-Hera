@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import api, { apiError } from "../lib/api";
 import { initials } from "../lib/dates";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "./ui/dialog";
 import { Button } from "./ui/button";
 import { toast } from "sonner";
-import { Check, X, UserX, Truck, Route as RouteIcon, ShieldCheck, ShieldAlert } from "lucide-react";
+import { Check, X, UserX, Truck, Route as RouteIcon, ShieldCheck, ShieldAlert, RotateCcw } from "lucide-react";
 
 export default function SubstitutionModal({ shift, open, onClose, onChanged, vehicleById }) {
   const [data, setData] = useState(null);
@@ -43,6 +43,19 @@ export default function SubstitutionModal({ shift, open, onClose, onChanged, veh
     }
   };
 
+  const recover = async () => {
+    try {
+      const { data } = await api.post(`/shifts/${shift.id}/recover`);
+      toast.success(
+        data.driver_id ? "Giro riprogrammato e assegnato al giorno successivo" : "Giro riprogrammato · da coprire"
+      );
+      onChanged?.();
+      onClose();
+    } catch (e) {
+      toast.error(apiError(e.response?.data?.detail));
+    }
+  };
+
   const route = data?.route;
   const veh = route ? vehicleById?.[route.vehicle_id] : null;
 
@@ -53,6 +66,9 @@ export default function SubstitutionModal({ shift, open, onClose, onChanged, veh
           <DialogTitle className="font-head font-black tracking-tight text-xl">
             Sostituzione turno
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            Seleziona un autista sostituto disponibile e abilitato per questo turno.
+          </DialogDescription>
           {route && (
             <div className="mt-2 space-y-1.5">
               <div className="text-sm font-semibold">{route.name}</div>
@@ -75,6 +91,17 @@ export default function SubstitutionModal({ shift, open, onClose, onChanged, veh
               className="w-full mb-4 rounded-sm border-destructive/50 text-destructive hover:bg-destructive/10"
             >
               <UserX size={16} className="mr-2" /> Segna assenza / Libera turno
+            </Button>
+          )}
+
+          {!shift?.driver_id && shift?.status !== "recovered" && (
+            <Button
+              variant="outline"
+              data-testid="recover-btn"
+              onClick={recover}
+              className="w-full mb-4 rounded-sm border-primary/50 text-primary hover:bg-primary/10"
+            >
+              <RotateCcw size={16} className="mr-2" /> Recupera al giorno successivo
             </Button>
           )}
 

@@ -39,6 +39,7 @@ SHIFT_SLOTS = {
     "presto": {"label": "Mattino Presto", "start": "05:30", "end": "11:50", "max_drivers": 3},
     "standard": {"label": "Mattino Standard", "start": "06:00", "end": "12:20", "max_drivers": None},
     "pomeriggio": {"label": "Pomeriggio", "start": "12:30", "end": "18:50", "max_drivers": None},
+    "domenica": {"label": "Turno Domenica", "start": "06:00", "end": "12:20", "max_drivers": 3},
 }
 DAYS = ["Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato", "Domenica"]
 
@@ -120,7 +121,11 @@ class Route(BaseModel):
     zone: str = ""
     vehicle_id: str
     slot: str
+    schedule_mode: str = "fixed"  # "fixed" | "frequency"
     days: List[int] = []
+    interval_days: int = 2
+    start_date: Optional[str] = None
+    pinned: bool = False
 
 
 class RouteInput(BaseModel):
@@ -129,7 +134,11 @@ class RouteInput(BaseModel):
     zone: str = ""
     vehicle_id: str
     slot: str
+    schedule_mode: str = "fixed"
     days: List[int] = []
+    interval_days: int = 2
+    start_date: Optional[str] = None
+    pinned: bool = False
 
 
 class Driver(BaseModel):
@@ -289,6 +298,33 @@ async def _driver_can(driver: dict, route: dict) -> bool:
     return route["vehicle_id"] in driver.get("vehicle_skills", []) and route["id"] in driver.get("route_skills", [])
 
 
+def route_days_for_week(route: dict, week_start: str) -> list:
+    """Compute weekday indexes (0=Mon..6=Sun) a route runs in the given week."""
+    slot = route.get("slot")
+    allowed = [6] if slot == "domenica" else [0, 1, 2, 3, 4, 5]
+    if route.get("schedule_mode") == "frequency":
+        interval = max(1, int(route.get("interval_days") or 1))
+        monday = datetime.strptime(week_start, "%Y-%m-%d").date()
+        start_d = None
+        if route.get("start_date"):
+            try:
+                start_d = datetime.strptime(route["start_date"], "%Y-%m-%d").date()
+            except ValueError:
+                start_d = None
+        res = []
+        for i in range(7):
+            if i not in allowed:
+                continue
+            d = monday + timedelta(days=i)
+            if start_d is None:
+                if i % interval == 0:
+                    res.append(i)
+            elif d >= start_d and (d - start_d).days % interval == 0:
+                res.append(i)
+        return res
+    return [d for d in route.get("days", []) if d in allowed]
+
+
 @api_router.post("/shifts/generate")
 async def generate_shifts(data: GenerateInput, user: dict = Depends(require_admin)):
     week_start = data.week_start
@@ -299,21 +335,23 @@ async def generate_shifts(data: GenerateInput, user: dict = Depends(require_admi
 
     week_load = {d["id"]: 0 for d in drivers}
     day_taken = {}            # (day, driver_id) -> True
-    presto_count = {}         # day -> int
+    cap_count = {}            # (day, slot) -> int   (for capped slots)
     shifts = []
 
-    # deterministic: process presto first (tightest constraint), then standard, pomeriggio
-    slot_order = ["presto", "standard", "pomeriggio"]
-    ordered = sorted(routes, key=lambda r: slot_order.index(r["slot"]) if r["slot"] in slot_order else 9)
+    # pinned first, then tightest slots (capped) first
+    slot_order = ["presto", "domenica", "standard", "pomeriggio"]
 
-    for route in ordered:
-        for day in sorted(route.get("days", [])):
-            slot = route["slot"]
+    def sort_key(r):
+        s = slot_order.index(r["slot"]) if r["slot"] in slot_order else 9
+        return (not r.get("pinned", False), s)
+
+    for route in sorted(routes, key=sort_key):
+        slot = route["slot"]
+        max_d = SHIFT_SLOTS.get(slot, {}).get("max_drivers")
+        for day in route_days_for_week(route, week_start):
             assigned = None
-            max_d = SHIFT_SLOTS.get(slot, {}).get("max_drivers")
-            presto_full = slot == "presto" and max_d is not None and presto_count.get(day, 0) >= max_d
-
-            if not presto_full:
+            slot_full = max_d is not None and cap_count.get((day, slot), 0) >= max_d
+            if not slot_full:
                 candidates = [
                     d for d in drivers
                     if await _driver_can(d, route) and not day_taken.get((day, d["id"]))
@@ -331,18 +369,62 @@ async def generate_shifts(data: GenerateInput, user: dict = Depends(require_admi
                 "vehicle_id": route["vehicle_id"],
                 "driver_id": assigned["id"] if assigned else None,
                 "status": "assigned" if assigned else "uncovered",
+                "pinned": route.get("pinned", False),
+                "recovery": False,
             }
             shifts.append(shift)
             if assigned:
                 week_load[assigned["id"]] += 1
                 day_taken[(day, assigned["id"])] = True
-                if slot == "presto":
-                    presto_count[day] = presto_count.get(day, 0) + 1
+                if max_d is not None:
+                    cap_count[(day, slot)] = cap_count.get((day, slot), 0) + 1
 
     if shifts:
         await db.shifts.insert_many(shifts)
     covered = len([s for s in shifts if s["driver_id"]])
     return {"total": len(shifts), "covered": covered, "uncovered": len(shifts) - covered}
+
+
+@api_router.post("/shifts/{sid}/recover")
+async def recover_shift(sid: str, user: dict = Depends(require_admin)):
+    """Re-propose a skipped/uncovered route on the next available day."""
+    shift = await db.shifts.find_one({"id": sid}, {"_id": 0})
+    if not shift:
+        raise HTTPException(status_code=404, detail="Turno non trovato")
+    route = await db.routes.find_one({"id": shift["route_id"]}, {"_id": 0})
+    slot = shift["slot"]
+    next_day = min(shift["day"] + 1, 6)
+    if slot == "domenica":
+        next_day = 6
+
+    drivers = [d for d in await db.drivers.find({}, {"_id": 0}).to_list(1000) if d.get("active", True)]
+    day_shifts = await db.shifts.find({"week_start": shift["week_start"], "day": next_day}, {"_id": 0}).to_list(5000)
+    busy = {s["driver_id"] for s in day_shifts if s["driver_id"]}
+    max_d = SHIFT_SLOTS.get(slot, {}).get("max_drivers")
+    cap = len([s for s in day_shifts if s["slot"] == slot and s["driver_id"]])
+
+    assigned = None
+    if not (max_d is not None and cap >= max_d):
+        cands = [d for d in drivers if route and await _driver_can(d, route) and d["id"] not in busy]
+        if cands:
+            assigned = cands[0]
+
+    new_shift = {
+        "id": str(uuid.uuid4()),
+        "week_start": shift["week_start"],
+        "day": next_day,
+        "slot": slot,
+        "route_id": shift["route_id"],
+        "vehicle_id": shift["vehicle_id"],
+        "driver_id": assigned["id"] if assigned else None,
+        "status": "assigned" if assigned else "uncovered",
+        "pinned": shift.get("pinned", False),
+        "recovery": True,
+    }
+    await db.shifts.insert_one(new_shift)
+    await db.shifts.update_one({"id": sid}, {"$set": {"status": "recovered"}})
+    new_shift.pop("_id", None)
+    return new_shift
 
 
 @api_router.get("/shifts/{sid}/substitutes")
@@ -485,10 +567,49 @@ async def seed():
     })
 
 
+async def ensure_extras():
+    """Idempotent: add Sunday (domenica) routes + a frequency example to existing demo data."""
+    vehicles = await db.vehicles.find({}, {"_id": 0}).to_list(100)
+    if not vehicles:
+        return
+    vname = {v["name"]: v["id"] for v in vehicles}
+
+    if await db.routes.count_documents({"slot": "domenica"}) == 0:
+        sunday_routes = [
+            {"id": str(uuid.uuid4()), "name": "Centro - Raccolta Domenicale", "code": "DOM-CEN", "zone": "Centro", "vehicle_id": vname.get("Compattatore Piccolo"), "slot": "domenica", "schedule_mode": "fixed", "days": [6], "interval_days": 2, "start_date": None, "pinned": True},
+            {"id": str(uuid.uuid4()), "name": "Mercati - Raccolta Domenicale", "code": "DOM-MER", "zone": "Centro", "vehicle_id": vname.get("Compattatore Grande"), "slot": "domenica", "schedule_mode": "fixed", "days": [6], "interval_days": 2, "start_date": None, "pinned": True},
+            {"id": str(uuid.uuid4()), "name": "Lungomare - Raccolta Domenicale", "code": "DOM-LUN", "zone": "Mare", "vehicle_id": vname.get("Compattatore Piccolo"), "slot": "domenica", "schedule_mode": "fixed", "days": [6], "interval_days": 2, "start_date": None, "pinned": True},
+        ]
+        await db.routes.insert_many([dict(r) for r in sunday_routes])
+        sunday_ids = [r["id"] for r in sunday_routes]
+        sunday_vehicles = list({r["vehicle_id"] for r in sunday_routes})
+        # grant Sunday skills to the first 4 active drivers
+        drivers = await db.drivers.find({}, {"_id": 0}).to_list(100)
+        for d in drivers[:4]:
+            v = list(set(d.get("vehicle_skills", []) + sunday_vehicles))
+            r = list(set(d.get("route_skills", []) + sunday_ids))
+            await db.drivers.update_one({"id": d["id"]}, {"$set": {"vehicle_skills": v, "route_skills": r}})
+
+    if await db.routes.count_documents({"schedule_mode": "frequency"}) == 0:
+        drivers = await db.drivers.find({}, {"_id": 0}).to_list(100)
+        freq = {
+            "id": str(uuid.uuid4()), "name": "Isole Ecologiche - Ciclo", "code": "IS-ECO", "zone": "Città",
+            "vehicle_id": vname.get("Vasca Scarrabile"), "slot": "standard",
+            "schedule_mode": "frequency", "days": [], "interval_days": 3,
+            "start_date": None, "pinned": False,
+        }
+        await db.routes.insert_one(dict(freq))
+        for d in drivers[:3]:
+            v = list(set(d.get("vehicle_skills", []) + [freq["vehicle_id"]]))
+            r = list(set(d.get("route_skills", []) + [freq["id"]]))
+            await db.drivers.update_one({"id": d["id"]}, {"$set": {"vehicle_skills": v, "route_skills": r}})
+
+
 @app.on_event("startup")
 async def on_startup():
     await db.users.create_index("email", unique=True)
     await seed()
+    await ensure_extras()
 
 
 app.include_router(api_router)

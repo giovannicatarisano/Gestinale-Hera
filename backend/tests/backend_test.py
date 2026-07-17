@@ -212,3 +212,149 @@ class TestSubstitution:
         r3 = requests.patch(f"{BASE_URL}/api/shifts/{sid}", json={"status": "absence"}, headers=H(admin_token))
         assert r3.status_code == 200
         assert r3.json()["driver_id"] is None
+
+
+# -------- New: Domenica slot + max 3 --------
+class TestDomenicaSlot:
+    def test_slots_meta_has_domenica(self, admin_token):
+        r = requests.get(f"{BASE_URL}/api/meta/slots", headers=H(admin_token))
+        assert r.status_code == 200
+        data = r.json()
+        assert "domenica" in data["slots"]
+        assert data["slots"]["domenica"]["max_drivers"] == 3
+
+    def test_sunday_pinned_routes_seeded(self, admin_token):
+        r = requests.get(f"{BASE_URL}/api/routes", headers=H(admin_token))
+        assert r.status_code == 200
+        codes = {x["code"]: x for x in r.json()}
+        for c in ("DOM-CEN", "DOM-MER", "DOM-LUN"):
+            assert c in codes, f"Missing pinned Sunday route {c}"
+            assert codes[c]["pinned"] is True
+            assert codes[c]["slot"] == "domenica"
+            assert codes[c]["days"] == [6]
+
+    def test_frequency_route_seeded(self, admin_token):
+        r = requests.get(f"{BASE_URL}/api/routes", headers=H(admin_token))
+        rts = {x["code"]: x for x in r.json()}
+        assert "IS-ECO" in rts
+        iseco = rts["IS-ECO"]
+        assert iseco["schedule_mode"] == "frequency"
+        assert iseco["interval_days"] == 3
+        assert iseco["slot"] == "standard"
+
+
+# -------- New: Generate week 2026-06-01 (Monday) --------
+class TestGenerateSpecificWeek:
+    WK = "2026-06-01"
+
+    def test_generate_and_domenica_and_frequency(self, admin_token):
+        r = requests.post(f"{BASE_URL}/api/shifts/generate", json={"week_start": self.WK}, headers=H(admin_token))
+        assert r.status_code == 200, r.text
+        shifts = requests.get(f"{BASE_URL}/api/shifts?week_start={self.WK}", headers=H(admin_token)).json()
+        assert shifts
+
+        # Domenica: exactly 3 shifts, all on day=6
+        dom = [s for s in shifts if s["slot"] == "domenica"]
+        assert len(dom) == 3, f"Expected 3 domenica shifts, got {len(dom)}"
+        assert all(s["day"] == 6 for s in dom), "Domenica shift not on day 6"
+        assert all(s.get("pinned") is True for s in dom), "Sunday routes should be pinned"
+
+        # Presto max 3/day (assigned)
+        per_day = {}
+        for s in shifts:
+            if s["slot"] == "presto" and s["driver_id"]:
+                per_day[s["day"]] = per_day.get(s["day"], 0) + 1
+        for day, cnt in per_day.items():
+            assert cnt <= 3, f"Presto day {day} has {cnt} > 3"
+
+        # Domenica max 3 assigned on day 6
+        dom_assigned = [s for s in dom if s["driver_id"]]
+        assert len(dom_assigned) <= 3
+
+        # Frequency IS-ECO: 2026-06-01 is Monday; interval=3 no start_date => days 0, 3 (Mon, Thu)
+        routes = requests.get(f"{BASE_URL}/api/routes", headers=H(admin_token)).json()
+        iseco_id = next(r["id"] for r in routes if r["code"] == "IS-ECO")
+        iseco_shifts = sorted({s["day"] for s in shifts if s["route_id"] == iseco_id})
+        assert iseco_shifts == [0, 3], f"IS-ECO expected days [0,3] got {iseco_shifts}"
+
+
+# -------- New: Recovery flow --------
+class TestRecovery:
+    WK = "2026-06-01"
+
+    def _find_uncovered(self, admin_token):
+        # Force generate then find an uncovered non-Sunday shift with day < 6
+        requests.post(f"{BASE_URL}/api/shifts/generate", json={"week_start": self.WK}, headers=H(admin_token))
+        shifts = requests.get(f"{BASE_URL}/api/shifts?week_start={self.WK}", headers=H(admin_token)).json()
+        # find any uncovered
+        for s in shifts:
+            if not s["driver_id"] and s["status"] == "uncovered" and s["day"] < 6:
+                return s
+        # if none uncovered, force one by marking absence
+        target = next((s for s in shifts if s["driver_id"] and s["day"] < 6), None)
+        if not target:
+            pytest.skip("No shift to test recovery")
+        requests.patch(f"{BASE_URL}/api/shifts/{target['id']}", json={"status": "absence"}, headers=H(admin_token))
+        return requests.get(f"{BASE_URL}/api/shifts?week_start={self.WK}", headers=H(admin_token)).json()
+        # Actually just refetch and return that one
+    def test_recover_creates_makeup(self, admin_token):
+        requests.post(f"{BASE_URL}/api/shifts/generate", json={"week_start": self.WK}, headers=H(admin_token))
+        shifts = requests.get(f"{BASE_URL}/api/shifts?week_start={self.WK}", headers=H(admin_token)).json()
+        target = next((s for s in shifts if not s["driver_id"] and s["day"] < 6), None)
+        if not target:
+            # force one absence
+            cand = next(s for s in shifts if s["driver_id"] and s["day"] < 6)
+            requests.patch(f"{BASE_URL}/api/shifts/{cand['id']}", json={"status": "absence"}, headers=H(admin_token))
+            target = requests.get(f"{BASE_URL}/api/shifts?week_start={self.WK}", headers=H(admin_token)).json()
+            target = next(s for s in target if s["id"] == cand["id"])
+
+        r = requests.post(f"{BASE_URL}/api/shifts/{target['id']}/recover", headers=H(admin_token))
+        assert r.status_code == 200, r.text
+        makeup = r.json()
+        assert makeup["recovery"] is True
+        assert makeup["route_id"] == target["route_id"]
+        assert makeup["day"] == min(target["day"] + 1, 6)
+        assert makeup["id"] != target["id"]
+
+        # Verify original marked recovered
+        shifts2 = requests.get(f"{BASE_URL}/api/shifts?week_start={self.WK}", headers=H(admin_token)).json()
+        orig = next(s for s in shifts2 if s["id"] == target["id"])
+        assert orig["status"] == "recovered"
+
+        # Verify makeup exists in list
+        assert any(s["id"] == makeup["id"] and s["recovery"] is True for s in shifts2)
+
+
+# -------- New: Route CRUD with frequency + domenica + pinned --------
+class TestRouteExtras:
+    def test_create_frequency_route(self, admin_token):
+        veh = requests.get(f"{BASE_URL}/api/vehicles", headers=H(admin_token)).json()
+        payload = {
+            "name": "TEST_Freq Route", "code": "TST-FR", "zone": "TZ",
+            "vehicle_id": veh[0]["id"], "slot": "standard",
+            "schedule_mode": "frequency", "days": [], "interval_days": 4,
+            "start_date": "2026-06-01", "pinned": False,
+        }
+        r = requests.post(f"{BASE_URL}/api/routes", json=payload, headers=H(admin_token))
+        assert r.status_code == 200
+        data = r.json()
+        assert data["schedule_mode"] == "frequency"
+        assert data["interval_days"] == 4
+        assert data["start_date"] == "2026-06-01"
+        requests.delete(f"{BASE_URL}/api/routes/{data['id']}", headers=H(admin_token))
+
+    def test_create_domenica_pinned_route(self, admin_token):
+        veh = requests.get(f"{BASE_URL}/api/vehicles", headers=H(admin_token)).json()
+        payload = {
+            "name": "TEST_Dom", "code": "TST-DOM", "zone": "Z",
+            "vehicle_id": veh[0]["id"], "slot": "domenica",
+            "schedule_mode": "fixed", "days": [6], "interval_days": 2,
+            "start_date": None, "pinned": True,
+        }
+        r = requests.post(f"{BASE_URL}/api/routes", json=payload, headers=H(admin_token))
+        assert r.status_code == 200
+        data = r.json()
+        assert data["slot"] == "domenica"
+        assert data["pinned"] is True
+        assert data["days"] == [6]
+        requests.delete(f"{BASE_URL}/api/routes/{data['id']}", headers=H(admin_token))

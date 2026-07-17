@@ -8,8 +8,8 @@ import Logo from "../components/Logo";
 import { Button } from "../components/ui/button";
 import { ChevronLeft, ChevronRight, LogOut, LayoutDashboard, Clock } from "lucide-react";
 
-const SLOT_TIME = { presto: "05:30 – 11:50", standard: "06:00 – 12:20", pomeriggio: "12:30 – 18:50" };
-const SLOT_LABEL = { presto: "Mattino Presto", standard: "Mattino Standard", pomeriggio: "Pomeriggio" };
+const SLOT_TIME = { presto: "05:30 – 11:50", standard: "06:00 – 12:20", pomeriggio: "12:30 – 18:50", domenica: "06:00 – 12:20" };
+const SLOT_LABEL = { presto: "Mattino Presto", standard: "Mattino Standard", pomeriggio: "Pomeriggio", domenica: "Turno Domenica" };
 
 export default function DriverView() {
   const { user, logout } = useAuth();

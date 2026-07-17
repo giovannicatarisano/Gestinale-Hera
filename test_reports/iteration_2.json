@@ -1,0 +1,38 @@
+{
+  "summary": "Full backend+frontend E2E testing of HERA Turni iteration 2 (frequency routes, Turno Domenica, recovery flow, pinned routes). 24/24 pytest passed. Frontend UI verified for all new features. Found & fixed 1 backend bug: POST /shifts/{id}/recover returned 500 due to Motor injecting ObjectId `_id` into the response dict. Applied minimal fix (pop _id before return).",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "RoutesPage NewRouteDialog", "issues": ["Radix Dialog warning: Missing DialogDescription (a11y-only, not functional). Same warning still present from iteration 1 on SubstitutionModal was fixed; a new dialog (route form) triggers it now."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/backend_test.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [
+    "(Optional) Add DialogDescription to the Nuovo/Modifica giro dialog to silence Radix a11y warning."
+  ],
+  "critical_code_review_comments": [
+    "server.py recover_shift() had a serialization bug: passed the same dict to `insert_one` then returned it — Motor mutates the dict adding a BSON ObjectId under `_id`, which FastAPI's jsonable_encoder cannot serialize (produced 500). Fixed by popping _id before returning. Note: generate_shifts() has the same pattern (insert_many + subsequent iteration over `shifts` list) but does not return the mutated docs, so it is currently safe; still, follow best practice of inserting a copy.",
+    "route_days_for_week frequency branch: when start_date is None uses `i % interval == 0` which biases Monday. Acceptable for demo but if a user creates a frequency giro on Wednesday without start_date, cadence is still Mon-anchored — consider defaulting start_date to route creation date on the backend.",
+    "seed()/ensure_extras() split still non-idempotent for the mario.rossi driver user (line ~562): would fail on 2nd startup if drivers wiped but users retained (unique email index). Not triggered in this iteration but same concern from iter1.",
+    "Deprecated @app.on_event startup/shutdown handlers — migrate to lifespan context manager."
+  ],
+  "updated_files": [
+    "/app/backend/server.py (recover_shift returns without _id)",
+    "/app/backend/tests/backend_test.py (added TestDomenicaSlot, TestGenerateSpecificWeek, TestRecovery, TestRouteExtras — +7 tests)"
+  ],
+  "success_rate": {"backend": "100% (24/24)", "frontend": "100%"},
+  "test_credentials": "admin@hera.it/admin123, mario.rossi@hera.it/autista123",
+  "seed_data_creation": "None. Used auto-seeded demo data + ensure_extras() (Sunday DOM-CEN/MER/LUN pinned routes + IS-ECO frequency route). Created & cleaned up TEST_UI Freq route during UI test.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Backend test file at /app/backend/tests/backend_test.py runs with pytest-xdist. Week 2026-06-01 used for frequency assertions (IS-ECO interval=3, no start_date => days [0,3] Mon+Thu). Recovery flow: POST /api/shifts/{id}/recover creates new shift with recovery=true on next day and sets original status='recovered'. Frontend testids: generate-shifts-btn (dashboard header, unique), recover-btn (SubstitutionModal for uncovered shifts), route-mode-select, route-interval-input, route-start-input, route-pinned-switch, route-slot-select (domenica auto-locks days to [6]). Sunday row appears only if shifts exist for domenica.",
+  "rca of the issue": "recover_shift 500 RCA: `await db.shifts.insert_one(new_shift)` — Motor's insert_one mutates the passed dict by injecting the inserted `_id` (BSON ObjectId). The function then `return new_shift`, so FastAPI attempted to JSON-serialize the ObjectId and raised TypeError -> 500. Fix: `new_shift.pop('_id', None)` before return (or insert a `dict(new_shift)` copy)."
+}

@@ -1,7 +1,7 @@
 import { format, startOfWeek, addWeeks } from "date-fns";
 import { it } from "date-fns/locale";
 
-export const SLOT_ORDER = ["presto", "standard", "pomeriggio"];
+export const SLOT_ORDER = ["presto", "standard", "pomeriggio", "domenica"];
 
 export const DAY_LABELS = ["Lun", "Mar", "Mer", "Gio", "Ven", "Sab", "Dom"];
 export const DAY_FULL = ["Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato", "Domenica"];
