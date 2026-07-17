@@ -6,7 +6,7 @@ import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { Switch } from "../components/ui/switch";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "../components/ui/dialog";
 import { toast } from "sonner";
 import { Pencil, Trash2, Route as RouteIcon, Clock, Lock, Repeat } from "lucide-react";
 
@@ -110,7 +110,9 @@ export default function RoutesPage() {
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="rounded-sm">
-          <DialogHeader><DialogTitle className="font-head tracking-tight">{editing ? "Modifica giro" : "Nuovo giro"}</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle className="font-head tracking-tight">{editing ? "Modifica giro" : "Nuovo giro"}</DialogTitle>
+          <DialogDescription className="sr-only">Configura percorso, mezzo richiesto, fascia oraria, frequenza e giorni operativi del giro.</DialogDescription>
+          </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="grid grid-cols-2 gap-3">
               <Field label="Nome giro"><Input data-testid="route-name-input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="rounded-sm" /></Field>

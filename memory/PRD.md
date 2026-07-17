@@ -38,6 +38,14 @@ manuale e una modale di sostituzione intelligente. Gli autisti hanno accesso in 
 - Endpoint suggerimento sostituti + PATCH turno (assegna / assenza / libera).
 - Dashboard admin (matrice turni, stat coperti/scoperti, evidenziazione SCOPERTO, modale sostituzione).
 - Vista autista /tabellone (I miei turni + tabellone colleghi, highlight, sola lettura).
+
+### Iteration 2 (2026-06)
+- Frequenza giro: modalità "Giorni fissi" oppure "Ogni N giorni" (interval_days + start_date opz.).
+- Turno Domenica dedicato (06:00-12:20, max 3 autisti, 3 giri fissi pinned).
+- Recupero giri saltati: badge "DA RECUPERARE" + pulsante "Recupera al giorno successivo"
+  (crea turno di recupero il giorno dopo, marca l'originale "RIPROGRAMMATO").
+- Fissaggio giro (pinned) a turno+giorno con icona lucchetto; il motore lo assegna con priorità.
+- Testing: 24/24 backend pytest, frontend E2E 100% (iteration_2). Fix bug serializzazione recover.
 - Testing: 17/17 backend pytest, frontend E2E 100% (iteration_1).
 
 ## Backlog (P1/P2)
