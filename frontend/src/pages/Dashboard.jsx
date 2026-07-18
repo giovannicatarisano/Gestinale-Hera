@@ -5,7 +5,7 @@ import ScheduleBoard from "../components/ScheduleBoard";
 import SubstitutionModal from "../components/SubstitutionModal";
 import { Button } from "../components/ui/button";
 import { toast } from "sonner";
-import { ChevronLeft, ChevronRight, Sparkles, CheckCircle2, AlertTriangle, CalendarDays } from "lucide-react";
+import { ChevronLeft, ChevronRight, Sparkles, CheckCircle2, AlertTriangle, CalendarDays, Printer } from "lucide-react";
 
 export default function Dashboard() {
   const [ref, setRef] = useState(new Date());
@@ -66,24 +66,35 @@ export default function Dashboard() {
   return (
     <div className="space-y-6">
       {/* header */}
-      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
+      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 no-print">
         <div>
           <div className="overline text-primary mb-1">Pianificazione settimanale</div>
           <h1 className="font-head font-black text-3xl sm:text-4xl tracking-tighter">Tabellone turni</h1>
         </div>
-        <Button
-          data-testid="generate-shifts-btn"
-          onClick={generate}
-          disabled={generating}
-          className="rounded-sm bg-primary hover:bg-primary/90 font-semibold h-11 px-5"
-        >
-          <Sparkles size={17} className={`mr-2 ${generating ? "animate-pulse" : ""}`} />
-          {generating ? "Generazione in corso…" : "Genera Turni"}
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            data-testid="print-board-btn"
+            onClick={() => window.print()}
+            variant="outline"
+            disabled={total === 0}
+            className="rounded-sm font-semibold h-11 px-4"
+          >
+            <Printer size={17} className="mr-2" /> Stampa / PDF
+          </Button>
+          <Button
+            data-testid="generate-shifts-btn"
+            onClick={generate}
+            disabled={generating}
+            className="rounded-sm bg-primary hover:bg-primary/90 font-semibold h-11 px-5"
+          >
+            <Sparkles size={17} className={`mr-2 ${generating ? "animate-pulse" : ""}`} />
+            {generating ? "Generazione in corso…" : "Genera Turni"}
+          </Button>
+        </div>
       </div>
 
       {/* controls + stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-3 no-print">
         <div className="md:col-span-2 border border-border bg-card rounded-sm p-3 flex items-center justify-between">
           <button
             data-testid="prev-week-btn"
@@ -122,17 +133,23 @@ export default function Dashboard() {
           </Button>
         </div>
       ) : (
-        <ScheduleBoard
-          shifts={shifts}
-          routes={routes}
-          vehicles={vehicles}
-          drivers={drivers}
-          editable
-          onCellClick={openCell}
-        />
+        <div className="print-area">
+          <div className="print-only mb-3">
+            <div className="font-head font-black text-xl">Hera · Tabellone Turni Flotta</div>
+            <div className="font-mono text-sm">Settimana {weekLabel(ref)}</div>
+          </div>
+          <ScheduleBoard
+            shifts={shifts}
+            routes={routes}
+            vehicles={vehicles}
+            drivers={drivers}
+            editable
+            onCellClick={openCell}
+          />
+        </div>
       )}
 
-      <p className="text-xs text-muted-foreground">
+      <p className="text-xs text-muted-foreground no-print">
         Clicca su un turno per sostituire l'autista, gestire un'assenza o coprire un turno scoperto.
       </p>
 
