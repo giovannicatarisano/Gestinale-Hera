@@ -1,13 +1,14 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import Logo from "./Logo";
-import { LayoutDashboard, Users, Truck, Route, GraduationCap, LogOut, Eye } from "lucide-react";
+import { LayoutDashboard, Users, Truck, Route, GraduationCap, LogOut, Eye, CalendarOff } from "lucide-react";
 
 const NAV = [
   { to: "/dashboard", label: "Pianificazione", icon: LayoutDashboard, tid: "nav-dashboard" },
   { to: "/autisti", label: "Autisti", icon: Users, tid: "nav-drivers" },
   { to: "/mezzi", label: "Mezzi", icon: Truck, tid: "nav-fleet" },
   { to: "/giri", label: "Giri", icon: Route, tid: "nav-routes" },
+  { to: "/assenze", label: "Assenze", icon: CalendarOff, tid: "nav-absences" },
   { to: "/formazioni", label: "Formazioni", icon: GraduationCap, tid: "nav-skills" },
 ];
 

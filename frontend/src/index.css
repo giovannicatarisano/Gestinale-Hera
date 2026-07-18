@@ -64,3 +64,16 @@ h1, h2, h3, .font-head {
 /* thin scrollbar for schedule board */
 .board-scroll::-webkit-scrollbar { height: 8px; width: 8px; }
 .board-scroll::-webkit-scrollbar-thumb { background: hsl(0 0% 75%); border-radius: 2px; }
+
+/* Print / PDF: show only the schedule board */
+@media print {
+  @page { size: A4 landscape; margin: 10mm; }
+  body { background: #fff !important; }
+  .no-print { display: none !important; }
+  .print-area { position: absolute; left: 0; top: 0; width: 100%; padding: 0 !important; margin: 0 !important; }
+  .print-area .board-scroll { overflow: visible !important; border: none !important; }
+  .print-area .board-scroll > div { min-width: 0 !important; }
+  aside, header { display: none !important; }
+  .print-only { display: block !important; }
+}
+.print-only { display: none; }

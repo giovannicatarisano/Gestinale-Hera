@@ -172,6 +172,23 @@ class ShiftPatch(BaseModel):
     status: Optional[str] = None
 
 
+class Absence(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    driver_id: str
+    type: str = "ferie"  # "ferie" | "malattia" | "permesso"
+    start_date: str
+    end_date: str
+    note: str = ""
+
+
+class AbsenceInput(BaseModel):
+    driver_id: str
+    type: str = "ferie"
+    start_date: str
+    end_date: str
+    note: str = ""
+
+
 # ---------------------------------------------------------------------------
 # Auth routes
 # ---------------------------------------------------------------------------
@@ -287,6 +304,41 @@ async def update_skills(did: str, data: SkillsInput, user: dict = Depends(requir
 
 
 # ---------------------------------------------------------------------------
+# Absences (ferie / malattia)
+# ---------------------------------------------------------------------------
+@api_router.get("/absences")
+async def list_absences(user: dict = Depends(get_current_user)):
+    return await db.absences.find({}, {"_id": 0}).to_list(2000)
+
+
+@api_router.post("/absences")
+async def create_absence(data: AbsenceInput, user: dict = Depends(require_admin)):
+    if data.end_date < data.start_date:
+        raise HTTPException(status_code=400, detail="La data di fine precede la data di inizio")
+    a = Absence(**data.model_dump())
+    await db.absences.insert_one(a.model_dump())
+    return a
+
+
+@api_router.put("/absences/{aid}")
+async def update_absence(aid: str, data: AbsenceInput, user: dict = Depends(require_admin)):
+    if data.end_date < data.start_date:
+        raise HTTPException(status_code=400, detail="La data di fine precede la data di inizio")
+    await db.absences.update_one({"id": aid}, {"$set": data.model_dump()})
+    return await db.absences.find_one({"id": aid}, {"_id": 0})
+
+
+@api_router.delete("/absences/{aid}")
+async def delete_absence(aid: str, user: dict = Depends(require_admin)):
+    await db.absences.delete_one({"id": aid})
+    return {"ok": True}
+
+
+def _absent_ids_on(absences: list, date_iso: str) -> set:
+    return {a["driver_id"] for a in absences if a["start_date"] <= date_iso <= a["end_date"]}
+
+
+# ---------------------------------------------------------------------------
 # Shifts + Engine
 # ---------------------------------------------------------------------------
 @api_router.get("/shifts")
@@ -332,6 +384,8 @@ async def generate_shifts(data: GenerateInput, user: dict = Depends(require_admi
 
     routes = await db.routes.find({}, {"_id": 0}).to_list(1000)
     drivers = [d for d in await db.drivers.find({}, {"_id": 0}).to_list(1000) if d.get("active", True)]
+    absences = await db.absences.find({}, {"_id": 0}).to_list(2000)
+    monday = datetime.strptime(week_start, "%Y-%m-%d").date()
 
     week_load = {d["id"]: 0 for d in drivers}
     day_taken = {}            # (day, driver_id) -> True
@@ -349,12 +403,16 @@ async def generate_shifts(data: GenerateInput, user: dict = Depends(require_admi
         slot = route["slot"]
         max_d = SHIFT_SLOTS.get(slot, {}).get("max_drivers")
         for day in route_days_for_week(route, week_start):
+            date_iso = (monday + timedelta(days=day)).isoformat()
+            absent = _absent_ids_on(absences, date_iso)
             assigned = None
             slot_full = max_d is not None and cap_count.get((day, slot), 0) >= max_d
             if not slot_full:
                 candidates = [
                     d for d in drivers
-                    if await _driver_can(d, route) and not day_taken.get((day, d["id"]))
+                    if await _driver_can(d, route)
+                    and not day_taken.get((day, d["id"]))
+                    and d["id"] not in absent
                 ]
                 candidates.sort(key=lambda d: week_load[d["id"]])
                 if candidates:
@@ -400,12 +458,15 @@ async def recover_shift(sid: str, user: dict = Depends(require_admin)):
     drivers = [d for d in await db.drivers.find({}, {"_id": 0}).to_list(1000) if d.get("active", True)]
     day_shifts = await db.shifts.find({"week_start": shift["week_start"], "day": next_day}, {"_id": 0}).to_list(5000)
     busy = {s["driver_id"] for s in day_shifts if s["driver_id"]}
+    absences = await db.absences.find({}, {"_id": 0}).to_list(2000)
+    monday = datetime.strptime(shift["week_start"], "%Y-%m-%d").date()
+    absent = _absent_ids_on(absences, (monday + timedelta(days=next_day)).isoformat())
     max_d = SHIFT_SLOTS.get(slot, {}).get("max_drivers")
     cap = len([s for s in day_shifts if s["slot"] == slot and s["driver_id"]])
 
     assigned = None
     if not (max_d is not None and cap >= max_d):
-        cands = [d for d in drivers if route and await _driver_can(d, route) and d["id"] not in busy]
+        cands = [d for d in drivers if route and await _driver_can(d, route) and d["id"] not in busy and d["id"] not in absent]
         if cands:
             assigned = cands[0]
 
@@ -446,17 +507,24 @@ async def substitutes(sid: str, user: dict = Depends(require_admin)):
         if s["driver_id"]:
             load[s["driver_id"]] = load.get(s["driver_id"], 0) + 1
 
+    absences = await db.absences.find({}, {"_id": 0}).to_list(2000)
+    monday = datetime.strptime(shift["week_start"], "%Y-%m-%d").date()
+    date_iso = (monday + timedelta(days=shift["day"])).isoformat()
+    absent = _absent_ids_on(absences, date_iso)
+
     results = []
     for d in drivers:
         if d["id"] == shift.get("driver_id"):
             continue
         qualified = await _driver_can(d, route) if route else False
-        available = d["id"] not in busy
+        is_absent = d["id"] in absent
+        available = d["id"] not in busy and not is_absent
         results.append({
             "id": d["id"],
             "name": d["name"],
             "qualified": qualified,
             "available": available,
+            "absent": is_absent,
             "week_load": load.get(d["id"], 0),
             "vehicle_ok": route and route["vehicle_id"] in d.get("vehicle_skills", []),
             "route_ok": route and route["id"] in d.get("route_skills", []),

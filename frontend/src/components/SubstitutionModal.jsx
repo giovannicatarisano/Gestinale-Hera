@@ -133,7 +133,7 @@ export default function SubstitutionModal({ shift, open, onClose, onChanged, veh
                           c.available ? "bg-secondary text-muted-foreground" : "bg-destructive/10 text-destructive"
                         }`}
                       >
-                        {c.available ? "Disponibile" : "Occupato"}
+                        {c.absent ? "Assente" : c.available ? "Disponibile" : "Occupato"}
                       </span>
                       <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-sm bg-secondary text-muted-foreground">
                         {c.week_load} turni/sett.

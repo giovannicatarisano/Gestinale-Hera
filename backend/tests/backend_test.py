@@ -343,6 +343,90 @@ class TestRouteExtras:
         assert data["start_date"] == "2026-06-01"
         requests.delete(f"{BASE_URL}/api/routes/{data['id']}", headers=H(admin_token))
 
+class TestAbsences:
+    WK = "2026-06-01"
+
+    def test_driver_cannot_create_absence(self, driver_token, admin_token):
+        drv = requests.get(f"{BASE_URL}/api/drivers", headers=H(admin_token)).json()[0]
+        r = requests.post(f"{BASE_URL}/api/absences",
+                          json={"driver_id": drv["id"], "type": "ferie", "start_date": "2026-06-01", "end_date": "2026-06-02"},
+                          headers=H(driver_token))
+        assert r.status_code == 403
+
+    def test_driver_can_list_absences(self, driver_token):
+        r = requests.get(f"{BASE_URL}/api/absences", headers=H(driver_token))
+        assert r.status_code == 200
+
+    def test_invalid_date_range(self, admin_token):
+        drv = requests.get(f"{BASE_URL}/api/drivers", headers=H(admin_token)).json()[0]
+        r = requests.post(f"{BASE_URL}/api/absences",
+                          json={"driver_id": drv["id"], "type": "ferie", "start_date": "2026-06-05", "end_date": "2026-06-01"},
+                          headers=H(admin_token))
+        assert r.status_code == 400
+
+    def test_crud_absence(self, admin_token):
+        drv = requests.get(f"{BASE_URL}/api/drivers", headers=H(admin_token)).json()[0]
+        r = requests.post(f"{BASE_URL}/api/absences",
+                          json={"driver_id": drv["id"], "type": "ferie", "start_date": "2026-07-01", "end_date": "2026-07-03", "note": "TEST_abs"},
+                          headers=H(admin_token))
+        assert r.status_code == 200
+        aid = r.json()["id"]
+        # verify persisted
+        lst = requests.get(f"{BASE_URL}/api/absences", headers=H(admin_token)).json()
+        assert any(a["id"] == aid for a in lst)
+        # update
+        r2 = requests.put(f"{BASE_URL}/api/absences/{aid}",
+                          json={"driver_id": drv["id"], "type": "malattia", "start_date": "2026-07-01", "end_date": "2026-07-04", "note": "TEST_abs"},
+                          headers=H(admin_token))
+        assert r2.status_code == 200
+        assert r2.json()["type"] == "malattia"
+        # delete
+        r3 = requests.delete(f"{BASE_URL}/api/absences/{aid}", headers=H(admin_token))
+        assert r3.status_code == 200
+
+    def test_engine_excludes_absent_and_substitute_flags(self, admin_token):
+        # Pick a driver who currently has shifts on Mon+Tue in WK to make the assertion meaningful
+        # Generate baseline
+        requests.post(f"{BASE_URL}/api/shifts/generate", json={"week_start": self.WK}, headers=H(admin_token))
+        shifts = requests.get(f"{BASE_URL}/api/shifts?week_start={self.WK}", headers=H(admin_token)).json()
+        # pick a driver with shift on day 0 or day 1
+        target_id = None
+        for s in shifts:
+            if s["driver_id"] and s["day"] in (0, 1):
+                target_id = s["driver_id"]
+                break
+        assert target_id, "No baseline shift found for absence test"
+
+        # Create absence Mon+Tue
+        ar = requests.post(f"{BASE_URL}/api/absences",
+                           json={"driver_id": target_id, "type": "ferie", "start_date": "2026-06-01", "end_date": "2026-06-02", "note": "TEST_engine"},
+                           headers=H(admin_token))
+        assert ar.status_code == 200
+        aid = ar.json()["id"]
+        try:
+            # Regenerate
+            requests.post(f"{BASE_URL}/api/shifts/generate", json={"week_start": self.WK}, headers=H(admin_token))
+            shifts2 = requests.get(f"{BASE_URL}/api/shifts?week_start={self.WK}", headers=H(admin_token)).json()
+            # Zero shifts on day 0 and 1
+            absent_day_shifts = [s for s in shifts2 if s["driver_id"] == target_id and s["day"] in (0, 1)]
+            assert absent_day_shifts == [], f"Absent driver got shifts on absent days: {absent_day_shifts}"
+            # But may have shifts on other days
+            other_day_shifts = [s for s in shifts2 if s["driver_id"] == target_id and s["day"] not in (0, 1)]
+            # not strictly required, but sanity
+            _ = other_day_shifts
+
+            # Substitutes: find a shift on day 0 and check that target_id appears with absent=true, available=false
+            day0_shift = next((s for s in shifts2 if s["day"] == 0), None)
+            assert day0_shift
+            subs = requests.get(f"{BASE_URL}/api/shifts/{day0_shift['id']}/substitutes", headers=H(admin_token)).json()
+            entry = next((c for c in subs["candidates"] if c["id"] == target_id), None)
+            assert entry is not None, "Absent driver missing from substitute candidates list"
+            assert entry["absent"] is True
+            assert entry["available"] is False
+        finally:
+            requests.delete(f"{BASE_URL}/api/absences/{aid}", headers=H(admin_token))
+
+
     def test_create_domenica_pinned_route(self, admin_token):
         veh = requests.get(f"{BASE_URL}/api/vehicles", headers=H(admin_token)).json()
         payload = {
