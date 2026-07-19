@@ -43,8 +43,11 @@ export default function Dashboard() {
     try {
       const { data } = await api.post("/shifts/generate", { week_start: wk });
       await loadShifts();
+      const unassigned = data.unassigned_drivers || [];
       toast.success(`Turni generati: ${data.covered}/${data.total} coperti`, {
-        description: data.uncovered ? `${data.uncovered} turni scoperti da assegnare manualmente.` : "Copertura completa!",
+        description:
+          (data.uncovered ? `${data.uncovered} turni scoperti. ` : "Copertura completa. ") +
+          (unassigned.length ? `Senza turni: ${unassigned.join(", ")}` : "Ogni autista ha un turno assegnato."),
       });
     } catch (e) {
       toast.error(apiError(e.response?.data?.detail));

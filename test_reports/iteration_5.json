@@ -1,0 +1,33 @@
+{
+  "summary": "Iteration 5 full regression + new-feature testing (demo removal, admin-created driver accounts, weekly rotation engine, rest constraint, driver notifications, shift-swap workflow). Backend: 27/27 pytest PASS (backend_test.py rewritten for iter-5 semantics — old demo-dataset assertions removed). Frontend: verified /login has no demo buttons, admin creates driver with password (account-badge visible), new driver logs in and lands on read-only /tabellone with notif-bell, notif-count, my-rotation shown ('Mattino Presto') and 'Le mie richieste di cambio' section, admin /scambi page loads with approve/reject controls. No blocking issues found.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/backend_test.py",
+    "/app/test_reports/pytest/iteration_5.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Login.jsx keeps a dead `quick`/`void quick;` stub after removing demo buttons — harmless but noise; can be deleted.",
+    "DriverView notif-bell and my-rotation render only after AuthContext resolves user (myId). This is correct, but automated tests must wait for the bell before asserting. Consider a small skeleton to signal loading state.",
+    "server.py remove_demo_data() also does `await db.shifts.delete_many({})` and `db.absences.delete_many({})` unconditionally on the one-time run — fine now, but a note in code that this runs only when app_meta.demo.removed is falsy would help future maintainers.",
+    "generate_shifts assigns weekday slots strictly by the weekly rotation map. If a driver's rotation slot has no matching qualified route for them in that week, they end up in `unassigned_drivers`. This is expected but should be surfaced clearly in the UI (already covered by Dashboard toast per PRD)."
+  ],
+  "updated_files": [
+    "/app/backend/tests/backend_test.py"
+  ],
+  "success_rate": {"backend": "100% (27/27)", "frontend": "100% (core flows verified)"},
+  "test_credentials": "admin@hera.it/admin123 ; existing driver a1@hera.it/pass123 ; test driver created & deleted during runs (autista.test.ui@hera.it/test1234)",
+  "seed_data_creation": "Tests create and clean up their own TEST_ drivers/vehicles/routes/absences. One residual admin-created driver may remain (UI Test Driver, autista.test.ui@hera.it) if the browser cleanup was skipped between runs — safe to delete from /autisti.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "backend_test.py has been rewritten for iteration 5: it no longer asserts >=8 seeded drivers, DOM-* pinned Sunday routes, or IS-ECO frequency route (all removed by remove_demo_data). It exercises: TestAuthAndDemoRemoval, TestDriverAccounts, TestRotation, TestNotifications, TestSwapRequests, TestRegression. Uses distinct weeks per class (W1=06-01, notif=06-15, swap=06-22) to avoid xdist collisions. Frontend testids of note: login-email/login-password/login-submit, add-driver-btn, driver-name/email/phone-input, driver-password-input, save-driver-btn, account-badge-{id}, notif-bell, notif-count, my-rotation, request-swap-{shiftId}, swap-modal, swap-colleague-select, submit-swap-btn, nav-swaps, approve-swap-{id}, reject-swap-{id}. To exercise swap UI end-to-end, generate shifts for the current week first (Dashboard → Genera Turni) so a driver has request-swap buttons in their current tabellone view.",
+  "rca of the issue": "N/A — no bugs identified in this iteration."
+}

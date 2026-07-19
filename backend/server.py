@@ -14,7 +14,7 @@ from typing import List, Optional
 import uuid
 import bcrypt
 import jwt
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone, timedelta, date
 
 # ---------------------------------------------------------------------------
 # DB
@@ -156,6 +156,7 @@ class DriverInput(BaseModel):
     email: str = ""
     phone: str = ""
     active: bool = True
+    password: Optional[str] = None
 
 
 class SkillsInput(BaseModel):
@@ -187,6 +188,24 @@ class AbsenceInput(BaseModel):
     start_date: str
     end_date: str
     note: str = ""
+
+
+class CredentialsInput(BaseModel):
+    password: str
+
+
+class SwapRequestInput(BaseModel):
+    shift_id: str
+    to_driver_id: str
+    note: str = ""
+
+
+class SwapDecision(BaseModel):
+    status: str  # "approved" | "rejected"
+
+
+class NotifRead(BaseModel):
+    ids: Optional[List[str]] = None
 
 
 # ---------------------------------------------------------------------------
@@ -275,25 +294,71 @@ async def delete_route(rid: str, user: dict = Depends(require_admin)):
 # ---------------------------------------------------------------------------
 @api_router.get("/drivers")
 async def list_drivers(user: dict = Depends(get_current_user)):
-    return await db.drivers.find({}, {"_id": 0}).to_list(1000)
+    drivers = await db.drivers.find({}, {"_id": 0}).to_list(1000)
+    accounts = await db.users.find({"role": "driver"}, {"_id": 0, "driver_id": 1}).to_list(2000)
+    linked = {a.get("driver_id") for a in accounts}
+    for d in drivers:
+        d["has_account"] = d["id"] in linked
+    return drivers
+
+
+async def _create_driver_account(driver: dict, password: str):
+    email = (driver.get("email") or "").strip().lower()
+    if not email:
+        raise HTTPException(status_code=400, detail="Email autista obbligatoria per creare l'accesso")
+    existing = await db.users.find_one({"email": email})
+    if existing and existing.get("driver_id") != driver["id"]:
+        raise HTTPException(status_code=400, detail="Email già utilizzata da un altro account")
+    if existing:
+        await db.users.update_one({"email": email}, {"$set": {"password_hash": hash_password(password), "name": driver["name"]}})
+    else:
+        await db.users.insert_one({
+            "id": str(uuid.uuid4()), "email": email, "password_hash": hash_password(password),
+            "name": driver["name"], "role": "driver", "driver_id": driver["id"],
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        })
 
 
 @api_router.post("/drivers")
 async def create_driver(data: DriverInput, user: dict = Depends(require_admin)):
-    d = Driver(**data.model_dump())
+    payload = data.model_dump()
+    password = payload.pop("password", None)
+    d = Driver(**payload)
     await db.drivers.insert_one(d.model_dump())
+    if password:
+        await _create_driver_account(d.model_dump(), password)
     return d
 
 
 @api_router.put("/drivers/{did}")
 async def update_driver(did: str, data: DriverInput, user: dict = Depends(require_admin)):
-    await db.drivers.update_one({"id": did}, {"$set": data.model_dump()})
-    return await db.drivers.find_one({"id": did}, {"_id": 0})
+    payload = data.model_dump()
+    password = payload.pop("password", None)
+    await db.drivers.update_one({"id": did}, {"$set": payload})
+    driver = await db.drivers.find_one({"id": did}, {"_id": 0})
+    if password:
+        await _create_driver_account(driver, password)
+    else:
+        # keep linked account name/email in sync
+        await db.users.update_one({"driver_id": did}, {"$set": {"name": driver["name"]}})
+    return driver
+
+
+@api_router.post("/drivers/{did}/credentials")
+async def set_driver_credentials(did: str, data: CredentialsInput, user: dict = Depends(require_admin)):
+    driver = await db.drivers.find_one({"id": did}, {"_id": 0})
+    if not driver:
+        raise HTTPException(status_code=404, detail="Autista non trovato")
+    if len(data.password) < 4:
+        raise HTTPException(status_code=400, detail="La password deve avere almeno 4 caratteri")
+    await _create_driver_account(driver, data.password)
+    return {"ok": True, "email": (driver.get("email") or "").strip().lower()}
 
 
 @api_router.delete("/drivers/{did}")
 async def delete_driver(did: str, user: dict = Depends(require_admin)):
     await db.drivers.delete_one({"id": did})
+    await db.users.delete_many({"driver_id": did, "role": "driver"})
     return {"ok": True}
 
 
@@ -350,6 +415,27 @@ async def _driver_can(driver: dict, route: dict) -> bool:
     return route["vehicle_id"] in driver.get("vehicle_skills", []) and route["id"] in driver.get("route_skills", [])
 
 
+async def notify(driver_id: str, message: str, kind: str = "shift", shift_id: str = None):
+    if not driver_id:
+        return
+    await db.notifications.insert_one({
+        "id": str(uuid.uuid4()),
+        "driver_id": driver_id,
+        "kind": kind,
+        "message": message,
+        "shift_id": shift_id,
+        "read": False,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    })
+
+
+async def _shift_label(shift: dict) -> str:
+    route = await db.routes.find_one({"id": shift["route_id"]}, {"_id": 0})
+    slot = SHIFT_SLOTS.get(shift["slot"], {}).get("label", shift["slot"])
+    day = DAYS[shift["day"]] if 0 <= shift["day"] < len(DAYS) else ""
+    return f"{route['name'] if route else 'Giro'} · {day} · {slot}"
+
+
 def route_days_for_week(route: dict, week_start: str) -> list:
     """Compute weekday indexes (0=Mon..6=Sun) a route runs in the given week."""
     slot = route.get("slot")
@@ -377,6 +463,33 @@ def route_days_for_week(route: dict, week_start: str) -> list:
     return [d for d in route.get("days", []) if d in allowed]
 
 
+ROTATION_SLOTS = ["presto", "standard", "pomeriggio"]
+ROTATION_EPOCH = date(2026, 1, 5)  # a Monday
+
+
+def week_index(week_start: str) -> int:
+    monday = datetime.strptime(week_start, "%Y-%m-%d").date()
+    return (monday - ROTATION_EPOCH).days // 7
+
+
+def weekly_slot_map(week_start: str, drivers: list) -> dict:
+    """Each active driver works ONE slot for the whole week; the slot rotates week by week."""
+    wi = week_index(week_start)
+    ordered = sorted(drivers, key=lambda d: d["id"])
+    return {d["id"]: ROTATION_SLOTS[(idx + wi) % len(ROTATION_SLOTS)] for idx, d in enumerate(ordered)}
+
+
+@api_router.get("/rotation")
+async def get_rotation(week_start: str, user: dict = Depends(get_current_user)):
+    drivers = [d for d in await db.drivers.find({}, {"_id": 0}).to_list(1000) if d.get("active", True)]
+    smap = weekly_slot_map(week_start, drivers)
+    return {
+        "week_start": week_start,
+        "week_index": week_index(week_start),
+        "rotation": [{"driver_id": d["id"], "name": d["name"], "slot": smap.get(d["id"])} for d in drivers],
+    }
+
+
 @api_router.post("/shifts/generate")
 async def generate_shifts(data: GenerateInput, user: dict = Depends(require_admin)):
     week_start = data.week_start
@@ -387,17 +500,21 @@ async def generate_shifts(data: GenerateInput, user: dict = Depends(require_admi
     absences = await db.absences.find({}, {"_id": 0}).to_list(2000)
     monday = datetime.strptime(week_start, "%Y-%m-%d").date()
 
+    # Weekly slot rotation: each driver is bound to one slot for the whole week.
+    wslot = weekly_slot_map(week_start, drivers)
+
     week_load = {d["id"]: 0 for d in drivers}
     day_taken = {}            # (day, driver_id) -> True
     cap_count = {}            # (day, slot) -> int   (for capped slots)
+    pom_days = {}             # driver_id -> set(days worked pomeriggio) for rest constraint
     shifts = []
 
-    # pinned first, then tightest slots (capped) first
-    slot_order = ["presto", "domenica", "standard", "pomeriggio"]
+    # Order: pomeriggio FIRST (so the rest-constraint before presto/domenica of next day is known),
+    # then presto, standard, and domenica LAST. Pinned first within each phase.
+    phase = {"pomeriggio": 0, "presto": 1, "standard": 2, "domenica": 3}
 
     def sort_key(r):
-        s = slot_order.index(r["slot"]) if r["slot"] in slot_order else 9
-        return (not r.get("pinned", False), s)
+        return (phase.get(r["slot"], 9), not r.get("pinned", False))
 
     for route in sorted(routes, key=sort_key):
         slot = route["slot"]
@@ -407,13 +524,22 @@ async def generate_shifts(data: GenerateInput, user: dict = Depends(require_admi
             absent = _absent_ids_on(absences, date_iso)
             assigned = None
             slot_full = max_d is not None and cap_count.get((day, slot), 0) >= max_d
+            early = slot in ("presto", "domenica")
             if not slot_full:
-                candidates = [
-                    d for d in drivers
-                    if await _driver_can(d, route)
-                    and not day_taken.get((day, d["id"]))
-                    and d["id"] not in absent
-                ]
+                candidates = []
+                for d in drivers:
+                    did = d["id"]
+                    if not await _driver_can(d, route):
+                        continue
+                    if day_taken.get((day, did)) or did in absent:
+                        continue
+                    # weekly-slot rotation: domenica is extra (any driver), weekday slots are locked
+                    if slot != "domenica" and wslot.get(did) != slot:
+                        continue
+                    # rest constraint: no early shift the day after a pomeriggio shift
+                    if early and (day - 1) in pom_days.get(did, set()):
+                        continue
+                    candidates.append(d)
                 candidates.sort(key=lambda d: week_load[d["id"]])
                 if candidates:
                     assigned = candidates[0]
@@ -434,13 +560,21 @@ async def generate_shifts(data: GenerateInput, user: dict = Depends(require_admi
             if assigned:
                 week_load[assigned["id"]] += 1
                 day_taken[(day, assigned["id"])] = True
+                if slot == "pomeriggio":
+                    pom_days.setdefault(assigned["id"], set()).add(day)
                 if max_d is not None:
                     cap_count[(day, slot)] = cap_count.get((day, slot), 0) + 1
 
     if shifts:
         await db.shifts.insert_many(shifts)
     covered = len([s for s in shifts if s["driver_id"]])
-    return {"total": len(shifts), "covered": covered, "uncovered": len(shifts) - covered}
+    unassigned = [d["name"] for d in drivers if week_load[d["id"]] == 0]
+    return {
+        "total": len(shifts),
+        "covered": covered,
+        "uncovered": len(shifts) - covered,
+        "unassigned_drivers": unassigned,
+    }
 
 
 @api_router.post("/shifts/{sid}/recover")
@@ -485,6 +619,8 @@ async def recover_shift(sid: str, user: dict = Depends(require_admin)):
     await db.shifts.insert_one(new_shift)
     await db.shifts.update_one({"id": sid}, {"$set": {"status": "recovered"}})
     new_shift.pop("_id", None)
+    if assigned:
+        await notify(assigned["id"], f"Turno di recupero assegnato: {await _shift_label(new_shift)}", "shift", new_shift["id"])
     return new_shift
 
 
@@ -539,16 +675,29 @@ async def patch_shift(sid: str, data: ShiftPatch, user: dict = Depends(require_a
     shift = await db.shifts.find_one({"id": sid}, {"_id": 0})
     if not shift:
         raise HTTPException(status_code=404, detail="Turno non trovato")
+    prev_driver = shift.get("driver_id")
     update = {}
+    new_driver = prev_driver
     if "driver_id" in data.model_fields_set:
         update["driver_id"] = data.driver_id
         update["status"] = "assigned" if data.driver_id else "uncovered"
+        new_driver = data.driver_id
     if data.status is not None:
         update["status"] = data.status
         if data.status == "absence":
             update["driver_id"] = None
+            new_driver = None
     await db.shifts.update_one({"id": sid}, {"$set": update})
-    return await db.shifts.find_one({"id": sid}, {"_id": 0})
+    updated = await db.shifts.find_one({"id": sid}, {"_id": 0})
+
+    # notifications on change
+    if new_driver != prev_driver:
+        label = await _shift_label(updated)
+        if prev_driver:
+            await notify(prev_driver, f"Sei stato rimosso dal turno: {label}", "shift", sid)
+        if new_driver:
+            await notify(new_driver, f"Ti è stato assegnato un nuovo turno: {label}", "shift", sid)
+    return updated
 
 
 @api_router.get("/meta/slots")
@@ -557,9 +706,118 @@ async def meta_slots(user: dict = Depends(get_current_user)):
 
 
 # ---------------------------------------------------------------------------
-# Seeding
+# Notifications (driver)
 # ---------------------------------------------------------------------------
-async def seed():
+@api_router.get("/notifications")
+async def list_notifications(user: dict = Depends(get_current_user)):
+    did = user.get("driver_id")
+    if not did:
+        return []
+    return await db.notifications.find({"driver_id": did}, {"_id": 0}).sort("created_at", -1).to_list(100)
+
+
+@api_router.post("/notifications/read")
+async def mark_notifications_read(data: NotifRead, user: dict = Depends(get_current_user)):
+    did = user.get("driver_id")
+    if not did:
+        return {"ok": True}
+    q = {"driver_id": did}
+    if data.ids:
+        q["id"] = {"$in": data.ids}
+    await db.notifications.update_many(q, {"$set": {"read": True}})
+    return {"ok": True}
+
+
+# ---------------------------------------------------------------------------
+# Shift swap requests (driver requests, admin/assistant approves)
+# ---------------------------------------------------------------------------
+async def _enrich_swap(sw: dict) -> dict:
+    frm = await db.drivers.find_one({"id": sw["from_driver_id"]}, {"_id": 0})
+    to = await db.drivers.find_one({"id": sw["to_driver_id"]}, {"_id": 0})
+    shift = await db.shifts.find_one({"id": sw["shift_id"]}, {"_id": 0})
+    return {
+        **sw,
+        "from_name": frm["name"] if frm else "—",
+        "to_name": to["name"] if to else "—",
+        "shift_label": await _shift_label(shift) if shift else "Turno non disponibile",
+        "shift": shift,
+    }
+
+
+@api_router.get("/swap-requests")
+async def list_swaps(user: dict = Depends(get_current_user)):
+    if user.get("role") == "admin":
+        rows = await db.swap_requests.find({}, {"_id": 0}).sort("created_at", -1).to_list(500)
+    else:
+        did = user.get("driver_id")
+        rows = await db.swap_requests.find(
+            {"$or": [{"from_driver_id": did}, {"to_driver_id": did}]}, {"_id": 0}
+        ).sort("created_at", -1).to_list(500)
+    return [await _enrich_swap(r) for r in rows]
+
+
+@api_router.post("/swap-requests")
+async def create_swap(data: SwapRequestInput, user: dict = Depends(get_current_user)):
+    did = user.get("driver_id")
+    if not did:
+        raise HTTPException(status_code=403, detail="Solo gli autisti possono richiedere un cambio")
+    shift = await db.shifts.find_one({"id": data.shift_id}, {"_id": 0})
+    if not shift:
+        raise HTTPException(status_code=404, detail="Turno non trovato")
+    if shift.get("driver_id") != did:
+        raise HTTPException(status_code=400, detail="Puoi richiedere il cambio solo dei tuoi turni")
+    if data.to_driver_id == did:
+        raise HTTPException(status_code=400, detail="Seleziona un collega diverso")
+    sw = {
+        "id": str(uuid.uuid4()),
+        "shift_id": data.shift_id,
+        "from_driver_id": did,
+        "to_driver_id": data.to_driver_id,
+        "note": data.note,
+        "status": "pending",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.swap_requests.insert_one(dict(sw))
+    sw.pop("_id", None)
+    return sw
+
+
+@api_router.patch("/swap-requests/{swid}")
+async def decide_swap(swid: str, data: SwapDecision, user: dict = Depends(require_admin)):
+    sw = await db.swap_requests.find_one({"id": swid}, {"_id": 0})
+    if not sw:
+        raise HTTPException(status_code=404, detail="Richiesta non trovata")
+    if data.status not in ("approved", "rejected"):
+        raise HTTPException(status_code=400, detail="Stato non valido")
+    await db.swap_requests.update_one({"id": swid}, {"$set": {"status": data.status, "decided_at": datetime.now(timezone.utc).isoformat()}})
+
+    shift = await db.shifts.find_one({"id": sw["shift_id"]}, {"_id": 0})
+    label = await _shift_label(shift) if shift else "turno"
+    if data.status == "approved" and shift:
+        await db.shifts.update_one({"id": sw["shift_id"]}, {"$set": {"driver_id": sw["to_driver_id"], "status": "assigned"}})
+        await notify(sw["from_driver_id"], f"Cambio APPROVATO: {label} passa a un collega", "swap", sw["shift_id"])
+        await notify(sw["to_driver_id"], f"Cambio APPROVATO: ti è stato assegnato {label}", "swap", sw["shift_id"])
+    else:
+        await notify(sw["from_driver_id"], f"Cambio RIFIUTATO per {label}", "swap", sw["shift_id"])
+    return await db.swap_requests.find_one({"id": swid}, {"_id": 0})
+
+
+# ---------------------------------------------------------------------------
+# Seeding (admin only) + one-time demo cleanup
+# ---------------------------------------------------------------------------
+DEMO_DRIVER_EMAILS = [
+    "mario.rossi@hera.it", "luca.bianchi@hera.it", "giulia.verdi@hera.it",
+    "antonio.russo@hera.it", "sara.ferrari@hera.it", "marco.esposito@hera.it",
+    "elena.romano@hera.it", "davide.colombo@hera.it",
+]
+DEMO_PLATES = ["DL 123 AB", "EF 456 CD", "GH 789 EF", "IL 012 GH", "MN 345 IK"]
+DEMO_ROUTE_CODES = [
+    "CS-IND", "ZI-CAR", "QN-ORG", "LM-PLA", "PS-IND", "MC-VET", "ZO-ORG",
+    "SP-CEN", "RC-ING", "CB-NRD", "DOM-CEN", "DOM-MER", "DOM-LUN", "IS-ECO",
+]
+
+
+async def seed_admin():
     admin_email = os.environ.get("ADMIN_EMAIL", "admin@hera.it").lower()
     admin_password = os.environ.get("ADMIN_PASSWORD", "admin123")
     existing = await db.users.find_one({"email": admin_email})
@@ -573,111 +831,26 @@ async def seed():
     elif not verify_password(admin_password, existing["password_hash"]):
         await db.users.update_one({"email": admin_email}, {"$set": {"password_hash": hash_password(admin_password)}})
 
-    if await db.vehicles.count_documents({}) > 0:
-        return  # demo data already present
 
-    # Vehicles
-    vehicles = [
-        {"id": str(uuid.uuid4()), "name": "Compattatore Grande", "plate": "DL 123 AB", "type": "Compattatore 26t"},
-        {"id": str(uuid.uuid4()), "name": "Compattatore Piccolo", "plate": "EF 456 CD", "type": "Compattatore 7t"},
-        {"id": str(uuid.uuid4()), "name": "Vasca Scarrabile", "plate": "GH 789 EF", "type": "Scarrabile"},
-        {"id": str(uuid.uuid4()), "name": "Spazzatrice Stradale", "plate": "IL 012 GH", "type": "Spazzatrice"},
-        {"id": str(uuid.uuid4()), "name": "Autocarro Bilaterale", "plate": "MN 345 IK", "type": "Bilaterale"},
-    ]
-    await db.vehicles.insert_many([dict(v) for v in vehicles])
-    vid = {v["name"]: v["id"] for v in vehicles}
-
-    workdays = [0, 1, 2, 3, 4, 5]  # Lun-Sab
-    routes = [
-        {"id": str(uuid.uuid4()), "name": "Centro Storico - Indifferenziato", "code": "CS-IND", "zone": "Centro", "vehicle_id": vid["Compattatore Piccolo"], "slot": "presto", "days": workdays},
-        {"id": str(uuid.uuid4()), "name": "Zona Industriale - Carta", "code": "ZI-CAR", "zone": "Industriale", "vehicle_id": vid["Compattatore Grande"], "slot": "presto", "days": [0, 1, 2, 3, 4]},
-        {"id": str(uuid.uuid4()), "name": "Quartiere Nord - Organico", "code": "QN-ORG", "zone": "Nord", "vehicle_id": vid["Compattatore Piccolo"], "slot": "presto", "days": [0, 2, 4, 5]},
-        {"id": str(uuid.uuid4()), "name": "Lungomare - Plastica", "code": "LM-PLA", "zone": "Mare", "vehicle_id": vid["Compattatore Grande"], "slot": "presto", "days": [1, 3, 5]},
-        {"id": str(uuid.uuid4()), "name": "Periferia Sud - Indifferenziato", "code": "PS-IND", "zone": "Sud", "vehicle_id": vid["Compattatore Grande"], "slot": "standard", "days": workdays},
-        {"id": str(uuid.uuid4()), "name": "Mercato Coperto - Vetro", "code": "MC-VET", "zone": "Centro", "vehicle_id": vid["Vasca Scarrabile"], "slot": "standard", "days": [0, 2, 4]},
-        {"id": str(uuid.uuid4()), "name": "Zona Ospedaliera - Organico", "code": "ZO-ORG", "zone": "Est", "vehicle_id": vid["Compattatore Piccolo"], "slot": "standard", "days": workdays},
-        {"id": str(uuid.uuid4()), "name": "Spazzamento Vie Centro", "code": "SP-CEN", "zone": "Centro", "vehicle_id": vid["Spazzatrice Stradale"], "slot": "pomeriggio", "days": workdays},
-        {"id": str(uuid.uuid4()), "name": "Raccolta Ingombranti", "code": "RC-ING", "zone": "Città", "vehicle_id": vid["Autocarro Bilaterale"], "slot": "pomeriggio", "days": [1, 3]},
-        {"id": str(uuid.uuid4()), "name": "Cassonetti Bilaterale Nord", "code": "CB-NRD", "zone": "Nord", "vehicle_id": vid["Autocarro Bilaterale"], "slot": "pomeriggio", "days": [0, 2, 4]},
-    ]
-    await db.routes.insert_many([dict(r) for r in routes])
-    rid = {r["code"]: r["id"] for r in routes}
-
-    all_v = list(vid.values())
-    all_r = list(rid.values())
-    drivers_spec = [
-        ("Mario Rossi", "mario.rossi@hera.it", ["Compattatore Grande", "Compattatore Piccolo", "Spazzatrice Stradale"], ["CS-IND", "ZI-CAR", "SP-CEN", "PS-IND"]),
-        ("Luca Bianchi", "luca.bianchi@hera.it", ["Compattatore Grande", "Vasca Scarrabile"], ["ZI-CAR", "LM-PLA", "MC-VET", "PS-IND"]),
-        ("Giulia Verdi", "giulia.verdi@hera.it", ["Compattatore Piccolo", "Autocarro Bilaterale"], ["CS-IND", "QN-ORG", "ZO-ORG", "CB-NRD", "RC-ING"]),
-        ("Antonio Russo", "antonio.russo@hera.it", ["Compattatore Grande", "Compattatore Piccolo", "Autocarro Bilaterale"], ["ZI-CAR", "PS-IND", "ZO-ORG", "RC-ING", "CB-NRD"]),
-        ("Sara Ferrari", "sara.ferrari@hera.it", ["Compattatore Piccolo", "Spazzatrice Stradale"], ["CS-IND", "QN-ORG", "SP-CEN", "ZO-ORG"]),
-        ("Marco Esposito", "marco.esposito@hera.it", ["Compattatore Grande", "Vasca Scarrabile", "Spazzatrice Stradale"], ["LM-PLA", "MC-VET", "SP-CEN", "PS-IND"]),
-        ("Elena Romano", "elena.romano@hera.it", ["Compattatore Piccolo", "Autocarro Bilaterale"], ["QN-ORG", "ZO-ORG", "CB-NRD"]),
-        ("Davide Colombo", "davide.colombo@hera.it", ["Compattatore Grande", "Compattatore Piccolo"], ["CS-IND", "ZI-CAR", "LM-PLA", "PS-IND", "ZO-ORG"]),
-    ]
-    drivers = []
-    for name, email, vskills, rskills in drivers_spec:
-        drivers.append({
-            "id": str(uuid.uuid4()), "name": name, "email": email, "phone": "+39 051 000000",
-            "active": True,
-            "vehicle_skills": [vid[v] for v in vskills],
-            "route_skills": [rid[r] for r in rskills],
-        })
-    await db.drivers.insert_many([dict(d) for d in drivers])
-
-    # driver login for Mario Rossi
-    mario = drivers[0]
-    await db.users.insert_one({
-        "id": str(uuid.uuid4()), "email": "mario.rossi@hera.it",
-        "password_hash": hash_password("autista123"), "name": "Mario Rossi",
-        "role": "driver", "driver_id": mario["id"],
-        "created_at": datetime.now(timezone.utc).isoformat(),
-    })
-
-
-async def ensure_extras():
-    """Idempotent: add Sunday (domenica) routes + a frequency example to existing demo data."""
-    vehicles = await db.vehicles.find({}, {"_id": 0}).to_list(100)
-    if not vehicles:
+async def remove_demo_data():
+    """One-time cleanup of the pre-loaded demo dataset (runs once, guarded by app_meta flag)."""
+    meta = await db.app_meta.find_one({"key": "demo"})
+    if meta and meta.get("removed"):
         return
-    vname = {v["name"]: v["id"] for v in vehicles}
-
-    if await db.routes.count_documents({"slot": "domenica"}) == 0:
-        sunday_routes = [
-            {"id": str(uuid.uuid4()), "name": "Centro - Raccolta Domenicale", "code": "DOM-CEN", "zone": "Centro", "vehicle_id": vname.get("Compattatore Piccolo"), "slot": "domenica", "schedule_mode": "fixed", "days": [6], "interval_days": 2, "start_date": None, "pinned": True},
-            {"id": str(uuid.uuid4()), "name": "Mercati - Raccolta Domenicale", "code": "DOM-MER", "zone": "Centro", "vehicle_id": vname.get("Compattatore Grande"), "slot": "domenica", "schedule_mode": "fixed", "days": [6], "interval_days": 2, "start_date": None, "pinned": True},
-            {"id": str(uuid.uuid4()), "name": "Lungomare - Raccolta Domenicale", "code": "DOM-LUN", "zone": "Mare", "vehicle_id": vname.get("Compattatore Piccolo"), "slot": "domenica", "schedule_mode": "fixed", "days": [6], "interval_days": 2, "start_date": None, "pinned": True},
-        ]
-        await db.routes.insert_many([dict(r) for r in sunday_routes])
-        sunday_ids = [r["id"] for r in sunday_routes]
-        sunday_vehicles = list({r["vehicle_id"] for r in sunday_routes})
-        # grant Sunday skills to the first 4 active drivers
-        drivers = await db.drivers.find({}, {"_id": 0}).to_list(100)
-        for d in drivers[:4]:
-            v = list(set(d.get("vehicle_skills", []) + sunday_vehicles))
-            r = list(set(d.get("route_skills", []) + sunday_ids))
-            await db.drivers.update_one({"id": d["id"]}, {"$set": {"vehicle_skills": v, "route_skills": r}})
-
-    if await db.routes.count_documents({"schedule_mode": "frequency"}) == 0:
-        drivers = await db.drivers.find({}, {"_id": 0}).to_list(100)
-        freq = {
-            "id": str(uuid.uuid4()), "name": "Isole Ecologiche - Ciclo", "code": "IS-ECO", "zone": "Città",
-            "vehicle_id": vname.get("Vasca Scarrabile"), "slot": "standard",
-            "schedule_mode": "frequency", "days": [], "interval_days": 3,
-            "start_date": None, "pinned": False,
-        }
-        await db.routes.insert_one(dict(freq))
-        for d in drivers[:3]:
-            v = list(set(d.get("vehicle_skills", []) + [freq["vehicle_id"]]))
-            r = list(set(d.get("route_skills", []) + [freq["id"]]))
-            await db.drivers.update_one({"id": d["id"]}, {"$set": {"vehicle_skills": v, "route_skills": r}})
+    await db.drivers.delete_many({"email": {"$in": DEMO_DRIVER_EMAILS}})
+    await db.users.delete_many({"role": "driver", "email": {"$in": DEMO_DRIVER_EMAILS}})
+    await db.vehicles.delete_many({"plate": {"$in": DEMO_PLATES}})
+    await db.routes.delete_many({"code": {"$in": DEMO_ROUTE_CODES}})
+    await db.shifts.delete_many({})
+    await db.absences.delete_many({})
+    await db.app_meta.update_one({"key": "demo"}, {"$set": {"key": "demo", "removed": True}}, upsert=True)
 
 
 @app.on_event("startup")
 async def on_startup():
     await db.users.create_index("email", unique=True)
-    await seed()
-    await ensure_extras()
+    await seed_admin()
+    await remove_demo_data()
 
 
 app.include_router(api_router)

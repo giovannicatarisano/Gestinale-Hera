@@ -1,7 +1,7 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import Logo from "./Logo";
-import { LayoutDashboard, Users, Truck, Route, GraduationCap, LogOut, Eye, CalendarOff } from "lucide-react";
+import { LayoutDashboard, Users, Truck, Route, GraduationCap, LogOut, Eye, CalendarOff, ArrowLeftRight } from "lucide-react";
 
 const NAV = [
   { to: "/dashboard", label: "Pianificazione", icon: LayoutDashboard, tid: "nav-dashboard" },
@@ -9,6 +9,7 @@ const NAV = [
   { to: "/mezzi", label: "Mezzi", icon: Truck, tid: "nav-fleet" },
   { to: "/giri", label: "Giri", icon: Route, tid: "nav-routes" },
   { to: "/assenze", label: "Assenze", icon: CalendarOff, tid: "nav-absences" },
+  { to: "/scambi", label: "Scambi", icon: ArrowLeftRight, tid: "nav-swaps" },
   { to: "/formazioni", label: "Formazioni", icon: GraduationCap, tid: "nav-skills" },
 ];
 

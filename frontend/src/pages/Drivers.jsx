@@ -7,9 +7,9 @@ import { Label } from "../components/ui/label";
 import { Switch } from "../components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../components/ui/dialog";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, Users } from "lucide-react";
+import { Plus, Pencil, Trash2, Users, KeyRound, ShieldCheck } from "lucide-react";
 
-const EMPTY = { name: "", email: "", phone: "", active: true };
+const EMPTY = { name: "", email: "", phone: "", active: true, password: "" };
 
 export default function Drivers() {
   const [drivers, setDrivers] = useState([]);
@@ -21,7 +21,7 @@ export default function Drivers() {
   useEffect(() => { load(); }, []);
 
   const openNew = () => { setEditing(null); setForm(EMPTY); setOpen(true); };
-  const openEdit = (d) => { setEditing(d); setForm({ name: d.name, email: d.email, phone: d.phone, active: d.active }); setOpen(true); };
+  const openEdit = (d) => { setEditing(d); setForm({ name: d.name, email: d.email, phone: d.phone, active: d.active, password: "" }); setOpen(true); };
 
   const save = async () => {
     if (!form.name.trim()) return toast.error("Il nome è obbligatorio");
@@ -62,7 +62,18 @@ export default function Drivers() {
                 {d.active ? "Attivo" : "Inattivo"}
               </span>
             </div>
-            <div className="font-mono text-xs text-muted-foreground mt-3">{d.phone || ""}</div>
+            <div className="flex items-center justify-between mt-3">
+              <div className="font-mono text-xs text-muted-foreground">{d.phone || ""}</div>
+              {d.has_account ? (
+                <span className="inline-flex items-center gap-1 overline text-primary" data-testid={`account-badge-${d.id}`}>
+                  <ShieldCheck size={12} /> Accesso attivo
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 overline text-muted-foreground">
+                  <KeyRound size={12} /> Nessun accesso
+                </span>
+              )}
+            </div>
             <div className="flex gap-2 mt-4">
               <Button variant="outline" size="sm" className="rounded-sm flex-1" data-testid={`edit-driver-${d.id}`} onClick={() => openEdit(d)}>
                 <Pencil size={14} className="mr-1.5" /> Modifica
@@ -85,6 +96,24 @@ export default function Drivers() {
             <div className="flex items-center justify-between border border-border rounded-sm p-3">
               <Label className="text-sm">In servizio</Label>
               <Switch checked={form.active} onCheckedChange={(v) => setForm({ ...form, active: v })} data-testid="driver-active-switch" />
+            </div>
+            <div className="border border-border rounded-sm p-3 space-y-2">
+              <div className="flex items-center gap-1.5 text-sm font-medium">
+                <KeyRound size={14} className="text-primary" /> Credenziali di accesso
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {editing?.has_account
+                  ? "Questo autista ha già un accesso. Inserisci una password per reimpostarla."
+                  : "Imposta una password per creare l'accesso in sola lettura dell'autista (richiede l'email)."}
+              </p>
+              <Input
+                type="password"
+                data-testid="driver-password-input"
+                value={form.password}
+                onChange={(e) => setForm({ ...form, password: e.target.value })}
+                placeholder={editing?.has_account ? "Nuova password (opzionale)" : "Password accesso autista"}
+                className="rounded-sm"
+              />
             </div>
           </div>
           <DialogFooter>
