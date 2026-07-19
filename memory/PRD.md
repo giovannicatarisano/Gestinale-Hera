@@ -46,6 +46,17 @@ manuale e una modale di sostituzione intelligente. Gli autisti hanno accesso in 
   (crea turno di recupero il giorno dopo, marca l'originale "RIPROGRAMMATO").
 - Fissaggio giro (pinned) a turno+giorno con icona lucchetto; il motore lo assegna con priorità.
 - Testing: 24/24 backend pytest, frontend E2E 100% (iteration_2). Fix bug serializzazione recover.
+
+### Iteration 5 (2026-06)
+- Notifiche autista: campanella con contatore non letti su /tabellone; l'autista è avvisato quando il suo turno cambia (riassegnazione, assenza, recupero, scambio approvato).
+- Richiesta cambio turno: l'autista propone il proprio turno a un collega; approvazione da parte di admin/assistente in /scambi (riassegna il turno e notifica entrambi).
+- Rotazione settimanale: ogni autista lavora un solo turno per l'intera settimana (presto/standard/pomeriggio) e ruota di settimana in settimana; report autisti senza turni (GET /api/rotation).
+- Vincolo riposo: il motore non assegna un turno mattutino (presto/domenica) il giorno dopo un pomeriggio.
+- Creazione account autisti da parte dell'admin (password nel form Autisti o POST /drivers/{id}/credentials); badge "Accesso attivo".
+- Rimossa la versione demo: niente pulsanti demo nel login, dati demo cancellati una tantum all'avvio (resta solo l'admin).
+- Testing: 27/27 backend pytest + frontend E2E 100% (iteration_5).
+
+NOTA DEPLOY: modifiche presenti solo in preview — richiedono un nuovo deploy per andare in produzione (https://route-assigner.emergent.host). I dati demo verranno rimossi in produzione al primo avvio dopo il redeploy.
 - Testing: 17/17 backend pytest, frontend E2E 100% (iteration_1).
 
 ## Backlog (P1/P2)
