@@ -34,6 +34,8 @@ export default function Login() {
     setEmail(em);
     setPassword(pw);
   };
+  void quick;
+
 
   return (
     <div className="min-h-screen grid lg:grid-cols-2 bg-background">
@@ -106,25 +108,10 @@ export default function Login() {
           </form>
 
           <div className="mt-8 border-t border-border pt-4">
-            <div className="overline text-muted-foreground mb-3">Account demo</div>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                data-testid="demo-admin-btn"
-                onClick={() => quick("admin@hera.it", "admin123")}
-                className="text-left border border-border rounded-sm p-3 hover:border-primary transition-colors duration-150"
-              >
-                <div className="text-sm font-semibold">Admin</div>
-                <div className="font-mono text-xs text-muted-foreground">admin@hera.it</div>
-              </button>
-              <button
-                data-testid="demo-driver-btn"
-                onClick={() => quick("mario.rossi@hera.it", "autista123")}
-                className="text-left border border-border rounded-sm p-3 hover:border-primary transition-colors duration-150"
-              >
-                <div className="text-sm font-semibold">Autista</div>
-                <div className="font-mono text-xs text-muted-foreground">mario.rossi@hera.it</div>
-              </button>
-            </div>
+            <div className="overline text-muted-foreground mb-1">Accesso dipendenti</div>
+            <p className="text-xs text-muted-foreground">
+              Le credenziali degli autisti vengono create dall'amministratore dall'area gestione.
+            </p>
           </div>
         </div>
       </div>

@@ -8,6 +8,7 @@ import Drivers from "./pages/Drivers";
 import Fleet from "./pages/Fleet";
 import RoutesPage from "./pages/RoutesPage";
 import Absences from "./pages/Absences";
+import Swaps from "./pages/Swaps";
 import SkillMatrix from "./pages/SkillMatrix";
 import DriverView from "./pages/DriverView";
 import "./App.css";
@@ -65,6 +66,7 @@ function App() {
             <Route path="/mezzi" element={<Fleet />} />
             <Route path="/giri" element={<RoutesPage />} />
             <Route path="/assenze" element={<Absences />} />
+            <Route path="/scambi" element={<Swaps />} />
             <Route path="/formazioni" element={<SkillMatrix />} />
           </Route>
         </Routes>
