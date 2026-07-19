@@ -30,13 +30,6 @@ export default function Login() {
     }
   };
 
-  const quick = (em, pw) => {
-    setEmail(em);
-    setPassword(pw);
-  };
-  void quick;
-
-
   return (
     <div className="min-h-screen grid lg:grid-cols-2 bg-background">
       {/* Left visual */}
