@@ -1,0 +1,35 @@
+{
+  "summary": "Iteration 4 (final regression). Backend: 29/29 pytest PASS when run serially. Frontend: verified admin login, Genera Turni, Stampa/PDF (window.print invoked), Substitution modal (7 candidates + mark-absence-btn), Skill Matrix (40 mezzo + 112 giro toggles), Assenze CRUD page, Driver login with read-only /tabellone (I miei turni + full board, zero admin controls), and driver RBAC blocked from /formazioni (redirects to /tabellone). All requirements A-E validated.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "pytest -n auto", "issue": "TestAbsences, TestGenerateSpecificWeek and TestRecovery all target the same week (2026-06-01). When xdist splits them across workers, concurrent /shifts/generate calls can race and make TestRecovery::test_recover_creates_makeup flaky (StopIteration when re-fetching original shift). Serial run passes 29/29. Not a product bug — a test-isolation issue."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/backend_test.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [
+    "Optional: give each pytest class its own week_start (e.g. 2026-06-08, 2026-06-15) to remove the xdist race on /shifts/generate. Product code is unaffected."
+  ],
+  "critical_code_review_comments": [
+    "server.py recover_shift correctly re-inserts a new shift and marks the original 'recovered'. OK.",
+    "SkillMatrix uses Radix Checkbox — toggle state is on data-state attribute (not class). Persistence covered by TestDriverCRUD.test_crud_and_skills.",
+    "Driver correctly redirected from /formazioni to /tabellone; no admin data-testid buttons rendered for driver role.",
+    "Substitution modal shows recover-btn only when the shift is uncovered; mark-absence-btn shows when assigned. Behavior matches spec."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100% (29/29 serial); ~97% (28/29) with xdist due to shared week", "frontend": "100%"},
+  "test_credentials": "admin@hera.it/admin123, mario.rossi@hera.it/autista123",
+  "seed_data_creation": "None new; used existing seeded data. Test data created inside tests is cleaned up.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Full regression complete. Run backend suite with `pytest backend/tests/backend_test.py -n 0` to avoid xdist week-collision flakiness, or refactor per action_items. Frontend testids of note: generate-shifts-btn, print-board-btn, substitution-modal, shift-{uuid}, skill-v-{driver}-{vehicle}, skill-r-{driver}-{route}, mark-absence-btn, recover-btn, close-modal-btn, add-absence-btn.",
+  "rca of the issue": "TestRecovery flake RCA: The three classes touching week 2026-06-01 (TestAbsences, TestGenerateSpecificWeek, TestRecovery) run in different xdist workers. /shifts/generate wipes and re-creates the week's shifts, so a shift-id captured by TestRecovery can be gone by the time it re-fetches. Reproduction: pytest -n auto. Mitigation: assign distinct week_start values per class (or use pytest-xdist --dist=loadfile grouping in pytest.ini)."
+}
