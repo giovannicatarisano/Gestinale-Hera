@@ -280,7 +280,7 @@ class TestGenerateSpecificWeek:
 
 # -------- New: Recovery flow --------
 class TestRecovery:
-    WK = "2026-06-01"
+    WK = "2026-06-15"
 
     def _find_uncovered(self, admin_token):
         # Force generate then find an uncovered non-Sunday shift with day < 6
@@ -344,7 +344,7 @@ class TestRouteExtras:
         requests.delete(f"{BASE_URL}/api/routes/{data['id']}", headers=H(admin_token))
 
 class TestAbsences:
-    WK = "2026-06-01"
+    WK = "2026-06-08"
 
     def test_driver_cannot_create_absence(self, driver_token, admin_token):
         drv = requests.get(f"{BASE_URL}/api/drivers", headers=H(admin_token)).json()[0]
@@ -399,7 +399,7 @@ class TestAbsences:
 
         # Create absence Mon+Tue
         ar = requests.post(f"{BASE_URL}/api/absences",
-                           json={"driver_id": target_id, "type": "ferie", "start_date": "2026-06-01", "end_date": "2026-06-02", "note": "TEST_engine"},
+                           json={"driver_id": target_id, "type": "ferie", "start_date": "2026-06-08", "end_date": "2026-06-09", "note": "TEST_engine"},
                            headers=H(admin_token))
         assert ar.status_code == 200
         aid = ar.json()["id"]
