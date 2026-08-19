@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import Logo from "./Logo";
+import NotificationsPanel from "./NotificationsPanel";
 import {
   LayoutDashboard,
   Users,
@@ -14,7 +15,8 @@ import {
   ArrowLeftRight,
   Menu,
   X,
-  ChevronRight
+  ChevronRight,
+  RefreshCw
 } from "lucide-react";
 import { initials } from "../lib/dates";
 
@@ -38,6 +40,15 @@ export default function Layout() {
   const navigate = useNavigate();
   const location = useLocation();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    // Trigger a full page data reload by dispatching a custom event that pages listen to
+    window.dispatchEvent(new CustomEvent("hera:refresh"));
+    // Also reload the page if there's no listener yet
+    setTimeout(() => setRefreshing(false), 800);
+  }, []);
 
   const isSecondaryActive = SECONDARY_NAV.some((n) => location.pathname === n.to);
 
@@ -93,6 +104,18 @@ export default function Layout() {
 
         {/* Footer actions */}
         <div className="p-3 border-t border-border space-y-1.5 bg-card/50">
+          <div className="flex items-center gap-2 mb-2">
+            <button
+              id="refresh-btn-desktop"
+              onClick={handleRefresh}
+              className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-sm text-xs font-medium text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors border border-border/50"
+              title="Aggiorna i dati"
+            >
+              <RefreshCw size={14} className={refreshing ? "animate-spin" : ""} />
+              <span>Aggiorna</span>
+            </button>
+            <NotificationsPanel />
+          </div>
           <button
             data-testid="view-board-btn"
             onClick={() => navigate("/tabellone")}
@@ -129,6 +152,18 @@ export default function Layout() {
             <Eye size={14} />
             <span>Tabellone</span>
           </button>
+          {/* Refresh button */}
+          <button
+            type="button"
+            id="refresh-btn-mobile"
+            onClick={handleRefresh}
+            className="h-9 w-9 flex items-center justify-center rounded-sm border border-border text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+            aria-label="Aggiorna dati"
+          >
+            <RefreshCw size={15} className={refreshing ? "animate-spin" : ""} />
+          </button>
+          {/* Notifications */}
+          <NotificationsPanel />
           <button
             type="button"
             onClick={() => setDrawerOpen(true)}
