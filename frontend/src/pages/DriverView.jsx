@@ -35,6 +35,7 @@ export default function DriverView() {
   const [swaps, setSwaps] = useState([]);
   const [rotation, setRotation] = useState(null);
   const [swapShift, setSwapShift] = useState(null);
+  const [weekSwapOpen, setWeekSwapOpen] = useState(false);
   const [swapTo, setSwapTo] = useState("");
   const [swapNote, setSwapNote] = useState("");
   const [refreshing, setRefreshing] = useState(false);
@@ -111,9 +112,19 @@ export default function DriverView() {
   const submitSwap = async () => {
     if (!swapTo) return toast.error("Seleziona un collega");
     try {
-      await api.post("/swap-requests", { shift_id: swapShift.id, to_driver_id: swapTo, note: swapNote });
+      await api.post("/swap-requests", { kind: "shift", shift_id: swapShift.id, to_driver_id: swapTo, note: swapNote });
       toast.success("Richiesta di cambio inviata · notifica inviata al collega e all'admin");
       setSwapShift(null); setSwapTo(""); setSwapNote("");
+      loadSwaps();
+    } catch (e) { toast.error(apiError(e.response?.data?.detail)); }
+  };
+
+  const submitWeekSwap = async () => {
+    if (!swapTo) return toast.error("Seleziona un collega");
+    try {
+      await api.post("/swap-requests", { kind: "week", week_start: wk, to_driver_id: swapTo, note: swapNote });
+      toast.success("Richiesta di scambio per tutta la settimana inviata!");
+      setWeekSwapOpen(false); setSwapTo(""); setSwapNote("");
       loadSwaps();
     } catch (e) { toast.error(apiError(e.response?.data?.detail)); }
   };
@@ -229,7 +240,21 @@ export default function DriverView() {
         {/* my shifts */}
         {myId && (
           <div>
-            <div className="overline text-muted-foreground mb-2">I miei turni</div>
+            <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
+              <div className="overline text-muted-foreground">I miei turni</div>
+              {myShifts.length > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  data-testid="week-swap-btn"
+                  className="rounded-sm h-8 px-2.5 text-xs font-semibold text-primary border-primary/30 hover:bg-primary/10"
+                  onClick={() => { setWeekSwapOpen(true); setSwapTo(""); setSwapNote(""); }}
+                >
+                  <ArrowLeftRight size={13} className="mr-1.5" />
+                  <span>Scambia intera settimana</span>
+                </Button>
+              )}
+            </div>
             {myShifts.length === 0 ? (
               <div className="border border-dashed border-border rounded-sm p-6 text-center text-sm text-muted-foreground bg-card">
                 Nessun turno assegnato per te questa settimana.
@@ -279,8 +304,15 @@ export default function DriverView() {
             <div className="space-y-3">
               {myIncomingSwaps.map((sw) => (
                 <div key={sw.id} className="border border-primary/30 bg-primary/5 rounded-sm p-3.5 sm:p-4" data-testid={`incoming-swap-${sw.id}`}>
-                  <div className="text-sm font-semibold">{sw.from_name} ti propone di prendere il suo turno</div>
-                  <div className="font-mono text-xs text-muted-foreground mt-0.5">{sw.shift_label}</div>
+                  <div className="flex items-center justify-between gap-2 flex-wrap mb-1">
+                    <span className="text-sm font-semibold">{sw.from_name} ti propone uno scambio</span>
+                    {sw.kind === "week" && (
+                      <span className="overline text-[10px] px-2 py-0.5 rounded-sm font-bold bg-primary text-primary-foreground">
+                        📅 Intera Settimana
+                      </span>
+                    )}
+                  </div>
+                  <div className="font-mono text-xs text-muted-foreground">{sw.shift_label}</div>
                   {sw.note && <div className="text-xs italic text-muted-foreground mt-1 bg-secondary/40 p-1.5 rounded-sm">"{sw.note}"</div>}
                   <div className="flex gap-2 mt-3">
                     <Button size="sm" className="flex-1 h-10 rounded-sm bg-primary hover:bg-primary/90 font-semibold text-xs" data-testid={`accept-swap-${sw.id}`} onClick={() => respondToSwap(sw.id, true)}>
@@ -374,6 +406,47 @@ export default function DriverView() {
           <DialogFooter className="gap-2 sm:gap-0 mt-2">
             <Button variant="ghost" className="rounded-sm h-10 text-xs" onClick={() => setSwapShift(null)}>Annulla</Button>
             <Button className="rounded-sm bg-primary hover:bg-primary/90 h-10 text-xs font-semibold" data-testid="submit-swap-btn" onClick={submitSwap}>Invia richiesta</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* weekly swap request modal */}
+      <Dialog open={weekSwapOpen} onOpenChange={setWeekSwapOpen}>
+        <DialogContent className="w-[94vw] sm:max-w-md rounded-sm p-4 sm:p-5 max-h-[85vh] overflow-y-auto" data-testid="week-swap-modal">
+          <DialogHeader>
+            <DialogTitle className="font-head tracking-tight text-lg flex items-center gap-2">
+              <ArrowLeftRight size={17} className="text-primary" />
+              <span>Scambio intera settimana</span>
+            </DialogTitle>
+            <DialogDescription className="sr-only">Proponi al collega di scambiare tutti i turni della settimana selezionata.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3.5 py-2">
+            <div className="border border-border rounded-sm p-3 bg-secondary/30">
+              <div className="text-xs font-semibold text-muted-foreground overline">Settimana selezionata</div>
+              <div className="font-head font-bold text-sm mt-0.5">{weekLabel(ref)}</div>
+              <div className="text-xs text-muted-foreground mt-1">
+                Hai <b>{myShifts.length}</b> turni assegnati in questa settimana che verranno scambiati con quelli del collega.
+              </div>
+            </div>
+            <div>
+              <div className="text-xs font-semibold mb-1.5">Proponi lo scambio settimanale a</div>
+              <Select value={swapTo} onValueChange={setSwapTo}>
+                <SelectTrigger className="rounded-sm h-10 text-xs sm:text-sm" data-testid="week-swap-colleague-select"><SelectValue placeholder="Seleziona collega" /></SelectTrigger>
+                <SelectContent className="max-h-60">{colleagues.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div>
+              <div className="text-xs font-semibold mb-1.5">Motivazione (opzionale)</div>
+              <Textarea data-testid="week-swap-note-input" value={swapNote} onChange={(e) => setSwapNote(e.target.value)} rows={2} className="rounded-sm text-xs sm:text-sm" placeholder="es. Cambio orario settimanale concordato..." />
+            </div>
+            <div className="flex items-start gap-2 bg-blue-500/10 border border-blue-500/20 rounded-sm p-3 text-xs text-blue-700 dark:text-blue-400">
+              <Info size={13} className="shrink-0 mt-0.5" />
+              <span>Il collega riceverà la notifica per accettare lo scambio settimanale. L'admin darà l'approvazione finale.</span>
+            </div>
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0 mt-2">
+            <Button variant="ghost" className="rounded-sm h-10 text-xs" onClick={() => setWeekSwapOpen(false)}>Annulla</Button>
+            <Button className="rounded-sm bg-primary hover:bg-primary/90 h-10 text-xs font-semibold" data-testid="submit-week-swap-btn" onClick={submitWeekSwap}>Invia richiesta settimanale</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

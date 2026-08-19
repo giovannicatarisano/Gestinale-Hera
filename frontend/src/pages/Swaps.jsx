@@ -122,9 +122,16 @@ function SwapCard({ r, onDecide }) {
     <div className="border border-border bg-card rounded-sm p-3.5 sm:p-4 shadow-sm" data-testid={`swap-row-${r.id}`}>
       {/* Status row */}
       <div className="flex items-center justify-between gap-2 flex-wrap mb-3">
-        <span className={`inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-sm font-bold ${st.cls}`}>
-          {st.icon} {st.label}
-        </span>
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <span className={`inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-sm font-bold ${st.cls}`}>
+            {st.icon} {st.label}
+          </span>
+          {r.kind === "week" && (
+            <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-sm font-bold bg-primary text-primary-foreground">
+              📅 Tutta la Settimana
+            </span>
+          )}
+        </div>
         <span className="font-mono text-xs text-muted-foreground truncate">{r.shift_label}</span>
       </div>
 
