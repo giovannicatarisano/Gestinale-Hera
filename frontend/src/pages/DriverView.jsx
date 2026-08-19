@@ -11,7 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "../components/ui/popove
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "../components/ui/dialog";
 import { toast } from "sonner";
-import { ChevronLeft, ChevronRight, LogOut, LayoutDashboard, Clock, Bell, ArrowLeftRight, Check, X as XIcon, Info } from "lucide-react";
+import { ChevronLeft, ChevronRight, LogOut, LayoutDashboard, Clock, Bell, ArrowLeftRight, Check, X as XIcon, Info, RefreshCw } from "lucide-react";
 
 const SLOT_TIME = { presto: "05:30 – 11:50", standard: "06:00 – 12:20", pomeriggio: "12:30 – 18:50", domenica: "06:00 – 12:20" };
 const SLOT_LABEL = { presto: "Mattino Presto", standard: "Mattino Standard", pomeriggio: "Pomeriggio", domenica: "Turno Domenica" };
@@ -37,6 +37,7 @@ export default function DriverView() {
   const [swapShift, setSwapShift] = useState(null);
   const [swapTo, setSwapTo] = useState("");
   const [swapNote, setSwapNote] = useState("");
+  const [refreshing, setRefreshing] = useState(false);
   const wk = weekKey(ref);
   const myId = user?.driver_id;
 
@@ -55,10 +56,30 @@ export default function DriverView() {
     return () => window.removeEventListener("hera:refresh", onRefresh);
   }, [loadNotifs, loadSwaps]);
 
-  useEffect(() => {
+  const loadWeekData = useCallback(() => {
     api.get(`/shifts?week_start=${wk}`).then((r) => setShifts(r.data));
     api.get(`/rotation?week_start=${wk}`).then((r) => setRotation(r.data)).catch(() => setRotation(null));
   }, [wk]);
+
+  useEffect(() => {
+    loadWeekData();
+  }, [loadWeekData]);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      loadNotifs();
+      loadSwaps();
+      loadWeekData();
+      const [r, v, d] = await Promise.all([api.get("/routes"), api.get("/vehicles"), api.get("/drivers")]);
+      setRoutes(r.data); setVehicles(v.data); setDrivers(d.data);
+      toast.success("Dati aggiornati");
+    } catch {
+      // ignore
+    } finally {
+      setTimeout(() => setRefreshing(false), 500);
+    }
+  };
 
   const routeById = Object.fromEntries(routes.map((r) => [r.id, r]));
   const vehicleById = Object.fromEntries(vehicles.map((v) => [v.id, v]));
@@ -109,6 +130,15 @@ export default function DriverView() {
               <LayoutDashboard size={14} className="mr-1 sm:mr-1.5" /> <span>Admin</span>
             </Button>
           )}
+          {/* Refresh button */}
+          <button
+            data-testid="driver-refresh-btn"
+            onClick={handleRefresh}
+            className="h-9 w-9 flex items-center justify-center border border-border rounded-sm hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors duration-150"
+            title="Aggiorna turni e notifiche"
+          >
+            <RefreshCw size={16} className={refreshing ? "animate-spin text-primary" : ""} />
+          </button>
           {myId && (
             <Popover onOpenChange={openNotifs}>
               <PopoverTrigger asChild>
