@@ -11,11 +11,17 @@ import { Popover, PopoverContent, PopoverTrigger } from "../components/ui/popove
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "../components/ui/dialog";
 import { toast } from "sonner";
-import { ChevronLeft, ChevronRight, LogOut, LayoutDashboard, Clock, Bell, ArrowLeftRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, LogOut, LayoutDashboard, Clock, Bell, ArrowLeftRight, Check, X as XIcon, Info } from "lucide-react";
 
 const SLOT_TIME = { presto: "05:30 – 11:50", standard: "06:00 – 12:20", pomeriggio: "12:30 – 18:50", domenica: "06:00 – 12:20" };
 const SLOT_LABEL = { presto: "Mattino Presto", standard: "Mattino Standard", pomeriggio: "Pomeriggio", domenica: "Turno Domenica" };
-const SWAP_STATUS = { pending: "In attesa", approved: "Approvato", rejected: "Rifiutato" };
+const SWAP_STATUS = {
+  pending_driver: { label: "In attesa risposta collega", cls: "bg-amber-500/15 text-amber-700" },
+  pending_admin: { label: "In attesa admin", cls: "bg-blue-500/15 text-blue-700" },
+  approved: { label: "Approvato ✅", cls: "bg-emerald-500/15 text-emerald-700" },
+  rejected: { label: "Rifiutato ❌", cls: "bg-destructive/15 text-destructive" },
+  pending: { label: "In attesa", cls: "bg-amber-500/15 text-amber-700" },
+};
 
 export default function DriverView() {
   const { user, logout } = useAuth();
@@ -42,7 +48,12 @@ export default function DriverView() {
 
   const loadNotifs = useCallback(() => { if (myId) api.get("/notifications").then((r) => setNotifs(r.data)); }, [myId]);
   const loadSwaps = useCallback(() => { if (myId) api.get("/swap-requests").then((r) => setSwaps(r.data)); }, [myId]);
-  useEffect(() => { loadNotifs(); loadSwaps(); }, [loadNotifs, loadSwaps]);
+  useEffect(() => {
+    loadNotifs(); loadSwaps();
+    const onRefresh = () => { loadNotifs(); loadSwaps(); };
+    window.addEventListener("hera:refresh", onRefresh);
+    return () => window.removeEventListener("hera:refresh", onRefresh);
+  }, [loadNotifs, loadSwaps]);
 
   useEffect(() => {
     api.get(`/shifts?week_start=${wk}`).then((r) => setShifts(r.data));
@@ -55,6 +66,21 @@ export default function DriverView() {
   const unread = notifs.filter((n) => !n.read).length;
   const mySlot = rotation?.rotation?.find((r) => r.driver_id === myId)?.slot;
 
+  // Swaps I sent
+  const mySentSwaps = swaps.filter((sw) => sw.from_driver_id === myId);
+  // Swaps I received and must respond to
+  const myIncomingSwaps = swaps.filter((sw) => sw.to_driver_id === myId && sw.status === "pending_driver");
+
+  const swapForShift = (sid) => swaps.find((s) => s.shift_id === sid && ["pending_driver","pending_admin","pending"].includes(s.status) && s.from_driver_id === myId);
+
+  const respondToSwap = async (swapId, accepted) => {
+    try {
+      await api.patch(`/swap-requests/${swapId}/driver-respond`, { accepted });
+      toast.success(accepted ? "✅ Hai accettato il cambio — in attesa dell'admin" : "Hai rifiutato la richiesta");
+      loadSwaps(); loadNotifs();
+    } catch (e) { toast.error(apiError(e.response?.data?.detail)); }
+  };
+
   const openNotifs = (open) => {
     if (open && unread > 0) {
       api.post("/notifications/read", {}).then(() => setNotifs((prev) => prev.map((n) => ({ ...n, read: true }))));
@@ -65,14 +91,13 @@ export default function DriverView() {
     if (!swapTo) return toast.error("Seleziona un collega");
     try {
       await api.post("/swap-requests", { shift_id: swapShift.id, to_driver_id: swapTo, note: swapNote });
-      toast.success("Richiesta di cambio inviata · in attesa di approvazione");
+      toast.success("Richiesta di cambio inviata · notifica inviata al collega e all'admin");
       setSwapShift(null); setSwapTo(""); setSwapNote("");
       loadSwaps();
     } catch (e) { toast.error(apiError(e.response?.data?.detail)); }
   };
 
   const colleagues = drivers.filter((d) => d.id !== myId && d.active);
-  const swapForShift = (sid) => swaps.find((s) => s.shift_id === sid && s.status === "pending");
 
   return (
     <div className="min-h-screen bg-background pb-12">
@@ -182,22 +207,50 @@ export default function DriverView() {
           </div>
         )}
 
+        {/* incoming swaps — requests where I am the target driver */}
+        {myId && myIncomingSwaps.length > 0 && (
+          <div>
+            <div className="overline text-primary mb-2 flex items-center gap-1.5">
+              <ArrowLeftRight size={12} /> Richieste di cambio ricevute
+              <span className="ml-1 text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-full bg-primary text-primary-foreground">{myIncomingSwaps.length}</span>
+            </div>
+            <div className="space-y-3">
+              {myIncomingSwaps.map((sw) => (
+                <div key={sw.id} className="border border-primary/30 bg-primary/5 rounded-sm p-3.5 sm:p-4" data-testid={`incoming-swap-${sw.id}`}>
+                  <div className="text-sm font-semibold">{sw.from_name} ti propone di prendere il suo turno</div>
+                  <div className="font-mono text-xs text-muted-foreground mt-0.5">{sw.shift_label}</div>
+                  {sw.note && <div className="text-xs italic text-muted-foreground mt-1 bg-secondary/40 p-1.5 rounded-sm">"{sw.note}"</div>}
+                  <div className="flex gap-2 mt-3">
+                    <Button size="sm" className="flex-1 h-10 rounded-sm bg-primary hover:bg-primary/90 font-semibold text-xs" data-testid={`accept-swap-${sw.id}`} onClick={() => respondToSwap(sw.id, true)}>
+                      <Check size={13} className="mr-1.5" /> Accetto
+                    </Button>
+                    <Button size="sm" variant="outline" className="flex-1 h-10 rounded-sm text-destructive hover:bg-destructive/10 font-semibold text-xs" data-testid={`refuse-swap-${sw.id}`} onClick={() => respondToSwap(sw.id, false)}>
+                      <XIcon size={13} className="mr-1.5" /> Rifiuto
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* my swap requests */}
-        {myId && swaps.length > 0 && (
+        {myId && mySentSwaps.length > 0 && (
           <div>
             <div className="overline text-muted-foreground mb-2">Le mie richieste di cambio</div>
             <div className="border border-border bg-card rounded-sm divide-y divide-border">
-              {swaps.map((sw) => (
-                <div key={sw.id} className="flex items-center justify-between gap-3 p-3" data-testid={`my-swap-${sw.id}`}>
-                  <div className="min-w-0">
-                    <div className="text-sm font-medium truncate">{sw.shift_label}</div>
-                    <div className="font-mono text-xs text-muted-foreground">{sw.from_name} → {sw.to_name}</div>
+              {mySentSwaps.map((sw) => {
+                const st = SWAP_STATUS[sw.status] || SWAP_STATUS.pending;
+                return (
+                  <div key={sw.id} className="flex items-center justify-between gap-3 p-3" data-testid={`my-swap-${sw.id}`}>
+                    <div className="min-w-0">
+                      <div className="text-sm font-medium truncate">{sw.shift_label}</div>
+                      <div className="font-mono text-xs text-muted-foreground">{sw.from_name} → {sw.to_name}</div>
+                    </div>
+                    <span className={`overline text-[10px] px-2 py-0.5 rounded-sm shrink-0 font-semibold ${st.cls}`}>{st.label}</span>
                   </div>
-                  <span className={`overline text-[10px] px-2 py-0.5 rounded-sm shrink-0 font-semibold ${sw.status === "approved" ? "bg-emerald-500/15 text-emerald-700" : sw.status === "rejected" ? "bg-destructive/15 text-destructive" : "bg-amber-500/15 text-amber-700"}`}>
-                    {SWAP_STATUS[sw.status]}
-                  </span>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
@@ -249,7 +302,11 @@ export default function DriverView() {
                 <div className="text-xs font-semibold mb-1.5">Motivazione (opzionale)</div>
                 <Textarea data-testid="swap-note-input" value={swapNote} onChange={(e) => setSwapNote(e.target.value)} rows={2} className="rounded-sm text-xs sm:text-sm" placeholder="es. Impegno personale, visita..." />
               </div>
-              <p className="text-xs text-muted-foreground">La richiesta verrà inviata agli assistenti/amministratori per l'approvazione.</p>
+              {/* Dual-approval info banner */}
+              <div className="flex items-start gap-2 bg-blue-500/10 border border-blue-500/20 rounded-sm p-3 text-xs text-blue-700 dark:text-blue-400">
+                <Info size={13} className="shrink-0 mt-0.5" />
+                <span>Il collega riceverà una notifica e dovrà accettare. Dopo, l'admin approverà definitivamente. Solo con <b>entrambe le approvazioni</b> il cambio viene effettuato.</span>
+              </div>
             </div>
           )}
           <DialogFooter className="gap-2 sm:gap-0 mt-2">
