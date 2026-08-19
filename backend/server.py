@@ -201,7 +201,9 @@ class CredentialsInput(BaseModel):
 
 
 class SwapRequestInput(BaseModel):
-    shift_id: str
+    kind: str = "shift"  # "shift" | "week"
+    shift_id: Optional[str] = None
+    week_start: Optional[str] = None
     to_driver_id: str
     note: str = ""
 
@@ -836,12 +838,19 @@ async def mark_notifications_read(data: NotifRead, user: dict = Depends(get_curr
 async def _enrich_swap(sw: dict) -> dict:
     frm = await db.drivers.find_one({"id": sw["from_driver_id"]}, {"_id": 0})
     to = await db.drivers.find_one({"id": sw["to_driver_id"]}, {"_id": 0})
-    shift = await db.shifts.find_one({"id": sw["shift_id"]}, {"_id": 0})
+    shift = None
+    shift_label = "Turno non disponibile"
+    if sw.get("kind") == "week":
+        wk = sw.get("week_start", "")
+        shift_label = f"Settimana del {wk} (Tutti i turni)"
+    elif sw.get("shift_id"):
+        shift = await db.shifts.find_one({"id": sw["shift_id"]}, {"_id": 0})
+        shift_label = await _shift_label(shift) if shift else "Turno non disponibile"
     return {
         **sw,
         "from_name": frm["name"] if frm else "—",
         "to_name": to["name"] if to else "—",
-        "shift_label": await _shift_label(shift) if shift else "Turno non disponibile",
+        "shift_label": shift_label,
         "shift": shift,
     }
 
@@ -863,38 +872,63 @@ async def create_swap(data: SwapRequestInput, user: dict = Depends(get_current_u
     did = user.get("driver_id")
     if not did:
         raise HTTPException(status_code=403, detail="Solo gli autisti possono richiedere un cambio")
-    shift = await db.shifts.find_one({"id": data.shift_id}, {"_id": 0})
-    if not shift:
-        raise HTTPException(status_code=404, detail="Turno non trovato")
-    if shift.get("driver_id") != did:
-        raise HTTPException(status_code=400, detail="Puoi richiedere il cambio solo dei tuoi turni")
     if data.to_driver_id == did:
         raise HTTPException(status_code=400, detail="Seleziona un collega diverso")
 
     from_driver = await db.drivers.find_one({"id": did}, {"_id": 0})
     to_driver = await db.drivers.find_one({"id": data.to_driver_id}, {"_id": 0})
-    label = await _shift_label(shift)
+    from_name = from_driver["name"] if from_driver else "Un collega"
+    to_name = to_driver["name"] if to_driver else "un collega"
 
-    sw = {
-        "id": str(uuid.uuid4()),
-        "shift_id": data.shift_id,
-        "from_driver_id": did,
-        "to_driver_id": data.to_driver_id,
-        "note": data.note,
-        "status": "pending_driver",   # waiting for target driver
-        "driver_approved": None,      # None=pending, True=accepted, False=refused
-        "admin_approved": None,        # None=pending, True=approved, False=rejected
-        "created_at": datetime.now(timezone.utc).isoformat(),
-    }
+    if data.kind == "week":
+        if not data.week_start:
+            raise HTTPException(status_code=400, detail="Specifica la settimana da scambiare")
+        user_shifts = await db.shifts.find({"week_start": data.week_start, "driver_id": did}, {"_id": 0}).to_list(100)
+        if not user_shifts:
+            raise HTTPException(status_code=400, detail="Non hai turni assegnati in questa settimana da scambiare")
+        label = f"Settimana del {data.week_start} (TUTTI I TURNI)"
+        sw = {
+            "id": str(uuid.uuid4()),
+            "kind": "week",
+            "week_start": data.week_start,
+            "shift_id": None,
+            "from_driver_id": did,
+            "to_driver_id": data.to_driver_id,
+            "note": data.note,
+            "status": "pending_driver",
+            "driver_approved": None,
+            "admin_approved": None,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        }
+    else:
+        if not data.shift_id:
+            raise HTTPException(status_code=400, detail="Specifica il turno da scambiare")
+        shift = await db.shifts.find_one({"id": data.shift_id}, {"_id": 0})
+        if not shift:
+            raise HTTPException(status_code=404, detail="Turno non trovato")
+        if shift.get("driver_id") != did:
+            raise HTTPException(status_code=400, detail="Puoi richiedere il cambio solo dei tuoi turni")
+        label = await _shift_label(shift)
+        sw = {
+            "id": str(uuid.uuid4()),
+            "kind": "shift",
+            "shift_id": data.shift_id,
+            "week_start": shift.get("week_start"),
+            "from_driver_id": did,
+            "to_driver_id": data.to_driver_id,
+            "note": data.note,
+            "status": "pending_driver",
+            "driver_approved": None,
+            "admin_approved": None,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        }
+
     await db.swap_requests.insert_one(dict(sw))
     sw.pop("_id", None)
 
-    # Notify the target driver
-    from_name = from_driver["name"] if from_driver else "Un collega"
-    await notify(data.to_driver_id, f"{from_name} vuole cederti il turno: {label}. Apri l'app per accettare o rifiutare.", "swap", data.shift_id)
-    # Notify admins
-    to_name = to_driver["name"] if to_driver else "un collega"
-    await notify_admins(f"Nuova richiesta di cambio: {from_name} → {to_name} per {label}. In attesa della risposta del collega.", "swap", data.shift_id)
+    # Notify target driver & admin
+    await notify(data.to_driver_id, f"{from_name} ti propone uno scambio turno: {label}. Apri l'app per rispondere.", "swap", sw.get("shift_id"))
+    await notify_admins(f"Nuova richiesta cambio ({from_name} → {to_name}): {label}. In attesa della risposta del collega.", "swap", sw.get("shift_id"))
     return sw
 
 
@@ -912,8 +946,12 @@ async def driver_respond_swap(swid: str, data: DriverSwapResponse, user: dict = 
     if sw["status"] not in ("pending_driver",):
         raise HTTPException(status_code=400, detail="Questa richiesta non è più in attesa della tua risposta")
 
-    shift = await db.shifts.find_one({"id": sw["shift_id"]}, {"_id": 0})
-    label = await _shift_label(shift) if shift else "turno"
+    if sw.get("kind") == "week":
+        label = f"l'intera settimana del {sw.get('week_start')}"
+    else:
+        shift = await db.shifts.find_one({"id": sw["shift_id"]}, {"_id": 0})
+        label = await _shift_label(shift) if shift else "turno"
+
     to_driver = await db.drivers.find_one({"id": did}, {"_id": 0})
     to_name = to_driver["name"] if to_driver else "Il collega"
 
@@ -924,8 +962,8 @@ async def driver_respond_swap(swid: str, data: DriverSwapResponse, user: dict = 
             "driver_response_note": data.note,
             "driver_responded_at": datetime.now(timezone.utc).isoformat(),
         }})
-        await notify(sw["from_driver_id"], f"{to_name} ha ACCETTATO la richiesta di cambio per {label}. In attesa dell'approvazione dell'admin.", "swap", sw["shift_id"])
-        await notify_admins(f"{to_name} ha accettato il cambio turno per {label}. La tua approvazione è ora richiesta.", "swap", sw["shift_id"])
+        await notify(sw["from_driver_id"], f"{to_name} ha ACCETTATO lo scambio per {label}. In attesa dell'approvazione dell'admin.", "swap", sw.get("shift_id"))
+        await notify_admins(f"{to_name} ha accettato lo scambio per {label}. La tua approvazione è ora richiesta.", "swap", sw.get("shift_id"))
     else:
         await db.swap_requests.update_one({"id": swid}, {"$set": {
             "status": "rejected",
@@ -933,8 +971,8 @@ async def driver_respond_swap(swid: str, data: DriverSwapResponse, user: dict = 
             "driver_response_note": data.note,
             "driver_responded_at": datetime.now(timezone.utc).isoformat(),
         }})
-        await notify(sw["from_driver_id"], f"{to_name} ha RIFIUTATO la richiesta di cambio per {label}.", "swap", sw["shift_id"])
-        await notify_admins(f"{to_name} ha rifiutato il cambio turno per {label}. Nessuna azione richiesta.", "swap", sw["shift_id"])
+        await notify(sw["from_driver_id"], f"{to_name} ha RIFIUTATO lo scambio per {label}.", "swap", sw.get("shift_id"))
+        await notify_admins(f"{to_name} ha rifiutato lo scambio per {label}. Nessuna azione richiesta.", "swap", sw.get("shift_id"))
 
     return await db.swap_requests.find_one({"id": swid}, {"_id": 0})
 
@@ -955,15 +993,36 @@ async def decide_swap(swid: str, data: SwapDecision, user: dict = Depends(requir
         "decided_at": datetime.now(timezone.utc).isoformat()
     }})
 
-    shift = await db.shifts.find_one({"id": sw["shift_id"]}, {"_id": 0})
-    label = await _shift_label(shift) if shift else "turno"
-    if data.status == "approved" and shift:
-        await db.shifts.update_one({"id": sw["shift_id"]}, {"$set": {"driver_id": sw["to_driver_id"], "status": "assigned"}})
-        await notify(sw["from_driver_id"], f"✅ Cambio APPROVATO dall'admin: {label} è ora del tuo collega.", "swap", sw["shift_id"])
-        await notify(sw["to_driver_id"], f"✅ Cambio APPROVATO: ti è stato assegnato il turno {label}.", "swap", sw["shift_id"])
+    is_week = sw.get("kind") == "week"
+    if is_week:
+        wk = sw.get("week_start")
+        label = f"l'intera settimana del {wk}"
+        if data.status == "approved":
+            # Swap all shifts in this week between from_driver and to_driver
+            from_did = sw["from_driver_id"]
+            to_did = sw["to_driver_id"]
+            
+            # Temporary placeholder tag
+            temp_tag = f"__swap_temp_{uuid.uuid4()}__"
+            await db.shifts.update_many({"week_start": wk, "driver_id": from_did}, {"$set": {"driver_id": temp_tag}})
+            await db.shifts.update_many({"week_start": wk, "driver_id": to_did}, {"$set": {"driver_id": from_did}})
+            await db.shifts.update_many({"week_start": wk, "driver_id": temp_tag}, {"$set": {"driver_id": to_did}})
+            
+            await notify(from_did, f"✅ Scambio settimanale APPROVATO dall'admin per la settimana del {wk}.", "swap")
+            await notify(to_did, f"✅ Scambio settimanale APPROVATO dall'admin per la settimana del {wk}.", "swap")
+        else:
+            await notify(sw["from_driver_id"], f"❌ Scambio settimanale RIFIUTATO dall'admin per {label}.", "swap")
+            await notify(sw["to_driver_id"], f"❌ Scambio settimanale RIFIUTATO dall'admin: turni invariati.", "swap")
     else:
-        await notify(sw["from_driver_id"], f"❌ Cambio RIFIUTATO dall'admin per {label}.", "swap", sw["shift_id"])
-        await notify(sw["to_driver_id"], f"❌ Cambio RIFIUTATO dall'admin: il turno {label} rimane invariato.", "swap", sw["shift_id"])
+        shift = await db.shifts.find_one({"id": sw["shift_id"]}, {"_id": 0})
+        label = await _shift_label(shift) if shift else "turno"
+        if data.status == "approved" and shift:
+            await db.shifts.update_one({"id": sw["shift_id"]}, {"$set": {"driver_id": sw["to_driver_id"], "status": "assigned"}})
+            await notify(sw["from_driver_id"], f"✅ Cambio APPROVATO dall'admin: {label} è ora del tuo collega.", "swap", sw["shift_id"])
+            await notify(sw["to_driver_id"], f"✅ Cambio APPROVATO: ti è stato assegnato il turno {label}.", "swap", sw["shift_id"])
+        else:
+            await notify(sw["from_driver_id"], f"❌ Cambio RIFIUTATO dall'admin per {label}.", "swap", sw["shift_id"])
+            await notify(sw["to_driver_id"], f"❌ Cambio RIFIUTATO dall'admin: il turno {label} rimane invariato.", "swap", sw["shift_id"])
     return await db.swap_requests.find_one({"id": swid}, {"_id": 0})
 
 
