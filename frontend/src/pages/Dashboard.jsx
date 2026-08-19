@@ -5,7 +5,7 @@ import ScheduleBoard from "../components/ScheduleBoard";
 import SubstitutionModal from "../components/SubstitutionModal";
 import { Button } from "../components/ui/button";
 import { toast } from "sonner";
-import { ChevronLeft, ChevronRight, Sparkles, CheckCircle2, AlertTriangle, CalendarDays, Printer } from "lucide-react";
+import { ChevronLeft, ChevronRight, Sparkles, CheckCircle2, AlertTriangle, CalendarDays, Printer, UsersRound, Sun, Sunset } from "lucide-react";
 
 export default function Dashboard() {
   const [ref, setRef] = useState(new Date());
@@ -13,6 +13,7 @@ export default function Dashboard() {
   const [routes, setRoutes] = useState([]);
   const [vehicles, setVehicles] = useState([]);
   const [drivers, setDrivers] = useState([]);
+  const [rotation, setRotation] = useState(null);
   const [generating, setGenerating] = useState(false);
   const [selected, setSelected] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
@@ -31,12 +32,25 @@ export default function Dashboard() {
     setShifts(data);
   }, [wk]);
 
-  useEffect(() => {
-    loadBase();
-  }, [loadBase]);
+  const loadRotation = useCallback(async () => {
+    try {
+      const { data } = await api.get(`/rotation?week_start=${wk}`);
+      setRotation(data);
+    } catch { setRotation(null); }
+  }, [wk]);
+
+  useEffect(() => { loadBase(); }, [loadBase]);
   useEffect(() => {
     loadShifts();
-  }, [loadShifts]);
+    loadRotation();
+  }, [loadShifts, loadRotation]);
+
+  // Refresh listener
+  useEffect(() => {
+    const onRefresh = () => { loadShifts(); loadRotation(); };
+    window.addEventListener("hera:refresh", onRefresh);
+    return () => window.removeEventListener("hera:refresh", onRefresh);
+  }, [loadShifts, loadRotation]);
 
   const generate = async () => {
     setGenerating(true);
@@ -125,6 +139,30 @@ export default function Dashboard() {
         <Stat icon={CheckCircle2} label="Turni coperti" value={covered} total={total} tone="ok" tid="stat-covered" />
         <Stat icon={AlertTriangle} label="Turni scoperti" value={uncovered} total={total} tone={uncovered ? "bad" : "ok"} tid="stat-uncovered" />
       </div>
+
+      {/* Group rotation info panel */}
+      {rotation && (rotation.gruppo1_turno || rotation.gruppo2_turno) && (
+        <div className="flex flex-wrap gap-2 items-center no-print">
+          <span className="overline text-[10px] text-muted-foreground">Rotazione questa settimana:</span>
+          <span className={`inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-sm border ${
+            rotation.gruppo1_turno === "mattina"
+              ? "bg-blue-500/10 border-blue-500/20 text-blue-700 dark:text-blue-400"
+              : "bg-orange-500/10 border-orange-500/20 text-orange-700 dark:text-orange-400"
+          }`}>
+            <UsersRound size={12} />
+            G1 · {rotation.gruppo1_turno === "mattina" ? "☀️ Mattina" : "🌆 Pomeriggio"}
+          </span>
+          <span className={`inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-sm border ${
+            rotation.gruppo2_turno === "mattina"
+              ? "bg-blue-500/10 border-blue-500/20 text-blue-700 dark:text-blue-400"
+              : "bg-orange-500/10 border-orange-500/20 text-orange-700 dark:text-orange-400"
+          }`}>
+            <UsersRound size={12} />
+            G2 · {rotation.gruppo2_turno === "mattina" ? "☀️ Mattina" : "🌆 Pomeriggio"}
+          </span>
+          <span className="text-[10px] font-mono text-muted-foreground">(si alternano ogni settimana)</span>
+        </div>
+      )}
 
       {total === 0 ? (
         <div className="border border-dashed border-border rounded-sm p-12 text-center bg-card">

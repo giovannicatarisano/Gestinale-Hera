@@ -185,11 +185,26 @@ export default function ScheduleBoard({
                           </div>
                         ) : (
                           <div className="flex items-center gap-2">
-                            <div className="h-7 w-7 rounded-sm bg-primary text-primary-foreground flex items-center justify-center font-head font-bold text-xs shadow-xs">
+                            <div className={`h-7 w-7 rounded-sm flex items-center justify-center font-head font-bold text-xs shadow-xs ${
+                              drv?.group === "gruppo1" ? "bg-blue-500 text-white" :
+                              drv?.group === "gruppo2" ? "bg-orange-500 text-white" :
+                              "bg-primary text-primary-foreground"
+                            }`}>
                               {initials(drv?.name || "?")}
                             </div>
                             <div className="text-right sm:text-left">
-                              <div className="text-xs font-bold text-foreground">{drv?.name}</div>
+                              <div className="flex items-center gap-1">
+                                <span className="text-xs font-bold text-foreground">{drv?.name}</span>
+                                {drv?.group && (
+                                  <span className={`text-[9px] font-bold px-1 py-0.5 rounded-sm ${
+                                    drv.group === "gruppo1"
+                                      ? "bg-blue-500/15 text-blue-700 dark:text-blue-400"
+                                      : "bg-orange-500/15 text-orange-700 dark:text-orange-400"
+                                  }`}>
+                                    {drv.group === "gruppo1" ? "G1" : "G2"}
+                                  </span>
+                                )}
+                              </div>
                               {mine && <span className="overline text-[9px] text-primary">Il tuo turno</span>}
                               {recovered && <span className="overline text-[9px] text-muted-foreground">Sostituito</span>}
                             </div>

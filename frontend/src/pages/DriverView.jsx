@@ -156,10 +156,42 @@ export default function DriverView() {
             <div className="overline text-primary mb-0.5">Tabellone condiviso · sola lettura</div>
             <h1 className="font-head font-black text-2xl sm:text-3xl lg:text-4xl tracking-tighter">Turni della settimana</h1>
           </div>
-          {myId && mySlot && (
-            <div className="border border-primary/40 bg-primary/5 rounded-sm px-3.5 py-2 shrink-0 self-start sm:self-auto" data-testid="my-rotation">
-              <div className="overline text-muted-foreground text-[10px]">Il mio turno questa settimana</div>
-              <div className="font-head font-bold text-primary text-sm sm:text-base">{SLOT_LABEL[mySlot]}</div>
+          {myId && (
+            <div className="flex flex-wrap gap-2">
+              {/* Group badge */}
+              {(() => {
+                const myDriver = drivers.find(d => d.id === myId);
+                const myGroup = myDriver?.group;
+                const myEntry = rotation?.rotation?.find((r) => r.driver_id === myId);
+                const cat = myEntry?.group_category; // "mattina" or "pomeriggio"
+                return (
+                  <>
+                    {myGroup && (
+                      <div className={`border rounded-sm px-3.5 py-2 shrink-0 self-start sm:self-auto ${
+                        myGroup === "gruppo1"
+                          ? "border-blue-500/40 bg-blue-500/5"
+                          : "border-orange-500/40 bg-orange-500/5"
+                      }`}>
+                        <div className="overline text-muted-foreground text-[10px]">
+                          {myGroup === "gruppo1" ? "Gruppo 1" : "Gruppo 2"}
+                        </div>
+                        <div className={`font-head font-bold text-sm sm:text-base ${
+                          myGroup === "gruppo1" ? "text-blue-700 dark:text-blue-400" : "text-orange-700 dark:text-orange-400"
+                        }`}>
+                          {cat === "mattina" ? "☀️ Turno Mattina" : cat === "pomeriggio" ? "🌆 Turno Pomeriggio" : mySlot ? SLOT_LABEL[mySlot] : "—"}
+                        </div>
+                      </div>
+                    )}
+                    {mySlot && (
+                      <div className="border border-primary/40 bg-primary/5 rounded-sm px-3.5 py-2 shrink-0 self-start sm:self-auto" data-testid="my-rotation">
+                        <div className="overline text-muted-foreground text-[10px]">Turno specifico questa settimana</div>
+                        <div className="font-head font-bold text-primary text-sm sm:text-base">{SLOT_LABEL[mySlot]}</div>
+                        <div className="font-mono text-xs text-muted-foreground">{SLOT_TIME[mySlot]}</div>
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
             </div>
           )}
         </div>

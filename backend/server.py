@@ -151,6 +151,7 @@ class Driver(BaseModel):
     email: str = ""
     phone: str = ""
     active: bool = True
+    group: str = ""   # "" | "gruppo1" | "gruppo2"
     vehicle_skills: List[str] = []
     route_skills: List[str] = []
 
@@ -160,6 +161,7 @@ class DriverInput(BaseModel):
     email: str = ""
     phone: str = ""
     active: bool = True
+    group: str = ""   # "" | "gruppo1" | "gruppo2"
     password: Optional[str] = None
 
 
@@ -492,27 +494,79 @@ def route_days_for_week(route: dict, week_start: str) -> list:
 ROTATION_SLOTS = ["presto", "standard", "pomeriggio"]
 ROTATION_EPOCH = date(2026, 1, 5)  # a Monday
 
+# Slots considered "morning" (assigned to the morning group that week)
+MATTINA_SLOTS = {"presto", "standard"}
+POMERIGGIO_SLOTS = {"pomeriggio"}
+
 
 def week_index(week_start: str) -> int:
     monday = datetime.strptime(week_start, "%Y-%m-%d").date()
     return (monday - ROTATION_EPOCH).days // 7
 
 
-def weekly_slot_map(week_start: str, drivers: list) -> dict:
-    """Each active driver works ONE slot for the whole week; the slot rotates week by week."""
+def group_slot_for_week(group: str, week_start: str) -> Optional[str]:
+    """
+    Return the SLOT CATEGORY assigned to this group for the given week.
+    Even week_index  → gruppo1=mattina, gruppo2=pomeriggio
+    Odd  week_index  → gruppo1=pomeriggio, gruppo2=mattina
+    Returns None for drivers without a group (no constraint).
+    """
+    if not group:
+        return None
     wi = week_index(week_start)
-    ordered = sorted(drivers, key=lambda d: d["id"])
-    return {d["id"]: ROTATION_SLOTS[(idx + wi) % len(ROTATION_SLOTS)] for idx, d in enumerate(ordered)}
+    if wi % 2 == 0:
+        return "mattina" if group == "gruppo1" else "pomeriggio"
+    else:
+        return "pomeriggio" if group == "gruppo1" else "mattina"
+
+
+def weekly_slot_map(week_start: str, drivers: list) -> dict:
+    """
+    Assign each active driver a concrete slot for the week.
+    - Drivers with a group get the slot their group is scheduled for.
+    - 'mattina' maps to 'standard' by default; 'presto' is also mattina.
+    - Drivers without a group keep the old round-robin rotation.
+    """
+    wi = week_index(week_start)
+    ungrouped = sorted([d for d in drivers if not d.get("group")], key=lambda d: d["id"])
+    result = {}
+    for d in drivers:
+        grp = d.get("group", "")
+        if grp:
+            cat = group_slot_for_week(grp, week_start)
+            # Map category to concrete slot (presto drivers are handled separately in generator)
+            result[d["id"]] = "standard" if cat == "mattina" else "pomeriggio"
+        else:
+            # Legacy round-robin for ungrouped drivers
+            idx = ungrouped.index(d)
+            result[d["id"]] = ROTATION_SLOTS[(idx + wi) % len(ROTATION_SLOTS)]
+    return result
 
 
 @api_router.get("/rotation")
 async def get_rotation(week_start: str, user: dict = Depends(get_current_user)):
     drivers = [d for d in await db.drivers.find({}, {"_id": 0}).to_list(1000) if d.get("active", True)]
     smap = weekly_slot_map(week_start, drivers)
+    wi = week_index(week_start)
+    # Determine which category each group gets this week
+    g1_cat = "mattina" if wi % 2 == 0 else "pomeriggio"
+    g2_cat = "pomeriggio" if wi % 2 == 0 else "mattina"
     return {
         "week_start": week_start,
-        "week_index": week_index(week_start),
-        "rotation": [{"driver_id": d["id"], "name": d["name"], "slot": smap.get(d["id"])} for d in drivers],
+        "week_index": wi,
+        "week_parity": "pari" if wi % 2 == 0 else "dispari",
+        "gruppo1_turno": g1_cat,
+        "gruppo2_turno": g2_cat,
+        "rotation": [
+            {
+                "driver_id": d["id"],
+                "name": d["name"],
+                "group": d.get("group", ""),
+                "slot": smap.get(d["id"]),
+                "group_category": group_slot_for_week(d.get("group", ""), week_start),
+            }
+            for d in drivers
+        ],
     }
 
 
@@ -559,9 +613,20 @@ async def generate_shifts(data: GenerateInput, user: dict = Depends(require_admi
                         continue
                     if day_taken.get((day, did)) or did in absent:
                         continue
-                    # weekly-slot rotation: domenica is extra (any driver), weekday slots are locked
-                    if slot != "domenica" and wslot.get(did) != slot:
-                        continue
+                    # GROUP-BASED slot constraint
+                    grp = d.get("group", "")
+                    if slot != "domenica":
+                        if grp:
+                            # Grouped driver: must match their group's category this week
+                            cat = group_slot_for_week(grp, week_start)  # "mattina" or "pomeriggio"
+                            if slot == "pomeriggio" and cat != "pomeriggio":
+                                continue  # pomeriggio route but driver is in mattina group
+                            if slot in ("presto", "standard") and cat != "mattina":
+                                continue  # mattina route but driver is in pomeriggio group
+                        else:
+                            # Ungrouped driver: old round-robin constraint
+                            if wslot.get(did) != slot:
+                                continue
                     # rest constraint: no early shift the day after a pomeriggio shift
                     if early and (day - 1) in pom_days.get(did, set()):
                         continue
