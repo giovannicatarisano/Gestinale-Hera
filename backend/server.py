@@ -18,13 +18,14 @@ from datetime import datetime, timezone, timedelta, date
 
 import certifi
 
-mongo_url = os.environ['MONGO_URL']
+mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
 try:
     ca = certifi.where()
-    client = AsyncIOMotorClient(mongo_url, tlsCAFile=ca)
+    client = AsyncIOMotorClient(mongo_url, tlsCAFile=ca, serverSelectionTimeoutMS=5000)
 except Exception:
-    client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
+    client = AsyncIOMotorClient(mongo_url, serverSelectionTimeoutMS=5000)
+db_name = os.environ.get('DB_NAME', 'hera_gestionale')
+db = client[db_name]
 
 app = FastAPI(title="Hera Turni API")
 api_router = APIRouter(prefix="/api")
@@ -36,7 +37,7 @@ logger = logging.getLogger("hera")
 # Constants
 # ---------------------------------------------------------------------------
 JWT_ALGORITHM = "HS256"
-JWT_SECRET = os.environ["JWT_SECRET"]
+JWT_SECRET = os.environ.get("JWT_SECRET", "hera_super_secret_jwt_key_2026_default")
 
 SHIFT_SLOTS = {
     "presto": {"label": "Mattino Presto", "start": "05:30", "end": "11:50", "max_drivers": 3},
@@ -849,11 +850,27 @@ async def remove_demo_data():
     await db.app_meta.update_one({"key": "demo"}, {"$set": {"key": "demo", "removed": True}}, upsert=True)
 
 
+@api_router.get("/health")
+async def health_check():
+    db_ok = False
+    try:
+        await client.admin.command('ping')
+        db_ok = True
+    except Exception as e:
+        logger.error(f"Database ping failed: {e}")
+    return {"status": "ok", "database_connected": db_ok}
+
+
 @app.on_event("startup")
 async def on_startup():
-    await db.users.create_index("email", unique=True)
-    await seed_admin()
-    await remove_demo_data()
+    logger.info("Starting Hera Gestionale Backend...")
+    try:
+        await db.users.create_index("email", unique=True)
+        await seed_admin()
+        await remove_demo_data()
+        logger.info("Database initialized successfully.")
+    except Exception as e:
+        logger.error(f"Initial DB seed error (will retry on incoming requests): {e}")
 
 
 app.include_router(api_router)
@@ -869,3 +886,4 @@ app.add_middleware(
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()
+
