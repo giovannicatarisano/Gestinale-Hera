@@ -16,11 +16,14 @@ import bcrypt
 import jwt
 from datetime import datetime, timezone, timedelta, date
 
-# ---------------------------------------------------------------------------
-# DB
-# ---------------------------------------------------------------------------
+import certifi
+
 mongo_url = os.environ['MONGO_URL']
-client = AsyncIOMotorClient(mongo_url)
+try:
+    ca = certifi.where()
+    client = AsyncIOMotorClient(mongo_url, tlsCAFile=ca)
+except Exception:
+    client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
 app = FastAPI(title="Hera Turni API")
