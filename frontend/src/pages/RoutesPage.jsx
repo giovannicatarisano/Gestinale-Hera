@@ -11,14 +11,15 @@ import { toast } from "sonner";
 import { Pencil, Trash2, Route as RouteIcon, Clock, Lock, Repeat } from "lucide-react";
 
 const SLOTS = [
+  { value: "rotazione", label: "🔄 Rotazione Libera (Mattino / Pomeriggio)" },
   { value: "presto", label: "Mattino Presto (05:30 – 11:50)" },
   { value: "standard", label: "Mattino Standard (06:00 – 12:20)" },
   { value: "pomeriggio", label: "Pomeriggio (12:30 – 18:50)" },
   { value: "domenica", label: "Turno Domenica (06:00 – 12:20)" },
 ];
-const SLOT_SHORT = { presto: "Presto", standard: "Standard", pomeriggio: "Pomeriggio", domenica: "Domenica" };
+const SLOT_SHORT = { rotazione: "Rotazione Libera", presto: "Presto", standard: "Standard", pomeriggio: "Pomeriggio", domenica: "Domenica" };
 const EMPTY = {
-  name: "", code: "", zone: "", vehicle_id: "", slot: "presto",
+  name: "", code: "", zone: "", vehicle_id: "", slot: "rotazione",
   schedule_mode: "fixed", days: [0, 1, 2, 3, 4, 5], interval_days: 2, start_date: "", pinned: false,
 };
 
@@ -84,7 +85,14 @@ export default function RoutesPage() {
               </div>
             </div>
             <div className="flex flex-wrap gap-1.5 mt-3">
-              <span className="inline-flex items-center gap-1 font-mono text-[10px] px-1.5 py-0.5 bg-primary/15 text-primary rounded-sm"><Clock size={10} /> {SLOT_SHORT[r.slot]}</span>
+              <span className={`inline-flex items-center gap-1 font-mono text-[10px] px-1.5 py-0.5 rounded-sm ${
+                r.slot === "rotazione"
+                  ? "bg-indigo-500/15 text-indigo-700 dark:text-indigo-400 font-semibold"
+                  : "bg-primary/15 text-primary"
+              }`}>
+                {r.slot === "rotazione" ? <Repeat size={10} /> : <Clock size={10} />}
+                {SLOT_SHORT[r.slot]}
+              </span>
               <span className="font-mono text-[10px] px-1.5 py-0.5 bg-secondary rounded-sm">{vById[r.vehicle_id]?.name || "—"}</span>
               {r.schedule_mode === "frequency" && (
                 <span className="inline-flex items-center gap-1 font-mono text-[10px] px-1.5 py-0.5 bg-foreground text-background rounded-sm"><Repeat size={10} /> ogni {r.interval_days} gg</span>
