@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import api, { apiError } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
@@ -10,6 +10,7 @@ import { Textarea } from "../components/ui/textarea";
 import { Popover, PopoverContent, PopoverTrigger } from "../components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "../components/ui/dialog";
+import { requestNotificationPermission, triggerLocalNotification } from "../lib/pushNotifications";
 import { toast } from "sonner";
 import { ChevronLeft, ChevronRight, LogOut, LayoutDashboard, Clock, Bell, ArrowLeftRight, Check, X as XIcon, Info, RefreshCw } from "lucide-react";
 
@@ -49,13 +50,40 @@ export default function DriverView() {
     });
   }, []);
 
-  const loadNotifs = useCallback(() => { if (myId) api.get("/notifications").then((r) => setNotifs(r.data)); }, [myId]);
+  const prevNotifIdsRef = useRef(new Set());
+  const initialNotifRef = useRef(true);
+
+  useEffect(() => {
+    requestNotificationPermission();
+  }, []);
+
+  const loadNotifs = useCallback(() => {
+    if (!myId) return;
+    api.get("/notifications").then((r) => {
+      const list = r.data || [];
+      if (!initialNotifRef.current) {
+        const newUnread = list.filter((n) => !n.read && !prevNotifIdsRef.current.has(n.id));
+        if (newUnread.length > 0) {
+          triggerLocalNotification("GestionaleHera", newUnread[0].message, newUnread[0].id ? newUnread[0].id.charCodeAt(0) * 1000 : Date.now());
+        }
+      } else {
+        initialNotifRef.current = false;
+      }
+      prevNotifIdsRef.current = new Set(list.map((n) => n.id));
+      setNotifs(list);
+    });
+  }, [myId]);
+
   const loadSwaps = useCallback(() => { if (myId) api.get("/swap-requests").then((r) => setSwaps(r.data)); }, [myId]);
   useEffect(() => {
     loadNotifs(); loadSwaps();
+    const timer = setInterval(() => { loadNotifs(); loadSwaps(); }, 20000);
     const onRefresh = () => { loadNotifs(); loadSwaps(); };
     window.addEventListener("hera:refresh", onRefresh);
-    return () => window.removeEventListener("hera:refresh", onRefresh);
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener("hera:refresh", onRefresh);
+    };
   }, [loadNotifs, loadSwaps]);
 
   const loadWeekData = useCallback(() => {
@@ -176,7 +204,13 @@ export default function DriverView() {
                   )}
                 </button>
               </PopoverTrigger>
-              <PopoverContent align="end" className="w-[88vw] sm:w-80 rounded-sm p-0">
+              <PopoverContent
+                side="bottom"
+                align="end"
+                sideOffset={8}
+                collisionPadding={12}
+                className="w-[340px] max-w-[calc(100vw-1.5rem)] rounded-sm p-0 shadow-2xl bg-card border border-border overflow-hidden z-50"
+              >
                 <div className="p-3 border-b border-border overline text-muted-foreground">Notifiche</div>
                 <div className="max-h-80 overflow-y-auto board-scroll divide-y divide-border">
                   {notifs.length === 0 ? (

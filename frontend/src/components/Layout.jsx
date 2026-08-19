@@ -114,7 +114,7 @@ export default function Layout() {
               <RefreshCw size={14} className={refreshing ? "animate-spin" : ""} />
               <span>Aggiorna</span>
             </button>
-            <NotificationsPanel />
+            <NotificationsPanel side="top" align="start" />
           </div>
           <button
             data-testid="view-board-btn"
@@ -163,7 +163,7 @@ export default function Layout() {
             <RefreshCw size={15} className={refreshing ? "animate-spin" : ""} />
           </button>
           {/* Notifications */}
-          <NotificationsPanel />
+          <NotificationsPanel side="bottom" align="end" />
           <button
             type="button"
             onClick={() => setDrawerOpen(true)}
