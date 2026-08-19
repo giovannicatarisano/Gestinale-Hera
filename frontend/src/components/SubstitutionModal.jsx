@@ -61,9 +61,9 @@ export default function SubstitutionModal({ shift, open, onClose, onChanged, veh
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-lg rounded-sm p-0 gap-0 bg-card/95 backdrop-blur-xl" data-testid="substitution-modal">
-        <DialogHeader className="p-5 border-b border-border">
-          <DialogTitle className="font-head font-black tracking-tight text-xl">
+      <DialogContent className="w-[94vw] sm:max-w-lg rounded-sm p-0 gap-0 bg-card/95 backdrop-blur-xl max-h-[88vh] flex flex-col" data-testid="substitution-modal">
+        <DialogHeader className="p-4 sm:p-5 border-b border-border shrink-0">
+          <DialogTitle className="font-head font-black tracking-tight text-lg sm:text-xl">
             Sostituzione turno
           </DialogTitle>
           <DialogDescription className="sr-only">

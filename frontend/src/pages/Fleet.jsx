@@ -69,16 +69,16 @@ export default function Fleet() {
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="rounded-sm">
-          <DialogHeader><DialogTitle className="font-head tracking-tight">{editing ? "Modifica mezzo" : "Nuovo mezzo"}</DialogTitle></DialogHeader>
+        <DialogContent className="w-[94vw] sm:max-w-md rounded-sm max-h-[85vh] overflow-y-auto p-4 sm:p-6" data-testid="vehicle-modal">
+          <DialogHeader><DialogTitle className="font-head tracking-tight text-lg sm:text-xl">{editing ? "Modifica mezzo" : "Nuovo mezzo"}</DialogTitle></DialogHeader>
           <div className="space-y-4 py-2">
-            <Field label="Nome mezzo"><Input data-testid="vehicle-name-input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="rounded-sm" /></Field>
-            <Field label="Targa"><Input data-testid="vehicle-plate-input" value={form.plate} onChange={(e) => setForm({ ...form, plate: e.target.value })} className="rounded-sm font-mono" /></Field>
-            <Field label="Tipologia"><Input data-testid="vehicle-type-input" value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })} className="rounded-sm" /></Field>
+            <Field label="Nome mezzo *"><Input data-testid="vehicle-name-input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="es. Compattatore 01" className="rounded-sm" /></Field>
+            <Field label="Targa *"><Input data-testid="vehicle-plate-input" value={form.plate} onChange={(e) => setForm({ ...form, plate: e.target.value })} placeholder="es. AB 123 CD" className="rounded-sm font-mono uppercase" /></Field>
+            <Field label="Tipologia"><Input data-testid="vehicle-type-input" value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })} placeholder="es. Compattatore, Porter, Scarrabile" className="rounded-sm" /></Field>
           </div>
-          <DialogFooter>
-            <Button variant="ghost" className="rounded-sm" onClick={() => setOpen(false)}>Annulla</Button>
-            <Button className="rounded-sm bg-primary hover:bg-primary/90" data-testid="save-vehicle-btn" onClick={save}>Salva</Button>
+          <DialogFooter className="gap-2 sm:gap-0 mt-2">
+            <Button variant="ghost" className="rounded-sm h-10 text-xs sm:text-sm" onClick={() => setOpen(false)}>Annulla</Button>
+            <Button className="rounded-sm bg-primary hover:bg-primary/90 h-10 text-xs sm:text-sm font-semibold" data-testid="save-vehicle-btn" onClick={save}>Salva</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

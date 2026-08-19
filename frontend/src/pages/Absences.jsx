@@ -91,21 +91,21 @@ export default function Absences() {
       )}
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="rounded-sm">
+        <DialogContent className="w-[94vw] sm:max-w-md rounded-sm max-h-[85vh] overflow-y-auto p-4 sm:p-6" data-testid="absence-modal">
           <DialogHeader>
-            <DialogTitle className="font-head tracking-tight">{editing ? "Modifica assenza" : "Nuova assenza"}</DialogTitle>
+            <DialogTitle className="font-head tracking-tight text-lg sm:text-xl">{editing ? "Modifica assenza" : "Nuova assenza"}</DialogTitle>
             <DialogDescription className="sr-only">Registra ferie, malattia o permesso per un autista in un intervallo di date.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
-            <Field label="Autista">
+            <Field label="Autista *">
               <Select value={form.driver_id} onValueChange={(v) => setForm({ ...form, driver_id: v })}>
-                <SelectTrigger className="rounded-sm" data-testid="absence-driver-select"><SelectValue placeholder="Seleziona autista" /></SelectTrigger>
-                <SelectContent>{drivers.map((d) => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}</SelectContent>
+                <SelectTrigger className="rounded-sm h-10" data-testid="absence-driver-select"><SelectValue placeholder="Seleziona autista" /></SelectTrigger>
+                <SelectContent className="max-h-56">{drivers.map((d) => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}</SelectContent>
               </Select>
             </Field>
-            <Field label="Tipo">
+            <Field label="Tipo assenza">
               <Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v })}>
-                <SelectTrigger className="rounded-sm" data-testid="absence-type-select"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="rounded-sm h-10" data-testid="absence-type-select"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="ferie">Ferie</SelectItem>
                   <SelectItem value="malattia">Malattia</SelectItem>
@@ -113,15 +113,15 @@ export default function Absences() {
                 </SelectContent>
               </Select>
             </Field>
-            <div className="grid grid-cols-2 gap-3">
-              <Field label="Dal"><Input type="date" data-testid="absence-start-input" value={form.start_date} onChange={(e) => setForm({ ...form, start_date: e.target.value })} className="rounded-sm font-mono" /></Field>
-              <Field label="Al"><Input type="date" data-testid="absence-end-input" value={form.end_date} onChange={(e) => setForm({ ...form, end_date: e.target.value })} className="rounded-sm font-mono" /></Field>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <Field label="Data inizio *"><Input type="date" data-testid="absence-start-input" value={form.start_date} onChange={(e) => setForm({ ...form, start_date: e.target.value })} className="rounded-sm font-mono h-10" /></Field>
+              <Field label="Data fine *"><Input type="date" data-testid="absence-end-input" value={form.end_date} onChange={(e) => setForm({ ...form, end_date: e.target.value })} className="rounded-sm font-mono h-10" /></Field>
             </div>
-            <Field label="Note (opz.)"><Textarea data-testid="absence-note-input" value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} className="rounded-sm" rows={2} /></Field>
+            <Field label="Note (opzionale)"><Textarea data-testid="absence-note-input" value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} className="rounded-sm text-xs sm:text-sm" rows={2} placeholder="es. Certificato medico, motivazione..." /></Field>
           </div>
-          <DialogFooter>
-            <Button variant="ghost" className="rounded-sm" onClick={() => setOpen(false)}>Annulla</Button>
-            <Button className="rounded-sm bg-primary hover:bg-primary/90" data-testid="save-absence-btn" onClick={save}>Salva</Button>
+          <DialogFooter className="gap-2 sm:gap-0 mt-2">
+            <Button variant="ghost" className="rounded-sm h-10 text-xs sm:text-sm" onClick={() => setOpen(false)}>Annulla</Button>
+            <Button className="rounded-sm bg-primary hover:bg-primary/90 h-10 text-xs sm:text-sm font-semibold" data-testid="save-absence-btn" onClick={save}>Salva</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

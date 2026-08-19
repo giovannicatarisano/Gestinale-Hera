@@ -67,55 +67,57 @@ export default function Dashboard() {
   const uncovered = total - covered;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {/* header */}
-      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 no-print">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 no-print">
         <div>
-          <div className="overline text-primary mb-1">Pianificazione settimanale</div>
-          <h1 className="font-head font-black text-3xl sm:text-4xl tracking-tighter">Tabellone turni</h1>
+          <div className="overline text-primary mb-0.5">Pianificazione settimanale</div>
+          <h1 className="font-head font-black text-2xl sm:text-3xl lg:text-4xl tracking-tighter">Tabellone turni</h1>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
           <Button
             data-testid="print-board-btn"
             onClick={() => window.print()}
             variant="outline"
             disabled={total === 0}
-            className="rounded-sm font-semibold h-11 px-4"
+            className="rounded-sm font-semibold h-10 px-3.5 text-xs sm:text-sm flex-1 sm:flex-initial"
           >
-            <Printer size={17} className="mr-2" /> Stampa / PDF
+            <Printer size={16} className="mr-1.5" /> Stampa / PDF
           </Button>
           <Button
             data-testid="generate-shifts-btn"
             onClick={generate}
             disabled={generating}
-            className="rounded-sm bg-primary hover:bg-primary/90 font-semibold h-11 px-5"
+            className="rounded-sm bg-primary hover:bg-primary/90 font-semibold h-10 px-4 text-xs sm:text-sm shadow-sm flex-1 sm:flex-initial"
           >
-            <Sparkles size={17} className={`mr-2 ${generating ? "animate-pulse" : ""}`} />
-            {generating ? "Generazione in corso…" : "Genera Turni"}
+            <Sparkles size={16} className={`mr-1.5 ${generating ? "animate-pulse" : ""}`} />
+            {generating ? "Generazione…" : "Genera Turni"}
           </Button>
         </div>
       </div>
 
       {/* controls + stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-3 no-print">
-        <div className="md:col-span-2 border border-border bg-card rounded-sm p-3 flex items-center justify-between">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3 no-print">
+        <div className="sm:col-span-2 border border-border bg-card rounded-sm p-3 flex items-center justify-between shadow-xs">
           <button
             data-testid="prev-week-btn"
             onClick={() => setRef(shiftWeek(ref, -1))}
             className="h-9 w-9 flex items-center justify-center border border-border rounded-sm hover:bg-secondary transition-colors duration-150"
+            title="Settimana precedente"
           >
             <ChevronLeft size={18} />
           </button>
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
-              <CalendarDays size={13} /> <span className="overline">Settimana</span>
+          <div className="text-center px-2">
+            <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
+              <CalendarDays size={13} /> <span className="overline text-[10px]">Settimana</span>
             </div>
-            <div className="font-head font-bold text-sm mt-0.5" data-testid="week-label">{weekLabel(ref)}</div>
+            <div className="font-head font-bold text-sm sm:text-base mt-0.5" data-testid="week-label">{weekLabel(ref)}</div>
           </div>
           <button
             data-testid="next-week-btn"
             onClick={() => setRef(shiftWeek(ref, 1))}
             className="h-9 w-9 flex items-center justify-center border border-border rounded-sm hover:bg-secondary transition-colors duration-150"
+            title="Settimana successiva"
           >
             <ChevronRight size={18} />
           </button>
