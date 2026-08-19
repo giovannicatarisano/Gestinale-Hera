@@ -39,6 +39,7 @@ export default function DriverView() {
   const [swapTo, setSwapTo] = useState("");
   const [swapNote, setSwapNote] = useState("");
   const [refreshing, setRefreshing] = useState(false);
+  const [notifsOpen, setNotifsOpen] = useState(false);
   const wk = weekKey(ref);
   const myId = user?.driver_id;
 
@@ -104,8 +105,21 @@ export default function DriverView() {
   };
 
   const openNotifs = (open) => {
+    setNotifsOpen(open);
     if (open && unread > 0) {
       api.post("/notifications/read", {}).then(() => setNotifs((prev) => prev.map((n) => ({ ...n, read: true }))));
+    }
+  };
+
+  const handleDriverNotifClick = (n) => {
+    api.post("/notifications/read", { ids: [n.id] });
+    setNotifs((prev) => prev.map((x) => x.id === n.id ? { ...x, read: true } : x));
+    setNotifsOpen(false);
+    if (n.kind === "swap") {
+      const target = document.getElementById("incoming-swaps-section") || document.getElementById("my-swaps-section");
+      target?.scrollIntoView({ behavior: "smooth" });
+    } else if (n.kind === "shift") {
+      document.getElementById("my-shifts-section")?.scrollIntoView({ behavior: "smooth" });
     }
   };
 
@@ -151,7 +165,7 @@ export default function DriverView() {
             <RefreshCw size={16} className={refreshing ? "animate-spin text-primary" : ""} />
           </button>
           {myId && (
-            <Popover onOpenChange={openNotifs}>
+            <Popover open={notifsOpen} onOpenChange={openNotifs}>
               <PopoverTrigger asChild>
                 <button data-testid="notif-bell" className="relative h-9 w-9 flex items-center justify-center border border-border rounded-sm hover:bg-secondary transition-colors duration-150">
                   <Bell size={17} />
@@ -164,13 +178,18 @@ export default function DriverView() {
               </PopoverTrigger>
               <PopoverContent align="end" className="w-[88vw] sm:w-80 rounded-sm p-0">
                 <div className="p-3 border-b border-border overline text-muted-foreground">Notifiche</div>
-                <div className="max-h-80 overflow-y-auto board-scroll">
+                <div className="max-h-80 overflow-y-auto board-scroll divide-y divide-border">
                   {notifs.length === 0 ? (
                     <div className="p-6 text-center text-sm text-muted-foreground">Nessuna notifica.</div>
                   ) : (
                     notifs.map((n) => (
-                      <div key={n.id} className="p-3 border-b border-border last:border-0" data-testid={`notif-${n.id}`}>
-                        <div className="text-sm">{n.message}</div>
+                      <div
+                        key={n.id}
+                        onClick={() => handleDriverNotifClick(n)}
+                        className={`p-3 cursor-pointer hover:bg-secondary/60 transition-colors ${n.read ? "opacity-60" : "bg-primary/5 font-medium"}`}
+                        data-testid={`notif-${n.id}`}
+                      >
+                        <div className="text-sm leading-snug">{n.message}</div>
                         <div className="font-mono text-[10px] text-muted-foreground mt-1">{new Date(n.created_at).toLocaleString("it-IT")}</div>
                       </div>
                     ))
@@ -239,7 +258,7 @@ export default function DriverView() {
 
         {/* my shifts */}
         {myId && (
-          <div>
+          <div id="my-shifts-section">
             <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
               <div className="overline text-muted-foreground">I miei turni</div>
               {myShifts.length > 0 && (
@@ -296,7 +315,7 @@ export default function DriverView() {
 
         {/* incoming swaps — requests where I am the target driver */}
         {myId && myIncomingSwaps.length > 0 && (
-          <div>
+          <div id="incoming-swaps-section">
             <div className="overline text-primary mb-2 flex items-center gap-1.5">
               <ArrowLeftRight size={12} /> Richieste di cambio ricevute
               <span className="ml-1 text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-full bg-primary text-primary-foreground">{myIncomingSwaps.length}</span>
@@ -330,7 +349,7 @@ export default function DriverView() {
 
         {/* my swap requests */}
         {myId && mySentSwaps.length > 0 && (
-          <div>
+          <div id="my-swaps-section">
             <div className="overline text-muted-foreground mb-2">Le mie richieste di cambio</div>
             <div className="border border-border bg-card rounded-sm divide-y divide-border">
               {mySentSwaps.map((sw) => {

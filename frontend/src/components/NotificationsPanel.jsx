@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../lib/api";
 import { Bell, BellRing, CheckCheck, ArrowLeftRight, CalendarClock, X } from "lucide-react";
 import { Button } from "./ui/button";
@@ -9,6 +10,7 @@ const KIND_ICON = {
 };
 
 export default function NotificationsPanel() {
+  const navigate = useNavigate();
   const [notifs, setNotifs] = useState([]);
   const [open, setOpen] = useState(false);
   const panelRef = useRef(null);
@@ -51,6 +53,16 @@ export default function NotificationsPanel() {
       await api.post("/notifications/read", { ids: [id] });
       setNotifs((prev) => prev.map((n) => n.id === id ? { ...n, read: true } : n));
     } catch { /* silently fail */ }
+  };
+
+  const handleNotifClick = async (n) => {
+    markOne(n.id);
+    setOpen(false);
+    if (n.kind === "swap") {
+      navigate("/scambi");
+    } else if (n.kind === "shift") {
+      navigate("/dashboard");
+    }
   };
 
   const formatTime = (iso) => {
@@ -123,7 +135,7 @@ export default function NotificationsPanel() {
               notifs.map((n) => (
                 <div
                   key={n.id}
-                  onClick={() => markOne(n.id)}
+                  onClick={() => handleNotifClick(n)}
                   className={`flex items-start gap-3 px-4 py-3 cursor-pointer transition-colors hover:bg-secondary/50 ${n.read ? "opacity-60" : "bg-primary/5"}`}
                 >
                   <div className="mt-0.5 flex-shrink-0">
