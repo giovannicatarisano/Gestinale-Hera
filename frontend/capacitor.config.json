@@ -1,6 +1,6 @@
 {
   "appId": "it.hera.gestionale",
-  "appName": "Hera Turni",
+  "appName": "GestionaleHera",
   "webDir": "build",
   "server": {
     "cleartext": true,
