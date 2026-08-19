@@ -33,6 +33,14 @@
     border-color: hsl(var(--border));
 }
 
+/* Mobile viewport safe-areas and touch optimizations */
+:root {
+    --sab: env(safe-area-inset-bottom, 0px);
+    --sat: env(safe-area-inset-top, 0px);
+    --sal: env(safe-area-inset-left, 0px);
+    --sar: env(safe-area-inset-right, 0px);
+}
+
 body {
     margin: 0;
     font-family: 'IBM Plex Sans', sans-serif;
@@ -40,6 +48,9 @@ body {
     color: hsl(var(--foreground));
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    padding-top: var(--sat);
 }
 
 h1, h2, h3, .font-head {
@@ -61,19 +72,30 @@ h1, h2, h3, .font-head {
     font-weight: 600;
 }
 
-/* thin scrollbar for schedule board */
-.board-scroll::-webkit-scrollbar { height: 8px; width: 8px; }
-.board-scroll::-webkit-scrollbar-thumb { background: hsl(0 0% 75%); border-radius: 2px; }
+/* Thin and smooth scrollbar */
+.board-scroll {
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: hsl(0 0% 75%) transparent;
+}
+.board-scroll::-webkit-scrollbar { height: 6px; width: 6px; }
+.board-scroll::-webkit-scrollbar-thumb { background: hsl(0 0% 75%); border-radius: 4px; }
+
+/* Safe area padding for mobile bottom bar */
+.pb-safe {
+    padding-bottom: calc(4.5rem + var(--sab));
+}
 
 /* Print / PDF: show only the schedule board */
 @media print {
   @page { size: A4 landscape; margin: 10mm; }
-  body { background: #fff !important; }
+  body { background: #fff !important; padding: 0 !important; }
   .no-print { display: none !important; }
   .print-area { position: absolute; left: 0; top: 0; width: 100%; padding: 0 !important; margin: 0 !important; }
   .print-area .board-scroll { overflow: visible !important; border: none !important; }
   .print-area .board-scroll > div { min-width: 0 !important; }
-  aside, header { display: none !important; }
+  aside, header, nav { display: none !important; }
   .print-only { display: block !important; }
 }
 .print-only { display: none; }
+

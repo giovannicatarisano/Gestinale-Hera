@@ -109,32 +109,33 @@ export default function RoutesPage() {
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="rounded-sm">
-          <DialogHeader><DialogTitle className="font-head tracking-tight">{editing ? "Modifica giro" : "Nuovo giro"}</DialogTitle>
-          <DialogDescription className="sr-only">Configura percorso, mezzo richiesto, fascia oraria, frequenza e giorni operativi del giro.</DialogDescription>
+        <DialogContent className="w-[94vw] sm:max-w-lg rounded-sm max-h-[85vh] overflow-y-auto p-4 sm:p-6" data-testid="route-modal">
+          <DialogHeader>
+            <DialogTitle className="font-head tracking-tight text-lg sm:text-xl">{editing ? "Modifica giro" : "Nuovo giro"}</DialogTitle>
+            <DialogDescription className="sr-only">Configura percorso, mezzo richiesto, fascia oraria, frequenza e giorni operativi del giro.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
-            <div className="grid grid-cols-2 gap-3">
-              <Field label="Nome giro"><Input data-testid="route-name-input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="rounded-sm" /></Field>
-              <Field label="Codice"><Input data-testid="route-code-input" value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} className="rounded-sm font-mono" /></Field>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <Field label="Nome giro *"><Input data-testid="route-name-input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="es. Centro Storico" className="rounded-sm" /></Field>
+              <Field label="Codice *"><Input data-testid="route-code-input" value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} placeholder="es. CS-01" className="rounded-sm font-mono uppercase" /></Field>
             </div>
-            <Field label="Zona"><Input data-testid="route-zone-input" value={form.zone} onChange={(e) => setForm({ ...form, zone: e.target.value })} className="rounded-sm" /></Field>
+            <Field label="Zona"><Input data-testid="route-zone-input" value={form.zone} onChange={(e) => setForm({ ...form, zone: e.target.value })} placeholder="es. Centro, Periferia Nord" className="rounded-sm" /></Field>
             <Field label="Mezzo richiesto">
               <Select value={form.vehicle_id} onValueChange={(v) => setForm({ ...form, vehicle_id: v })}>
-                <SelectTrigger className="rounded-sm" data-testid="route-vehicle-select"><SelectValue placeholder="Seleziona mezzo" /></SelectTrigger>
-                <SelectContent>{vehicles.map((v) => <SelectItem key={v.id} value={v.id}>{v.name} · {v.plate}</SelectItem>)}</SelectContent>
+                <SelectTrigger className="rounded-sm h-10" data-testid="route-vehicle-select"><SelectValue placeholder="Seleziona mezzo" /></SelectTrigger>
+                <SelectContent className="max-h-56">{vehicles.map((v) => <SelectItem key={v.id} value={v.id}>{v.name} · {v.plate}</SelectItem>)}</SelectContent>
               </Select>
             </Field>
             <Field label="Fascia oraria">
               <Select value={form.slot} onValueChange={setSlot}>
-                <SelectTrigger className="rounded-sm" data-testid="route-slot-select"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="rounded-sm h-10" data-testid="route-slot-select"><SelectValue /></SelectTrigger>
                 <SelectContent>{SLOTS.map((s) => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
               </Select>
             </Field>
 
             <Field label="Frequenza di assegnazione">
               <Select value={form.schedule_mode} onValueChange={(v) => setForm({ ...form, schedule_mode: v })}>
-                <SelectTrigger className="rounded-sm" data-testid="route-mode-select"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="rounded-sm h-10" data-testid="route-mode-select"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="fixed">Giorni fissi della settimana</SelectItem>
                   <SelectItem value="frequency">Ogni N giorni (ciclico)</SelectItem>
@@ -143,26 +144,26 @@ export default function RoutesPage() {
             </Field>
 
             {form.schedule_mode === "frequency" ? (
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <Field label="Ogni quanti giorni">
                   <Input type="number" min="1" data-testid="route-interval-input" value={form.interval_days}
-                    onChange={(e) => setForm({ ...form, interval_days: parseInt(e.target.value || "1", 10) })} className="rounded-sm font-mono" />
+                    onChange={(e) => setForm({ ...form, interval_days: parseInt(e.target.value || "1", 10) })} className="rounded-sm font-mono h-10" />
                 </Field>
                 <Field label="Data di partenza (opz.)">
                   <Input type="date" data-testid="route-start-input" value={form.start_date || ""}
-                    onChange={(e) => setForm({ ...form, start_date: e.target.value })} className="rounded-sm font-mono" />
+                    onChange={(e) => setForm({ ...form, start_date: e.target.value })} className="rounded-sm font-mono h-10" />
                 </Field>
               </div>
             ) : form.slot === "domenica" ? (
-              <div className="text-xs text-muted-foreground border border-border rounded-sm p-3 font-mono">
+              <div className="text-xs text-muted-foreground border border-border rounded-sm p-3 font-mono bg-secondary/30">
                 Giro fisso alla Domenica (max 3 autisti nel turno).
               </div>
             ) : (
               <Field label="Giorni operativi">
-                <div className="flex gap-1.5">
+                <div className="grid grid-cols-6 gap-1 sm:gap-1.5">
                   {DAY_LABELS.slice(0, 6).map((lbl, i) => (
                     <button key={i} type="button" data-testid={`route-day-${i}`} onClick={() => toggleDay(i)}
-                      className={`flex-1 h-9 text-xs font-mono rounded-sm border transition-colors duration-150 ${form.days.includes(i) ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border hover:bg-secondary"}`}>
+                      className={`h-9 text-xs font-mono font-semibold rounded-sm border transition-colors ${form.days.includes(i) ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border hover:bg-secondary"}`}>
                       {lbl}
                     </button>
                   ))}
@@ -170,7 +171,7 @@ export default function RoutesPage() {
               </Field>
             )}
 
-            <div className="flex items-center justify-between border border-border rounded-sm p-3">
+            <div className="flex items-center justify-between border border-border rounded-sm p-3 bg-secondary/20">
               <div>
                 <div className="text-sm font-medium flex items-center gap-1.5"><Lock size={14} className="text-primary" /> Fissa giro</div>
                 <div className="text-xs text-muted-foreground">Il motore lo mantiene sempre su questo turno e giorno.</div>
@@ -178,9 +179,9 @@ export default function RoutesPage() {
               <Switch checked={form.pinned} onCheckedChange={(v) => setForm({ ...form, pinned: v })} data-testid="route-pinned-switch" />
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="ghost" className="rounded-sm" onClick={() => setOpen(false)}>Annulla</Button>
-            <Button className="rounded-sm bg-primary hover:bg-primary/90" data-testid="save-route-btn" onClick={save}>Salva</Button>
+          <DialogFooter className="gap-2 sm:gap-0 mt-2">
+            <Button variant="ghost" className="rounded-sm h-10 text-xs sm:text-sm" onClick={() => setOpen(false)}>Annulla</Button>
+            <Button className="rounded-sm bg-primary hover:bg-primary/90 h-10 text-xs sm:text-sm font-semibold" data-testid="save-route-btn" onClick={save}>Salva</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

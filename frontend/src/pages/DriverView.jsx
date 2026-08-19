@@ -75,13 +75,13 @@ export default function DriverView() {
   const swapForShift = (sid) => swaps.find((s) => s.shift_id === sid && s.status === "pending");
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="h-16 border-b border-border bg-card/80 backdrop-blur-xl sticky top-0 z-10 flex items-center justify-between px-4 sm:px-6">
-        <Logo size={32} />
-        <div className="flex items-center gap-2">
+    <div className="min-h-screen bg-background pb-12">
+      <header className="h-14 sm:h-16 border-b border-border bg-card/90 backdrop-blur-xl sticky top-0 z-20 flex items-center justify-between px-3 sm:px-6">
+        <Logo size={28} />
+        <div className="flex items-center gap-1.5 sm:gap-2">
           {user?.role === "admin" && (
-            <Button variant="outline" size="sm" className="rounded-sm" data-testid="back-admin-btn" onClick={() => navigate("/dashboard")}>
-              <LayoutDashboard size={15} className="mr-1.5" /> <span className="hidden sm:inline">Admin</span>
+            <Button variant="outline" size="sm" className="rounded-sm text-xs h-9 px-2.5 sm:px-3" data-testid="back-admin-btn" onClick={() => navigate("/dashboard")}>
+              <LayoutDashboard size={14} className="mr-1 sm:mr-1.5" /> <span>Admin</span>
             </Button>
           )}
           {myId && (
@@ -96,7 +96,7 @@ export default function DriverView() {
                   )}
                 </button>
               </PopoverTrigger>
-              <PopoverContent align="end" className="w-80 rounded-sm p-0">
+              <PopoverContent align="end" className="w-[88vw] sm:w-80 rounded-sm p-0">
                 <div className="p-3 border-b border-border overline text-muted-foreground">Notifiche</div>
                 <div className="max-h-80 overflow-y-auto board-scroll">
                   {notifs.length === 0 ? (
@@ -119,22 +119,22 @@ export default function DriverView() {
             </div>
             <span className="text-sm font-semibold">{user?.name}</span>
           </div>
-          <Button variant="ghost" size="sm" className="rounded-sm" data-testid="driver-logout-btn" onClick={logout}>
+          <Button variant="ghost" size="sm" className="rounded-sm h-9 w-9 p-0 text-muted-foreground hover:text-destructive" data-testid="driver-logout-btn" onClick={logout} title="Esci">
             <LogOut size={16} />
           </Button>
         </div>
       </header>
 
-      <main className="p-4 sm:p-6 max-w-7xl mx-auto space-y-6">
-        <div className="flex flex-wrap items-end justify-between gap-3">
+      <main className="p-3.5 sm:p-6 max-w-7xl mx-auto space-y-5">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
           <div>
-            <div className="overline text-primary mb-1">Tabellone condiviso · sola lettura</div>
-            <h1 className="font-head font-black text-3xl sm:text-4xl tracking-tighter">Turni della settimana</h1>
+            <div className="overline text-primary mb-0.5">Tabellone condiviso · sola lettura</div>
+            <h1 className="font-head font-black text-2xl sm:text-3xl lg:text-4xl tracking-tighter">Turni della settimana</h1>
           </div>
           {myId && mySlot && (
-            <div className="border border-primary/40 bg-primary/5 rounded-sm px-4 py-2" data-testid="my-rotation">
-              <div className="overline text-muted-foreground">Il mio turno questa settimana</div>
-              <div className="font-head font-bold text-primary">{SLOT_LABEL[mySlot]}</div>
+            <div className="border border-primary/40 bg-primary/5 rounded-sm px-3.5 py-2 shrink-0 self-start sm:self-auto" data-testid="my-rotation">
+              <div className="overline text-muted-foreground text-[10px]">Il mio turno questa settimana</div>
+              <div className="font-head font-bold text-primary text-sm sm:text-base">{SLOT_LABEL[mySlot]}</div>
             </div>
           )}
         </div>
@@ -145,7 +145,7 @@ export default function DriverView() {
             <div className="overline text-muted-foreground mb-2">I miei turni</div>
             {myShifts.length === 0 ? (
               <div className="border border-dashed border-border rounded-sm p-6 text-center text-sm text-muted-foreground bg-card">
-                Nessun turno assegnato questa settimana.
+                Nessun turno assegnato per te questa settimana.
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -154,22 +154,23 @@ export default function DriverView() {
                   const veh = vehicleById[s.vehicle_id];
                   const pendingSwap = swapForShift(s.id);
                   return (
-                    <div key={s.id} className="border border-primary/40 bg-primary/5 rounded-sm p-4" data-testid={`my-shift-${s.id}`}>
+                    <div key={s.id} className="border border-primary/40 bg-primary/5 rounded-sm p-3.5 sm:p-4 shadow-xs" data-testid={`my-shift-${s.id}`}>
                       <div className="flex items-center justify-between">
-                        <span className="font-head font-bold">{DAY_FULL[s.day]}</span>
-                        <span className="font-mono text-xs px-1.5 py-0.5 bg-card border border-border rounded-sm">{route?.code}</span>
+                        <span className="font-head font-bold text-base">{DAY_FULL[s.day]}</span>
+                        <span className="font-mono text-xs px-2 py-0.5 bg-card border border-border rounded-sm font-semibold">{route?.code}</span>
                       </div>
-                      <div className="text-sm font-medium mt-1">{route?.name}</div>
+                      <div className="text-sm font-semibold text-foreground mt-1">{route?.name}</div>
                       <div className="flex items-center gap-2 mt-2 font-mono text-xs text-muted-foreground">
                         <Clock size={12} /> {SLOT_TIME[s.slot]} · {SLOT_LABEL[s.slot]}
                       </div>
-                      <div className="font-mono text-xs text-muted-foreground mt-1">{veh?.name} · {veh?.plate}</div>
+                      <div className="font-mono text-xs text-muted-foreground mt-1">Mezzo: <span className="font-medium text-foreground">{veh?.name}</span> · {veh?.plate}</div>
                       {pendingSwap ? (
-                        <div className="mt-3 text-xs font-mono text-orange-600 flex items-center gap-1">
-                          <ArrowLeftRight size={12} /> Cambio richiesto → {pendingSwap.to_name} (in attesa)
+                        <div className="mt-3 text-xs font-mono text-amber-700 bg-amber-500/10 p-2 rounded-sm border border-amber-500/20 flex items-center gap-1.5">
+                          <ArrowLeftRight size={13} className="shrink-0" />
+                          <span>Cambio richiesto → <b>{pendingSwap.to_name}</b> (in attesa)</span>
                         </div>
                       ) : (
-                        <Button variant="outline" size="sm" className="rounded-sm w-full mt-3" data-testid={`request-swap-${s.id}`} onClick={() => { setSwapShift(s); setSwapTo(""); setSwapNote(""); }}>
+                        <Button variant="outline" size="sm" className="rounded-sm w-full mt-3 h-10 font-semibold text-xs" data-testid={`request-swap-${s.id}`} onClick={() => { setSwapShift(s); setSwapTo(""); setSwapNote(""); }}>
                           <ArrowLeftRight size={14} className="mr-1.5" /> Richiedi cambio
                         </Button>
                       )}
@@ -192,7 +193,7 @@ export default function DriverView() {
                     <div className="text-sm font-medium truncate">{sw.shift_label}</div>
                     <div className="font-mono text-xs text-muted-foreground">{sw.from_name} → {sw.to_name}</div>
                   </div>
-                  <span className={`overline px-1.5 py-0.5 rounded-sm shrink-0 ${sw.status === "approved" ? "bg-primary/15 text-primary" : sw.status === "rejected" ? "bg-destructive/15 text-destructive" : "bg-orange-100 text-orange-700"}`}>
+                  <span className={`overline text-[10px] px-2 py-0.5 rounded-sm shrink-0 font-semibold ${sw.status === "approved" ? "bg-emerald-500/15 text-emerald-700" : sw.status === "rejected" ? "bg-destructive/15 text-destructive" : "bg-amber-500/15 text-amber-700"}`}>
                     {SWAP_STATUS[sw.status]}
                   </span>
                 </div>
@@ -202,12 +203,12 @@ export default function DriverView() {
         )}
 
         {/* week nav */}
-        <div className="border border-border bg-card rounded-sm p-3 flex items-center justify-between max-w-md">
-          <button data-testid="dv-prev-week" onClick={() => setRef(shiftWeek(ref, -1))} className="h-9 w-9 flex items-center justify-center border border-border rounded-sm hover:bg-secondary transition-colors duration-150">
+        <div className="border border-border bg-card rounded-sm p-2.5 flex items-center justify-between w-full sm:max-w-md shadow-xs">
+          <button data-testid="dv-prev-week" onClick={() => setRef(shiftWeek(ref, -1))} className="h-9 w-9 flex items-center justify-center border border-border rounded-sm hover:bg-secondary transition-colors duration-150" title="Settimana precedente">
             <ChevronLeft size={18} />
           </button>
-          <div className="font-head font-bold text-sm">{weekLabel(ref)}</div>
-          <button data-testid="dv-next-week" onClick={() => setRef(shiftWeek(ref, 1))} className="h-9 w-9 flex items-center justify-center border border-border rounded-sm hover:bg-secondary transition-colors duration-150">
+          <div className="font-head font-bold text-sm sm:text-base text-center px-2">{weekLabel(ref)}</div>
+          <button data-testid="dv-next-week" onClick={() => setRef(shiftWeek(ref, 1))} className="h-9 w-9 flex items-center justify-center border border-border rounded-sm hover:bg-secondary transition-colors duration-150" title="Settimana successiva">
             <ChevronRight size={18} />
           </button>
         </div>
@@ -226,34 +227,34 @@ export default function DriverView() {
 
       {/* swap request modal */}
       <Dialog open={!!swapShift} onOpenChange={(o) => !o && setSwapShift(null)}>
-        <DialogContent className="rounded-sm" data-testid="swap-modal">
+        <DialogContent className="w-[94vw] sm:max-w-md rounded-sm p-4 sm:p-5 max-h-[85vh] overflow-y-auto" data-testid="swap-modal">
           <DialogHeader>
-            <DialogTitle className="font-head tracking-tight">Richiedi cambio turno</DialogTitle>
+            <DialogTitle className="font-head tracking-tight text-lg">Richiedi cambio turno</DialogTitle>
             <DialogDescription className="sr-only">Scegli un collega a cui proporre il tuo turno; la richiesta sarà approvata da un assistente.</DialogDescription>
           </DialogHeader>
           {swapShift && (
-            <div className="space-y-4 py-2">
-              <div className="border border-border rounded-sm p-3">
-                <div className="text-sm font-medium">{routeById[swapShift.route_id]?.name}</div>
+            <div className="space-y-3.5 py-2">
+              <div className="border border-border rounded-sm p-3 bg-secondary/30">
+                <div className="text-sm font-semibold">{routeById[swapShift.route_id]?.name}</div>
                 <div className="font-mono text-xs text-muted-foreground mt-1">{DAY_FULL[swapShift.day]} · {SLOT_LABEL[swapShift.slot]}</div>
               </div>
               <div>
-                <div className="text-xs font-semibold mb-1.5">Proponi a</div>
+                <div className="text-xs font-semibold mb-1.5">Proponi a un collega</div>
                 <Select value={swapTo} onValueChange={setSwapTo}>
-                  <SelectTrigger className="rounded-sm" data-testid="swap-colleague-select"><SelectValue placeholder="Seleziona collega" /></SelectTrigger>
-                  <SelectContent>{colleagues.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
+                  <SelectTrigger className="rounded-sm h-10 text-xs sm:text-sm" data-testid="swap-colleague-select"><SelectValue placeholder="Seleziona collega" /></SelectTrigger>
+                  <SelectContent className="max-h-60">{colleagues.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
               <div>
-                <div className="text-xs font-semibold mb-1.5">Motivazione (opz.)</div>
-                <Textarea data-testid="swap-note-input" value={swapNote} onChange={(e) => setSwapNote(e.target.value)} rows={2} className="rounded-sm" />
+                <div className="text-xs font-semibold mb-1.5">Motivazione (opzionale)</div>
+                <Textarea data-testid="swap-note-input" value={swapNote} onChange={(e) => setSwapNote(e.target.value)} rows={2} className="rounded-sm text-xs sm:text-sm" placeholder="es. Impegno personale, visita..." />
               </div>
-              <p className="text-xs text-muted-foreground">La richiesta dovrà essere approvata da un assistente/amministratore.</p>
+              <p className="text-xs text-muted-foreground">La richiesta verrà inviata agli assistenti/amministratori per l'approvazione.</p>
             </div>
           )}
-          <DialogFooter>
-            <Button variant="ghost" className="rounded-sm" onClick={() => setSwapShift(null)}>Annulla</Button>
-            <Button className="rounded-sm bg-primary hover:bg-primary/90" data-testid="submit-swap-btn" onClick={submitSwap}>Invia richiesta</Button>
+          <DialogFooter className="gap-2 sm:gap-0 mt-2">
+            <Button variant="ghost" className="rounded-sm h-10 text-xs" onClick={() => setSwapShift(null)}>Annulla</Button>
+            <Button className="rounded-sm bg-primary hover:bg-primary/90 h-10 text-xs font-semibold" data-testid="submit-swap-btn" onClick={submitSwap}>Invia richiesta</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

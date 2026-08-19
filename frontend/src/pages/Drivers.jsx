@@ -87,38 +87,69 @@ export default function Drivers() {
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="rounded-sm">
-          <DialogHeader><DialogTitle className="font-head tracking-tight">{editing ? "Modifica autista" : "Nuovo autista"}</DialogTitle></DialogHeader>
+        <DialogContent className="w-[94vw] sm:max-w-md rounded-sm max-h-[85vh] overflow-y-auto p-4 sm:p-6" data-testid="driver-modal">
+          <DialogHeader>
+            <DialogTitle className="font-head tracking-tight text-lg sm:text-xl">
+              {editing ? "Modifica autista" : "Nuovo autista"}
+            </DialogTitle>
+          </DialogHeader>
           <div className="space-y-4 py-2">
-            <Field label="Nome e cognome"><Input data-testid="driver-name-input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="rounded-sm" /></Field>
-            <Field label="Email"><Input data-testid="driver-email-input" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="rounded-sm" /></Field>
-            <Field label="Telefono"><Input data-testid="driver-phone-input" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="rounded-sm" /></Field>
-            <div className="flex items-center justify-between border border-border rounded-sm p-3">
-              <Label className="text-sm">In servizio</Label>
-              <Switch checked={form.active} onCheckedChange={(v) => setForm({ ...form, active: v })} data-testid="driver-active-switch" />
+            <Field label="Nome e cognome *">
+              <Input
+                data-testid="driver-name-input"
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                placeholder="es. Mario Rossi"
+                className="rounded-sm"
+              />
+            </Field>
+            <Field label="Email aziendale">
+              <Input
+                data-testid="driver-email-input"
+                type="email"
+                value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
+                placeholder="mario.rossi@hera.it"
+                className="rounded-sm"
+              />
+            </Field>
+            <Field label="Telefono">
+              <Input
+                data-testid="driver-phone-input"
+                value={form.phone}
+                onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                placeholder="+39 333 1234567"
+                className="rounded-sm"
+              />
+            </Field>
+            <div className="flex items-center justify-between pt-1">
+              <Label className="text-xs font-semibold">Stato attivo</Label>
+              <Switch
+                data-testid="driver-active-toggle"
+                checked={form.active}
+                onCheckedChange={(c) => setForm({ ...form, active: c })}
+              />
             </div>
-            <div className="border border-border rounded-sm p-3 space-y-2">
-              <div className="flex items-center gap-1.5 text-sm font-medium">
-                <KeyRound size={14} className="text-primary" /> Credenziali di accesso
+            <div className="border-t border-border pt-4">
+              <div className="text-xs font-semibold mb-1">
+                {editing ? "Reimposta password accesso" : "Password accesso app (opzionale)"}
               </div>
-              <p className="text-xs text-muted-foreground">
-                {editing?.has_account
-                  ? "Questo autista ha già un accesso. Inserisci una password per reimpostarla."
-                  : "Imposta una password per creare l'accesso in sola lettura dell'autista (richiede l'email)."}
+              <p className="text-xs text-muted-foreground mb-2">
+                Consente all'autista di accedere all'applicazione sul telefono.
               </p>
               <Input
-                type="password"
                 data-testid="driver-password-input"
+                type="password"
                 value={form.password}
                 onChange={(e) => setForm({ ...form, password: e.target.value })}
-                placeholder={editing?.has_account ? "Nuova password (opzionale)" : "Password accesso autista"}
+                placeholder={editing ? "Lascia vuoto per non modificare" : "Minimo 6 caratteri"}
                 className="rounded-sm"
               />
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="ghost" className="rounded-sm" onClick={() => setOpen(false)}>Annulla</Button>
-            <Button className="rounded-sm bg-primary hover:bg-primary/90" data-testid="save-driver-btn" onClick={save}>Salva</Button>
+          <DialogFooter className="gap-2 sm:gap-0 mt-2">
+            <Button variant="ghost" className="rounded-sm h-10 text-xs sm:text-sm" onClick={() => setOpen(false)}>Annulla</Button>
+            <Button className="rounded-sm bg-primary hover:bg-primary/90 h-10 text-xs sm:text-sm font-semibold" data-testid="save-driver-btn" onClick={save}>Salva</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -128,16 +159,16 @@ export default function Drivers() {
 
 export function Header({ title, subtitle, count, onAdd, addLabel, addTid, icon: Icon = Users }) {
   return (
-    <div className="flex items-end justify-between gap-4">
+    <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
       <div>
-        <div className="overline text-primary mb-1">{subtitle}</div>
-        <h1 className="font-head font-black text-3xl sm:text-4xl tracking-tighter flex items-center gap-3">
-          {title} <span className="font-mono text-base text-muted-foreground">{count}</span>
+        <div className="overline text-primary mb-0.5">{subtitle}</div>
+        <h1 className="font-head font-black text-2xl sm:text-3xl lg:text-4xl tracking-tighter flex items-center gap-2.5">
+          {title} <span className="font-mono text-xs sm:text-sm px-2 py-0.5 rounded-full bg-secondary text-muted-foreground font-semibold">{count}</span>
         </h1>
       </div>
       {onAdd && (
-        <Button className="rounded-sm bg-primary hover:bg-primary/90 font-semibold" data-testid={addTid} onClick={onAdd}>
-          <Plus size={16} className="mr-1.5" /> <span className="hidden sm:inline">{addLabel}</span>
+        <Button className="rounded-sm bg-primary hover:bg-primary/90 font-semibold h-10 px-3.5 text-xs sm:text-sm shadow-sm self-start sm:self-auto" data-testid={addTid} onClick={onAdd}>
+          <Plus size={16} className="mr-1.5" /> <span>{addLabel}</span>
         </Button>
       )}
     </div>
