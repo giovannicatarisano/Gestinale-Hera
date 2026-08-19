@@ -592,22 +592,34 @@ async def generate_shifts(data: GenerateInput, user: dict = Depends(require_admi
     shifts = []
 
     # Order: pomeriggio FIRST (so the rest-constraint before presto/domenica of next day is known),
-    # then presto, standard, and domenica LAST. Pinned first within each phase.
-    phase = {"pomeriggio": 0, "presto": 1, "standard": 2, "domenica": 3}
+    # then presto, standard, rotazione, and domenica LAST. Pinned first within each phase.
+    phase = {"pomeriggio": 0, "presto": 1, "standard": 2, "rotazione": 3, "domenica": 4}
 
     def sort_key(r):
         return (phase.get(r["slot"], 9), not r.get("pinned", False))
 
     for route in sorted(routes, key=sort_key):
-        slot = route["slot"]
-        max_d = SHIFT_SLOTS.get(slot, {}).get("max_drivers")
+        route_slot = route["slot"]
         for day in route_days_for_week(route, week_start):
             date_iso = (monday + timedelta(days=day)).isoformat()
             absent = _absent_ids_on(absences, date_iso)
             assigned = None
-            slot_full = max_d is not None and cap_count.get((day, slot), 0) >= max_d
-            early = slot in ("presto", "domenica")
-            if not slot_full:
+            final_slot = route_slot
+
+            # If route is in free rotation mode, evaluate both standard and pomeriggio
+            slots_to_try = ["standard", "pomeriggio"] if route_slot == "rotazione" else [route_slot]
+
+            best_candidate = None
+            best_slot = slots_to_try[0]
+            min_load = 999
+
+            for slot in slots_to_try:
+                max_d = SHIFT_SLOTS.get(slot, {}).get("max_drivers")
+                slot_full = max_d is not None and cap_count.get((day, slot), 0) >= max_d
+                if slot_full:
+                    continue
+
+                early = slot in ("presto", "domenica")
                 candidates = []
                 for d in drivers:
                     did = d["id"]
@@ -619,29 +631,36 @@ async def generate_shifts(data: GenerateInput, user: dict = Depends(require_admi
                     grp = d.get("group", "")
                     if slot != "domenica":
                         if grp:
-                            # Grouped driver: must match their group's category this week
                             cat = group_slot_for_week(grp, week_start)  # "mattina" or "pomeriggio"
                             if slot == "pomeriggio" and cat != "pomeriggio":
-                                continue  # pomeriggio route but driver is in mattina group
+                                continue
                             if slot in ("presto", "standard") and cat != "mattina":
-                                continue  # mattina route but driver is in pomeriggio group
+                                continue
                         else:
-                            # Ungrouped driver: old round-robin constraint
                             if wslot.get(did) != slot:
                                 continue
-                    # rest constraint: no early shift the day after a pomeriggio shift
+                    # rest constraint
                     if early and (day - 1) in pom_days.get(did, set()):
                         continue
                     candidates.append(d)
-                candidates.sort(key=lambda d: week_load[d["id"]])
+
                 if candidates:
-                    assigned = candidates[0]
+                    candidates.sort(key=lambda d: week_load[d["id"]])
+                    top_cand = candidates[0]
+                    cand_load = week_load[top_cand["id"]]
+                    if cand_load < min_load:
+                        min_load = cand_load
+                        best_candidate = top_cand
+                        best_slot = slot
+
+            assigned = best_candidate
+            final_slot = best_slot if (route_slot == "rotazione" and best_candidate) else (route_slot if route_slot != "rotazione" else "standard")
 
             shift = {
                 "id": str(uuid.uuid4()),
                 "week_start": week_start,
                 "day": day,
-                "slot": slot,
+                "slot": final_slot,
                 "route_id": route["id"],
                 "vehicle_id": route["vehicle_id"],
                 "driver_id": assigned["id"] if assigned else None,
@@ -653,10 +672,11 @@ async def generate_shifts(data: GenerateInput, user: dict = Depends(require_admi
             if assigned:
                 week_load[assigned["id"]] += 1
                 day_taken[(day, assigned["id"])] = True
-                if slot == "pomeriggio":
+                if final_slot == "pomeriggio":
                     pom_days.setdefault(assigned["id"], set()).add(day)
+                max_d = SHIFT_SLOTS.get(final_slot, {}).get("max_drivers")
                 if max_d is not None:
-                    cap_count[(day, slot)] = cap_count.get((day, slot), 0) + 1
+                    cap_count[(day, final_slot)] = cap_count.get((day, final_slot), 0) + 1
 
     if shifts:
         await db.shifts.insert_many(shifts)
