@@ -159,7 +159,10 @@ export default function Drivers() {
               />
             </Field>
             <Field label="Gruppo turni *">
-              <Select value={form.group} onValueChange={(v) => setForm({ ...form, group: v })}>
+              <Select
+                value={form.group || "none"}
+                onValueChange={(v) => setForm({ ...form, group: v === "none" ? "" : v })}
+              >
                 <SelectTrigger className="rounded-sm h-10 text-xs sm:text-sm" data-testid="driver-group-select">
                   <SelectValue placeholder="Seleziona gruppo" />
                 </SelectTrigger>
@@ -176,7 +179,7 @@ export default function Drivers() {
                       Gruppo 2
                     </span>
                   </SelectItem>
-                  <SelectItem value="">
+                  <SelectItem value="none">
                     <span className="text-muted-foreground">Nessun gruppo (rotazione libera)</span>
                   </SelectItem>
                 </SelectContent>
