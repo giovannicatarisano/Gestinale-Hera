@@ -86,3 +86,9 @@ android-sdk/
 credentials.json
 *.key
 .credentials
+
+# Render/deploy tools
+cloudflared.exe
+*.apk
+*.bat
+

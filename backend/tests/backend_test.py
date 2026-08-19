@@ -234,12 +234,25 @@ class TestNotifications:
     def _make_driver_with_shift(self, admin_token):
         """Create a fresh driver with skills, generate the week, return
         (driver_id, driver_token, a shift assigned to them)."""
+        vehicles = requests.get(f"{BASE_URL}/api/vehicles", headers=H(admin_token)).json()
+        if not vehicles:
+            vr = requests.post(f"{BASE_URL}/api/vehicles",
+                               json={"name": "Mezzo Test", "plate": "AA 000 AA", "type": "Compattatore"},
+                               headers=H(admin_token))
+            vehicles = [vr.json()]
+        vid = vehicles[0]["id"]
+
+        routes = requests.get(f"{BASE_URL}/api/routes", headers=H(admin_token)).json()
+        if not routes:
+            rr = requests.post(f"{BASE_URL}/api/routes",
+                               json={"name": "Giro Test", "code": "GT-01", "zone": "Zona A",
+                                     "vehicle_id": vid, "slot": "standard", "schedule_mode": "fixed",
+                                     "days": [0, 1, 2, 3, 4, 5]},
+                               headers=H(admin_token))
+            routes = [rr.json()]
+        rid = routes[0]["id"]
+
         email = f"TEST_notif_{uuid.uuid4().hex[:6]}@hera.it"
-        # copy skills from an existing active driver to guarantee assignability
-        drivers = requests.get(f"{BASE_URL}/api/drivers", headers=H(admin_token)).json()
-        proto = next((d for d in drivers if d.get("active", True)
-                      and d.get("vehicle_skills") and d.get("route_skills")), None)
-        assert proto, "No proto driver with skills to copy"
         cr = requests.post(f"{BASE_URL}/api/drivers",
                            json={"name": "TEST Notif", "email": email, "phone": "0",
                                  "password": "test1234"},
@@ -247,8 +260,8 @@ class TestNotifications:
         assert cr.status_code == 200
         did = cr.json()["id"]
         requests.put(f"{BASE_URL}/api/drivers/{did}/skills",
-                     json={"vehicle_skills": proto["vehicle_skills"],
-                           "route_skills": proto["route_skills"]},
+                     json={"vehicle_skills": [vid],
+                           "route_skills": [rid]},
                      headers=H(admin_token))
         tok = requests.post(f"{BASE_URL}/api/auth/login",
                             json={"email": email, "password": "test1234"}).json()["token"]
@@ -257,12 +270,11 @@ class TestNotifications:
                       json={"week_start": self.WK}, headers=H(admin_token))
         shifts = requests.get(f"{BASE_URL}/api/shifts?week_start={self.WK}",
                               headers=H(admin_token)).json()
-        mine = next((s for s in shifts if s["driver_id"] == did), None)
+        mine = next((s for s in shifts if s.get("driver_id") == did), None)
         # If rotation left this driver unassigned, force-assign one via PATCH
-        if not mine:
-            free = next((s for s in shifts if not s["driver_id"] and s["slot"] != "domenica"), None)
+        if not mine and shifts:
+            free = next((s for s in shifts if not s.get("driver_id") and s.get("slot") != "domenica"), None)
             if not free:
-                # pick any and steal it
                 free = shifts[0]
             pr = requests.patch(f"{BASE_URL}/api/shifts/{free['id']}",
                                 json={"driver_id": did}, headers=H(admin_token))
@@ -309,9 +321,24 @@ class TestSwapRequests:
     def _bootstrap_two_drivers(self, admin_token):
         """Create two driver accounts + shift on driver A, return
         (a_id, a_tok, b_id, b_tok, shift)."""
-        drivers = requests.get(f"{BASE_URL}/api/drivers", headers=H(admin_token)).json()
-        proto = next((d for d in drivers if d.get("vehicle_skills") and d.get("route_skills")), None)
-        assert proto
+        vehicles = requests.get(f"{BASE_URL}/api/vehicles", headers=H(admin_token)).json()
+        if not vehicles:
+            vr = requests.post(f"{BASE_URL}/api/vehicles",
+                               json={"name": "Mezzo Test", "plate": "AA 000 AA", "type": "Compattatore"},
+                               headers=H(admin_token))
+            vehicles = [vr.json()]
+        vid = vehicles[0]["id"]
+
+        routes = requests.get(f"{BASE_URL}/api/routes", headers=H(admin_token)).json()
+        if not routes:
+            rr = requests.post(f"{BASE_URL}/api/routes",
+                               json={"name": "Giro Test", "code": "GT-01", "zone": "Zona A",
+                                     "vehicle_id": vid, "slot": "standard", "schedule_mode": "fixed",
+                                     "days": [0, 1, 2, 3, 4, 5]},
+                               headers=H(admin_token))
+            routes = [rr.json()]
+        rid = routes[0]["id"]
+
         made = []
         toks = {}
         for tag in ("A", "B"):
@@ -324,8 +351,8 @@ class TestSwapRequests:
             did = r.json()["id"]
             made.append(did)
             requests.put(f"{BASE_URL}/api/drivers/{did}/skills",
-                         json={"vehicle_skills": proto["vehicle_skills"],
-                               "route_skills": proto["route_skills"]},
+                         json={"vehicle_skills": [vid],
+                               "route_skills": [rid]},
                          headers=H(admin_token))
             toks[tag] = requests.post(f"{BASE_URL}/api/auth/login",
                                       json={"email": email, "password": "test1234"}).json()["token"]
@@ -467,7 +494,13 @@ class TestRegression:
 
     def test_route_crud_with_frequency(self, admin_token):
         veh = requests.get(f"{BASE_URL}/api/vehicles", headers=H(admin_token)).json()
-        assert veh, "Need at least one vehicle"
+        created_veh_id = None
+        if not veh:
+            vr = requests.post(f"{BASE_URL}/api/vehicles",
+                               json={"name": "Temp Test Vehicle", "plate": "TV 000 ZZ", "type": "Compattatore"},
+                               headers=H(admin_token))
+            veh = [vr.json()]
+            created_veh_id = veh[0]["id"]
         payload = {"name": "TEST_Freq", "code": "TST-FR", "zone": "TZ",
                    "vehicle_id": veh[0]["id"], "slot": "standard",
                    "schedule_mode": "frequency", "days": [], "interval_days": 4,
@@ -480,6 +513,8 @@ class TestRegression:
             assert r.json()["interval_days"] == 4
         finally:
             requests.delete(f"{BASE_URL}/api/routes/{rid}", headers=H(admin_token))
+            if created_veh_id:
+                requests.delete(f"{BASE_URL}/api/vehicles/{created_veh_id}", headers=H(admin_token))
 
     def test_substitutes_and_patch(self, admin_token):
         wk = "2026-06-01"

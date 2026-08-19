@@ -1,0 +1,9 @@
+{
+  "appId": "it.hera.gestionale",
+  "appName": "Hera Turni",
+  "webDir": "build",
+  "server": {
+    "cleartext": true,
+    "androidScheme": "https"
+  }
+}
