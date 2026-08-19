@@ -1,12 +1,40 @@
 import axios from "axios";
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+export function getBaseUrl() {
+  const custom = localStorage.getItem("hera_server_url");
+  if (custom && custom.trim()) {
+    return custom.trim().replace(/\/+$/, "");
+  }
+  if (process.env.REACT_APP_BACKEND_URL && process.env.REACT_APP_BACKEND_URL.trim()) {
+    return process.env.REACT_APP_BACKEND_URL.trim().replace(/\/+$/, "");
+  }
+  return "http://localhost:8001";
+}
 
-const api = axios.create({ baseURL: API });
+export function setBaseUrl(url) {
+  if (url && url.trim()) {
+    localStorage.setItem("hera_server_url", url.trim().replace(/\/+$/, ""));
+  } else {
+    localStorage.removeItem("hera_server_url");
+  }
+}
+
+const api = axios.create();
 
 api.interceptors.request.use((config) => {
+  const base = getBaseUrl();
+  config.baseURL = `${base}/api`;
   const token = localStorage.getItem("hera_token");
   if (token) config.headers.Authorization = `Bearer ${token}`;
+  // Bypass localtunnel (loca.lt) interstitial page
+  if (base.includes("loca.lt") || base.includes("localtunnel")) {
+    config.headers["bypass-tunnel-reminder"] = "true";
+  }
+  // Bypass ngrok interstitial page
+  if (base.includes("ngrok")) {
+    config.headers["ngrok-skip-browser-warning"] = "true";
+  }
+  // Cloudflare tunnels (trycloudflare.com) have no interstitial — no header needed
   return config;
 });
 

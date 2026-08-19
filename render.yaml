@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: hera-gestionale-backend
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn server:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: MONGO_URL
+        value: mongodb+srv://catarisanogiovanni51_db_user:KHPTMxTniGszmLhb@gestionale.ts1dkyz.mongodb.net/?appName=Gestionale
+      - key: DB_NAME
+        value: hera_gestionale
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ADMIN_EMAIL
+        value: admin@hera.it
+      - key: ADMIN_PASSWORD
+        value: admin123
+      - key: CORS_ORIGINS
+        value: "*"
+      - key: PORT
+        value: 10000
