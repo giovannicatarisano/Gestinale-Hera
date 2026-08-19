@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Hera Turni</string>
-    <string name="title_activity_main">Hera Turni</string>
+    <string name="app_name">GestionaleHera</string>
+    <string name="title_activity_main">GestionaleHera</string>
     <string name="package_name">it.hera.gestionale</string>
     <string name="custom_url_scheme">it.hera.gestionale</string>
 </resources>
