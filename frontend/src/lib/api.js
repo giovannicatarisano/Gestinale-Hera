@@ -8,7 +8,7 @@ export function getBaseUrl() {
   if (process.env.REACT_APP_BACKEND_URL && process.env.REACT_APP_BACKEND_URL.trim()) {
     return process.env.REACT_APP_BACKEND_URL.trim().replace(/\/+$/, "");
   }
-  return "http://localhost:8001";
+  return "https://hera-gestionale-backend.onrender.com";
 }
 
 export function setBaseUrl(url) {
