@@ -1,12 +1,23 @@
 import axios from "axios";
 
 export function getBaseUrl() {
-  const custom = localStorage.getItem("hera_server_url");
+  let custom = localStorage.getItem("hera_server_url");
   if (custom && custom.trim()) {
-    return custom.trim().replace(/\/+$/, "");
+    const trimmed = custom.trim().replace(/\/+$/, "");
+    if (trimmed === "https://hera-gestionale-backend.onrender.com") {
+      localStorage.removeItem("hera_server_url");
+    } else {
+      return trimmed;
+    }
   }
   if (process.env.REACT_APP_BACKEND_URL && process.env.REACT_APP_BACKEND_URL.trim()) {
     return process.env.REACT_APP_BACKEND_URL.trim().replace(/\/+$/, "");
+  }
+  if (typeof window !== "undefined" && window.location?.hostname) {
+    const host = window.location.hostname;
+    if (host === "localhost" || host === "127.0.0.1" || host.startsWith("192.168.") || host.startsWith("10.")) {
+      return `http://${host}:8001`;
+    }
   }
   return "https://hera-gestionale-backend.onrender.com";
 }

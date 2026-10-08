@@ -19,10 +19,14 @@ from datetime import datetime, timezone, timedelta, date
 import certifi
 
 mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
-try:
-    ca = certifi.where()
-    client = AsyncIOMotorClient(mongo_url, tlsCAFile=ca, serverSelectionTimeoutMS=5000)
-except Exception:
+is_tls = "mongodb+srv://" in mongo_url or "tls=true" in mongo_url.lower() or "ssl=true" in mongo_url.lower()
+if is_tls:
+    try:
+        ca = certifi.where()
+        client = AsyncIOMotorClient(mongo_url, tlsCAFile=ca, serverSelectionTimeoutMS=5000)
+    except Exception:
+        client = AsyncIOMotorClient(mongo_url, serverSelectionTimeoutMS=5000)
+else:
     client = AsyncIOMotorClient(mongo_url, serverSelectionTimeoutMS=5000)
 db_name = os.environ.get('DB_NAME', 'hera_gestionale')
 db = client[db_name]
