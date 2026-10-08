@@ -19,6 +19,9 @@ from datetime import datetime, timezone, timedelta, date
 import certifi
 
 mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
+if "mongodb+srv://" in mongo_url and "authsource=" not in mongo_url.lower():
+    sep = "&" if "?" in mongo_url else "?"
+    mongo_url = f"{mongo_url}{sep}authSource=admin"
 is_tls = "mongodb+srv://" in mongo_url or "tls=true" in mongo_url.lower() or "ssl=true" in mongo_url.lower()
 if is_tls:
     try:
