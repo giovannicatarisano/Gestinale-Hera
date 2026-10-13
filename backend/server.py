@@ -994,8 +994,17 @@ async def create_swap(data: SwapRequestInput, user: dict = Depends(get_current_u
 
     from_driver = await db.drivers.find_one({"id": did}, {"_id": 0})
     to_driver = await db.drivers.find_one({"id": data.to_driver_id}, {"_id": 0})
+    if not to_driver or not to_driver.get("active", True):
+        raise HTTPException(status_code=400, detail="Il collega selezionato non è valido o non è attivo")
+
     from_name = from_driver["name"] if from_driver else "Un collega"
     to_name = to_driver["name"] if to_driver else "un collega"
+
+    # Controllo gruppo: se il richiedente appartiene a un gruppo, può richiedere solo a chi è in un gruppo diverso
+    from_grp = (from_driver or {}).get("group")
+    to_grp = (to_driver or {}).get("group")
+    if from_grp and to_grp == from_grp:
+        raise HTTPException(status_code=400, detail="Puoi richiedere lo scambio solo a colleghi appartenenti a un gruppo diverso")
 
     if data.kind == "week":
         if not data.week_start:
@@ -1025,6 +1034,27 @@ async def create_swap(data: SwapRequestInput, user: dict = Depends(get_current_u
             raise HTTPException(status_code=404, detail="Turno non trovato")
         if shift.get("driver_id") != did:
             raise HTTPException(status_code=400, detail="Puoi richiedere il cambio solo dei tuoi turni")
+
+        # Verifica abilitazione al giro e al mezzo del turno
+        route = await db.routes.find_one({"id": shift.get("route_id")}, {"_id": 0})
+        to_route_skills = to_driver.get("route_skills") or []
+        if shift.get("route_id") and shift.get("route_id") not in to_route_skills:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Il collega {to_name} non ha l'abilitazione per il giro {route.get('code', '') if route else ''}"
+            )
+
+        veh_id = shift.get("vehicle_id") or (route or {}).get("vehicle_id")
+        to_veh_skills = to_driver.get("vehicle_skills") or []
+        if veh_id and veh_id not in to_veh_skills:
+            if (route or {}).get("vehicle_assignment_mode") == "auto" and not shift.get("vehicle_id") and len(to_veh_skills) > 0:
+                pass
+            else:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Il collega {to_name} non ha l'abilitazione per il mezzo previsto per questo turno"
+                )
+
         label = await _shift_label(shift)
         sw = {
             "id": str(uuid.uuid4()),

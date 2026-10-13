@@ -171,7 +171,56 @@ export default function DriverView() {
     } catch (e) { toast.error(apiError(e.response?.data?.detail)); }
   };
 
-  const colleagues = drivers.filter((d) => d.id !== myId && d.active);
+  const myDriver = drivers.find((d) => d.id === myId);
+  const myGroup = myDriver?.group || "";
+
+  // Helper per filtrare colleghi eleggibili per il cambio turno:
+  // 1) Appartenenti a un gruppo diverso dal mio (se ho un gruppo)
+  // 2) Che abbiano abilitazione sia al giro che al mezzo richiesto
+  const getEligibleColleaguesForShift = (targetShift) => {
+    if (!targetShift) return [];
+    const route = routeById[targetShift.route_id];
+    const vehId = targetShift.vehicle_id || route?.vehicle_id;
+
+    return drivers.filter((d) => {
+      if (d.id === myId || !d.active) return false;
+
+      // 1. Gruppo diverso: se l'autista corrente ha gruppo1, mostra solo gruppo2 (o viceversa)
+      if (myGroup) {
+        if (d.group === myGroup) return false;
+      }
+
+      // 2. Abilitazione al giro
+      if (route && !d.route_skills?.includes(route.id)) return false;
+
+      // 3. Abilitazione al mezzo
+      if (vehId && !d.vehicle_skills?.includes(vehId)) {
+        // Se il giro è automatico e non ha un mezzo fisso rigido, controlliamo se è abilitato ad almeno un mezzo ammesso
+        if (route?.vehicle_assignment_mode === "auto") {
+          const hasAnyVehicle = d.vehicle_skills?.length > 0;
+          if (!hasAnyVehicle) return false;
+        } else {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  };
+
+  // Per lo scambio dell'intera settimana: colleghi del gruppo opposto
+  const getEligibleColleaguesForWeek = () => {
+    return drivers.filter((d) => {
+      if (d.id === myId || !d.active) return false;
+      if (myGroup) {
+        if (d.group === myGroup) return false;
+      }
+      return true;
+    });
+  };
+
+  const shiftColleagues = swapShift ? getEligibleColleaguesForShift(swapShift) : [];
+  const weekColleagues = getEligibleColleaguesForWeek();
 
   return (
     <div className="min-h-screen bg-background pb-12">
@@ -439,11 +488,35 @@ export default function DriverView() {
                 <div className="font-mono text-xs text-muted-foreground mt-1">{DAY_FULL[swapShift.day]} · {SLOT_LABEL[swapShift.slot]}</div>
               </div>
               <div>
-                <div className="text-xs font-semibold mb-1.5">Proponi a un collega</div>
-                <Select value={swapTo} onValueChange={setSwapTo}>
-                  <SelectTrigger className="rounded-sm h-10 text-xs sm:text-sm" data-testid="swap-colleague-select"><SelectValue placeholder="Seleziona collega" /></SelectTrigger>
-                  <SelectContent className="max-h-60">{colleagues.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
-                </Select>
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-xs font-semibold">Proponi a un collega</span>
+                  <span className="text-[10px] text-muted-foreground">Gruppo diverso + abilitato a mezzo e giro</span>
+                </div>
+                {shiftColleagues.length === 0 ? (
+                  <div className="p-2.5 rounded-sm bg-destructive/10 border border-destructive/20 text-xs text-destructive">
+                    Nessun collega di gruppo diverso ha l'abilitazione contemporanea a questo mezzo e a questo giro.
+                  </div>
+                ) : (
+                  <Select value={swapTo} onValueChange={setSwapTo}>
+                    <SelectTrigger className="rounded-sm h-10 text-xs sm:text-sm" data-testid="swap-colleague-select">
+                      <SelectValue placeholder="Seleziona collega abilitato" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-60">
+                      {shiftColleagues.map((c) => (
+                        <SelectItem key={c.id} value={c.id}>
+                          <span className="flex items-center gap-2">
+                            <span>{c.name}</span>
+                            {c.group && (
+                              <span className="text-[10px] font-mono px-1 py-0.2 rounded-xs bg-secondary text-muted-foreground">
+                                {c.group === "gruppo1" ? "G1" : "G2"}
+                              </span>
+                            )}
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
               <div>
                 <div className="text-xs font-semibold mb-1.5">Motivazione (opzionale)</div>
@@ -458,7 +531,14 @@ export default function DriverView() {
           )}
           <DialogFooter className="gap-2 sm:gap-0 mt-2">
             <Button variant="ghost" className="rounded-sm h-10 text-xs" onClick={() => setSwapShift(null)}>Annulla</Button>
-            <Button className="rounded-sm bg-primary hover:bg-primary/90 h-10 text-xs font-semibold" data-testid="submit-swap-btn" onClick={submitSwap}>Invia richiesta</Button>
+            <Button
+              className="rounded-sm bg-primary hover:bg-primary/90 h-10 text-xs font-semibold disabled:opacity-40"
+              data-testid="submit-swap-btn"
+              disabled={shiftColleagues.length === 0}
+              onClick={submitSwap}
+            >
+              Invia richiesta
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -482,11 +562,35 @@ export default function DriverView() {
               </div>
             </div>
             <div>
-              <div className="text-xs font-semibold mb-1.5">Proponi lo scambio settimanale a</div>
-              <Select value={swapTo} onValueChange={setSwapTo}>
-                <SelectTrigger className="rounded-sm h-10 text-xs sm:text-sm" data-testid="week-swap-colleague-select"><SelectValue placeholder="Seleziona collega" /></SelectTrigger>
-                <SelectContent className="max-h-60">{colleagues.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
-              </Select>
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-xs font-semibold">Proponi lo scambio settimanale a</span>
+                <span className="text-[10px] text-muted-foreground">Gruppo diverso</span>
+              </div>
+              {weekColleagues.length === 0 ? (
+                <div className="p-2.5 rounded-sm bg-destructive/10 border border-destructive/20 text-xs text-destructive">
+                  Nessun collega disponibile appartenente al gruppo diverso.
+                </div>
+              ) : (
+                <Select value={swapTo} onValueChange={setSwapTo}>
+                  <SelectTrigger className="rounded-sm h-10 text-xs sm:text-sm" data-testid="week-swap-colleague-select">
+                    <SelectValue placeholder="Seleziona collega gruppo opposto" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-60">
+                    {weekColleagues.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>
+                        <span className="flex items-center gap-2">
+                          <span>{c.name}</span>
+                          {c.group && (
+                            <span className="text-[10px] font-mono px-1 py-0.2 rounded-xs bg-secondary text-muted-foreground">
+                              {c.group === "gruppo1" ? "G1" : "G2"}
+                            </span>
+                          )}
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
             <div>
               <div className="text-xs font-semibold mb-1.5">Motivazione (opzionale)</div>
