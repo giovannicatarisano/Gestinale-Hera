@@ -8,9 +8,43 @@ import { Switch } from "../components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, Users, KeyRound, ShieldCheck, UsersRound } from "lucide-react";
+import { Plus, Pencil, Trash2, Users, KeyRound, ShieldCheck, UsersRound, Award, Calendar, AlertTriangle, X } from "lucide-react";
 
-const EMPTY = { name: "", email: "", phone: "", active: true, group: "", password: "" };
+const EMPTY = { name: "", email: "", phone: "", active: true, group: "", password: "", licenses: [] };
+
+const AVAILABLE_LICENSES = ["B", "C", "CQC Merci"];
+
+export function getLicenseStatus(expiryDate) {
+  if (!expiryDate) return { status: "unknown", label: "N/D", color: "bg-secondary text-muted-foreground border-border" };
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const exp = new Date(expiryDate);
+  exp.setHours(0, 0, 0, 0);
+
+  const diffTime = exp.getTime() - today.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+  if (diffDays < 0) {
+    return {
+      status: "expired",
+      label: "Scaduta",
+      color: "bg-destructive/15 text-destructive border-destructive/30",
+    };
+  }
+  // In scadenza entro 1 anno (365 giorni)
+  if (diffDays <= 365) {
+    return {
+      status: "expiring",
+      label: `Scade tra ${diffDays} gg`,
+      color: "bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30",
+    };
+  }
+  return {
+    status: "valid",
+    label: "Valida",
+    color: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30",
+  };
+}
 
 const GROUP_LABEL = { gruppo1: "Gruppo 1", gruppo2: "Gruppo 2", "": "Nessun gruppo" };
 const GROUP_CLS = {
@@ -29,7 +63,19 @@ export default function Drivers() {
   useEffect(() => { load(); }, []);
 
   const openNew = () => { setEditing(null); setForm(EMPTY); setOpen(true); };
-  const openEdit = (d) => { setEditing(d); setForm({ name: d.name, email: d.email, phone: d.phone, active: d.active, group: d.group || "", password: "" }); setOpen(true); };
+  const openEdit = (d) => {
+    setEditing(d);
+    setForm({
+      name: d.name,
+      email: d.email,
+      phone: d.phone,
+      active: d.active,
+      group: d.group || "",
+      password: "",
+      licenses: Array.isArray(d.licenses) ? [...d.licenses] : [],
+    });
+    setOpen(true);
+  };
 
   const save = async () => {
     if (!form.name.trim()) return toast.error("Il nome è obbligatorio");
@@ -98,6 +144,37 @@ export default function Drivers() {
                 )}
               </div>
             </div>
+            {/* Patenti e Scadenze */}
+            <div className="mt-3 pt-3 border-t border-border/70">
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-[11px] font-semibold flex items-center gap-1 text-muted-foreground">
+                  <Award size={13} className="text-primary" /> Patenti & CQC
+                </span>
+                {(!d.licenses || d.licenses.length === 0) && (
+                  <span className="text-[10px] text-muted-foreground italic">Nessuna inserita</span>
+                )}
+              </div>
+              {d.licenses && d.licenses.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {d.licenses.map((lic, idx) => {
+                    const st = getLicenseStatus(lic.expiry_date);
+                    return (
+                      <div
+                        key={idx}
+                        className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm border text-[11px] font-medium ${st.color}`}
+                        title={`Scadenza: ${lic.expiry_date} (${st.label})`}
+                      >
+                        <span className="font-bold">{lic.name}</span>
+                        <span className="font-mono text-[10px] opacity-90">{lic.expiry_date}</span>
+                        {st.status === "expiring" && <AlertTriangle size={11} className="text-amber-600 dark:text-amber-400 shrink-0" />}
+                        {st.status === "expired" && <AlertTriangle size={11} className="text-destructive shrink-0" />}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
             <div className="flex items-center justify-between mt-3">
               <div className="font-mono text-xs text-muted-foreground">{d.phone || ""}</div>
               {d.has_account ? (
@@ -158,6 +235,112 @@ export default function Drivers() {
                 className="rounded-sm"
               />
             </Field>
+
+            {/* SEZIONE PATENTI E SCADENZE */}
+            <div className="border border-border/80 rounded-sm p-3 bg-secondary/30 space-y-3">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-bold flex items-center gap-1.5">
+                  <Award size={14} className="text-primary" /> Patenti e Scadenze
+                </Label>
+                <span className="text-[10px] text-muted-foreground">Scadenza &lt; 1 anno = arancione</span>
+              </div>
+
+              {/* Bottoni veloci per aggiungere B, C, CQC Merci */}
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-[10px] text-muted-foreground mr-1">Aggiungi veloce:</span>
+                {AVAILABLE_LICENSES.map((licName) => {
+                  const already = (form.licenses || []).some((l) => l.name.toUpperCase() === licName.toUpperCase());
+                  return (
+                    <Button
+                      key={licName}
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={already}
+                      onClick={() => {
+                        const current = form.licenses || [];
+                        setForm({ ...form, licenses: [...current, { name: licName, expiry_date: "" }] });
+                      }}
+                      className="h-6 text-[10px] px-2 rounded-sm border-dashed"
+                    >
+                      + {licName}
+                    </Button>
+                  );
+                })}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const current = form.licenses || [];
+                    setForm({ ...form, licenses: [...current, { name: "", expiry_date: "" }] });
+                  }}
+                  className="h-6 text-[10px] px-2 rounded-sm"
+                >
+                  + Altra
+                </Button>
+              </div>
+
+              {/* Elenco patenti attive nel form */}
+              {(!form.licenses || form.licenses.length === 0) ? (
+                <div className="text-[11px] text-muted-foreground italic py-1 text-center bg-card rounded-sm border border-dashed border-border">
+                  Nessuna patente inserita. Clicca sui pulsanti sopra per aggiungerne.
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {form.licenses.map((lic, index) => {
+                    const status = getLicenseStatus(lic.expiry_date);
+                    return (
+                      <div key={index} className="flex items-center gap-2 bg-card p-2 rounded-sm border border-border">
+                        <div className="w-28 shrink-0">
+                          <Input
+                            placeholder="es. CQC"
+                            value={lic.name}
+                            onChange={(e) => {
+                              const updated = [...form.licenses];
+                              updated[index] = { ...updated[index], name: e.target.value };
+                              setForm({ ...form, licenses: updated });
+                            }}
+                            className="h-8 text-xs font-semibold rounded-sm"
+                          />
+                        </div>
+                        <div className="flex-1 min-w-[130px]">
+                          <Input
+                            type="date"
+                            value={lic.expiry_date || ""}
+                            onChange={(e) => {
+                              const updated = [...form.licenses];
+                              updated[index] = { ...updated[index], expiry_date: e.target.value };
+                              setForm({ ...form, licenses: updated });
+                            }}
+                            className="h-8 text-xs font-mono rounded-sm"
+                          />
+                        </div>
+                        {lic.expiry_date && (
+                          <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-sm border whitespace-nowrap hidden sm:inline-block ${status.color}`}>
+                            {status.label}
+                          </span>
+                        )}
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            const updated = form.licenses.filter((_, i) => i !== index);
+                            setForm({ ...form, licenses: updated });
+                          }}
+                          className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive shrink-0"
+                          title="Rimuovi"
+                        >
+                          <X size={14} />
+                        </Button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
             <Field label="Gruppo turni *">
               <Select
                 value={form.group || "none"}
