@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { DAY_LABELS, DAY_FULL, SLOT_ORDER, initials } from "../lib/dates";
-import { Clock, Users, Calendar, LayoutGrid, AlertTriangle, ArrowRight, UserCheck, UserX } from "lucide-react";
+import { Clock, Users, Calendar, LayoutGrid, AlertTriangle, ArrowRight, UserCheck, UserX, Award } from "lucide-react";
+import { getLicenseStatus } from "../pages/Drivers";
 
 const SLOT_META = {
   presto: { label: "Mattino Presto", time: "05:30 – 11:50", max: 3, color: "border-blue-500/30 bg-blue-500/5 text-blue-700" },
@@ -205,6 +206,24 @@ export default function ScheduleBoard({
                                   </span>
                                 )}
                               </div>
+                              {drv?.licenses && drv.licenses.length > 0 && (
+                                <div className="flex items-center gap-1 mt-1 flex-wrap justify-end sm:justify-start">
+                                  {drv.licenses.map((lic, lIdx) => {
+                                    const st = getLicenseStatus(lic.expiry_date);
+                                    return (
+                                      <span
+                                        key={lIdx}
+                                        className={`inline-flex items-center gap-0.5 text-[9px] font-semibold px-1 py-0.2 rounded-sm border ${st.color}`}
+                                        title={`${lic.name} - Scadenza: ${lic.expiry_date || "N/D"} (${st.label})`}
+                                      >
+                                        <span>{lic.name}</span>
+                                        {st.status === "expiring" && <AlertTriangle size={9} className="text-amber-600 dark:text-amber-400" />}
+                                        {st.status === "expired" && <AlertTriangle size={9} className="text-destructive" />}
+                                      </span>
+                                    );
+                                  })}
+                                </div>
+                              )}
                               {mine && <span className="overline text-[9px] text-primary">Il tuo turno</span>}
                               {recovered && <span className="overline text-[9px] text-muted-foreground">Sostituito</span>}
                             </div>
@@ -317,14 +336,34 @@ export default function ScheduleBoard({
                             </div>
                             <div className="flex items-center gap-1 mt-1 text-[11px]">
                               {drv ? (
-                                <>
-                                  <div className="h-4 w-4 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-[8px] font-bold shrink-0">
-                                    {initials(drv.name)}
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex items-center gap-1">
+                                    <div className="h-4 w-4 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-[8px] font-bold shrink-0">
+                                      {initials(drv.name)}
+                                    </div>
+                                    <span className={`truncate font-medium ${mine ? "text-primary font-bold" : ""}`}>
+                                      {drv.name}
+                                    </span>
                                   </div>
-                                  <span className={`truncate font-medium ${mine ? "text-primary font-bold" : ""}`}>
-                                    {drv.name}
-                                  </span>
-                                </>
+                                  {drv?.licenses && drv.licenses.length > 0 && (
+                                    <div className="flex items-center gap-1 mt-0.5 flex-wrap">
+                                      {drv.licenses.map((lic, lIdx) => {
+                                        const st = getLicenseStatus(lic.expiry_date);
+                                        return (
+                                          <span
+                                            key={lIdx}
+                                            className={`inline-flex items-center gap-0.5 text-[8px] font-semibold px-1 py-0 rounded-xs border ${st.color}`}
+                                            title={`${lic.name} - Scadenza: ${lic.expiry_date || "N/D"} (${st.label})`}
+                                          >
+                                            <span>{lic.name}</span>
+                                            {st.status === "expiring" && <AlertTriangle size={8} className="text-amber-600 dark:text-amber-400" />}
+                                            {st.status === "expired" && <AlertTriangle size={8} className="text-destructive" />}
+                                          </span>
+                                        );
+                                      })}
+                                    </div>
+                                  )}
+                                </div>
                               ) : (
                                 <span className="text-destructive font-medium text-[10px]">Da assegnare</span>
                               )}

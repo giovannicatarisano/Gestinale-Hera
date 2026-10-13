@@ -152,6 +152,11 @@ class RouteInput(BaseModel):
     pinned: bool = False
 
 
+class License(BaseModel):
+    name: str  # es. "B", "C", "CQC Merci", o testo personalizzato
+    expiry_date: str  # YYYY-MM-DD
+
+
 class Driver(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     name: str
@@ -159,6 +164,7 @@ class Driver(BaseModel):
     phone: str = ""
     active: bool = True
     group: str = ""   # "" | "gruppo1" | "gruppo2"
+    licenses: List[License] = []
     vehicle_skills: List[str] = []
     route_skills: List[str] = []
 
@@ -169,6 +175,7 @@ class DriverInput(BaseModel):
     phone: str = ""
     active: bool = True
     group: str = ""   # "" | "gruppo1" | "gruppo2"
+    licenses: List[License] = []
     password: Optional[str] = None
 
 
