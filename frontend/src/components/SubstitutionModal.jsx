@@ -72,11 +72,17 @@ export default function SubstitutionModal({ shift, open, onClose, onChanged, veh
           {route && (
             <div className="mt-2 space-y-1.5">
               <div className="text-sm font-semibold">{route.name}</div>
-              <div className="flex flex-wrap gap-2 text-xs">
+              <div className="flex flex-wrap gap-2 text-xs items-center">
                 <span className="font-mono px-2 py-0.5 bg-secondary rounded-sm">{route.code}</span>
                 <span className="inline-flex items-center gap-1 font-mono px-2 py-0.5 bg-secondary rounded-sm">
                   <Truck size={12} /> {veh?.name} · {veh?.plate}
                 </span>
+                {veh?.status && veh.status !== "available" && (
+                  <span className="inline-flex items-center gap-1 font-semibold px-2 py-0.5 bg-destructive/15 text-destructive rounded-sm border border-destructive/30 text-[11px]">
+                    <ShieldAlert size={12} /> {veh.status === "faulty" ? "MEZZO IN GUASTO" : "IN MANUTENZIONE"}
+                    {veh.fault_note && ` (${veh.fault_note})`}
+                  </span>
+                )}
               </div>
             </div>
           )}

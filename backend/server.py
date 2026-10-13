@@ -117,12 +117,16 @@ class Vehicle(BaseModel):
     name: str
     plate: str
     type: str = "Compattatore"
+    status: str = "available"  # "available" | "faulty" | "maintenance"
+    fault_note: str = ""
 
 
 class VehicleInput(BaseModel):
     name: str
     plate: str
     type: str = "Compattatore"
+    status: str = "available"
+    fault_note: str = ""
 
 
 class Route(BaseModel):
