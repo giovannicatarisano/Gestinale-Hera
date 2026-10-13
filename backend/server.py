@@ -134,7 +134,9 @@ class Route(BaseModel):
     name: str
     code: str
     zone: str = ""
-    vehicle_id: str
+    vehicle_id: str = ""
+    vehicle_assignment_mode: str = "fixed"  # "fixed" | "auto"
+    allowed_vehicle_ids: List[str] = []     # opzionale per auto: limita a specifici mezzi se popolato
     slot: str
     schedule_mode: str = "fixed"  # "fixed" | "frequency"
     days: List[int] = []
@@ -147,7 +149,9 @@ class RouteInput(BaseModel):
     name: str
     code: str
     zone: str = ""
-    vehicle_id: str
+    vehicle_id: str = ""
+    vehicle_assignment_mode: str = "fixed"  # "fixed" | "auto"
+    allowed_vehicle_ids: List[str] = []
     slot: str
     schedule_mode: str = "fixed"
     days: List[int] = []
@@ -194,6 +198,7 @@ class GenerateInput(BaseModel):
 
 class ShiftPatch(BaseModel):
     driver_id: Optional[str] = None
+    vehicle_id: Optional[str] = None
     status: Optional[str] = None
 
 
@@ -442,8 +447,64 @@ async def list_shifts(week_start: str, user: dict = Depends(get_current_user)):
     return await db.shifts.find({"week_start": week_start}, {"_id": 0}).to_list(5000)
 
 
-async def _driver_can(driver: dict, route: dict) -> bool:
-    return route["vehicle_id"] in driver.get("vehicle_skills", []) and route["id"] in driver.get("route_skills", [])
+def _driver_can_sync(driver: dict, route: dict, available_vehicles: list = None) -> tuple[bool, Optional[str]]:
+    """
+    Check if a driver can operate a route.
+    Returns (can_operate: bool, chosen_vehicle_id: Optional[str]).
+    - If route has vehicle_assignment_mode == "auto":
+      Selects the first available vehicle (status=="available") to which the driver is trained,
+      respecting allowed_vehicle_ids if configured.
+    - If route has a fixed vehicle:
+      Requires the driver to be trained on it. If that vehicle is faulty, can optionally fallback
+      to another available vehicle the driver is trained on.
+    """
+    route_id = route.get("id")
+    if route_id not in driver.get("route_skills", []):
+        return False, None
+
+    vehicle_skills = driver.get("vehicle_skills", [])
+    mode = route.get("vehicle_assignment_mode", "fixed")
+    fixed_vid = route.get("vehicle_id")
+
+    # If available_vehicles list is passed, we check against non-faulty vehicles
+    if available_vehicles is not None:
+        avail_map = {v["id"]: v for v in available_vehicles if v.get("status", "available") == "available"}
+    else:
+        avail_map = None
+
+    if mode == "auto":
+        allowed = set(route.get("allowed_vehicle_ids") or [])
+        # Find first matching vehicle trained on driver and available
+        if avail_map is not None:
+            for vid in vehicle_skills:
+                if vid in avail_map and (not allowed or vid in allowed):
+                    return True, vid
+            return False, None
+        else:
+            for vid in vehicle_skills:
+                if not allowed or vid in allowed:
+                    return True, vid
+            return False, None
+
+    # Fixed mode
+    if fixed_vid in vehicle_skills:
+        # Check if fixed vehicle is available
+        if avail_map is not None:
+            if fixed_vid in avail_map:
+                return True, fixed_vid
+            # Fixed vehicle is in fault! Try to fallback to another compatible vehicle
+            for vid in vehicle_skills:
+                if vid in avail_map:
+                    return True, vid
+            return False, None
+        return True, fixed_vid
+
+    return False, None
+
+
+async def _driver_can(driver: dict, route: dict, available_vehicles: list = None) -> bool:
+    can, _ = _driver_can_sync(driver, route, available_vehicles)
+    return can
 
 
 async def notify(driver_id: str, message: str, kind: str = "shift", shift_id: str = None):
@@ -595,6 +656,7 @@ async def generate_shifts(data: GenerateInput, user: dict = Depends(require_admi
     week_start = data.week_start
     await db.shifts.delete_many({"week_start": week_start})
 
+    vehicles = await db.vehicles.find({}, {"_id": 0}).to_list(1000)
     routes = await db.routes.find({}, {"_id": 0}).to_list(1000)
     drivers = [d for d in await db.drivers.find({}, {"_id": 0}).to_list(1000) if d.get("active", True)]
     absences = await db.absences.find({}, {"_id": 0}).to_list(2000)
@@ -605,6 +667,7 @@ async def generate_shifts(data: GenerateInput, user: dict = Depends(require_admi
 
     week_load = {d["id"]: 0 for d in drivers}
     day_taken = {}            # (day, driver_id) -> True
+    day_vehicle_taken = {}    # (day, slot, vehicle_id) -> True (evita doppio uso dello stesso mezzo nello stesso slot)
     cap_count = {}            # (day, slot) -> int   (for capped slots)
     pom_days = {}             # driver_id -> set(days worked pomeriggio) for rest constraint
     shifts = []
@@ -623,12 +686,14 @@ async def generate_shifts(data: GenerateInput, user: dict = Depends(require_admi
             absent = _absent_ids_on(absences, date_iso)
             assigned = None
             final_slot = route_slot
+            final_vehicle_id = route.get("vehicle_id") or ""
 
             # If route is in free rotation mode, evaluate both standard and pomeriggio
             slots_to_try = ["standard", "pomeriggio"] if route_slot == "rotazione" else [route_slot]
 
             best_candidate = None
             best_slot = slots_to_try[0]
+            best_vehicle_id = final_vehicle_id
             min_load = 999
 
             for slot in slots_to_try:
@@ -639,9 +704,16 @@ async def generate_shifts(data: GenerateInput, user: dict = Depends(require_admi
 
                 early = slot in ("presto", "domenica")
                 candidates = []
+                # Available vehicles for this day/slot
+                available_for_slot = [
+                    v for v in vehicles
+                    if v.get("status", "available") == "available" and not day_vehicle_taken.get((day, slot, v["id"]))
+                ]
+
                 for d in drivers:
                     did = d["id"]
-                    if not await _driver_can(d, route):
+                    can, chosen_vid = _driver_can_sync(d, route, available_for_slot)
+                    if not can:
                         continue
                     if day_taken.get((day, did)) or did in absent:
                         continue
@@ -660,19 +732,22 @@ async def generate_shifts(data: GenerateInput, user: dict = Depends(require_admi
                     # rest constraint
                     if early and (day - 1) in pom_days.get(did, set()):
                         continue
-                    candidates.append(d)
+                    candidates.append((d, chosen_vid))
 
                 if candidates:
-                    candidates.sort(key=lambda d: week_load[d["id"]])
-                    top_cand = candidates[0]
+                    candidates.sort(key=lambda item: week_load[item[0]["id"]])
+                    top_cand, top_vid = candidates[0]
                     cand_load = week_load[top_cand["id"]]
                     if cand_load < min_load:
                         min_load = cand_load
                         best_candidate = top_cand
                         best_slot = slot
+                        best_vehicle_id = top_vid or final_vehicle_id
 
             assigned = best_candidate
             final_slot = best_slot if (route_slot == "rotazione" and best_candidate) else (route_slot if route_slot != "rotazione" else "standard")
+            if best_vehicle_id:
+                final_vehicle_id = best_vehicle_id
 
             shift = {
                 "id": str(uuid.uuid4()),
@@ -680,7 +755,7 @@ async def generate_shifts(data: GenerateInput, user: dict = Depends(require_admi
                 "day": day,
                 "slot": final_slot,
                 "route_id": route["id"],
-                "vehicle_id": route["vehicle_id"],
+                "vehicle_id": final_vehicle_id,
                 "driver_id": assigned["id"] if assigned else None,
                 "status": "assigned" if assigned else "uncovered",
                 "pinned": route.get("pinned", False),
@@ -690,6 +765,8 @@ async def generate_shifts(data: GenerateInput, user: dict = Depends(require_admi
             if assigned:
                 week_load[assigned["id"]] += 1
                 day_taken[(day, assigned["id"])] = True
+                if final_vehicle_id:
+                    day_vehicle_taken[(day, final_slot, final_vehicle_id)] = True
                 if final_slot == "pomeriggio":
                     pom_days.setdefault(assigned["id"], set()).add(day)
                 max_d = SHIFT_SLOTS.get(final_slot, {}).get("max_drivers")
@@ -813,6 +890,8 @@ async def patch_shift(sid: str, data: ShiftPatch, user: dict = Depends(require_a
         update["driver_id"] = data.driver_id
         update["status"] = "assigned" if data.driver_id else "uncovered"
         new_driver = data.driver_id
+    if "vehicle_id" in data.model_fields_set and data.vehicle_id is not None:
+        update["vehicle_id"] = data.vehicle_id
     if data.status is not None:
         update["status"] = data.status
         if data.status == "absence":
