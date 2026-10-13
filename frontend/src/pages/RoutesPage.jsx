@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Switch } from "../components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "../components/ui/dialog";
 import { toast } from "sonner";
-import { Pencil, Trash2, Route as RouteIcon, Clock, Lock, Repeat } from "lucide-react";
+import { Pencil, Trash2, Route as RouteIcon, Clock, Lock, Repeat, Sparkles, Truck } from "lucide-react";
 
 const SLOTS = [
   { value: "rotazione", label: "🔄 Rotazione Libera (Mattino / Pomeriggio)" },
@@ -19,8 +19,9 @@ const SLOTS = [
 ];
 const SLOT_SHORT = { rotazione: "Rotazione Libera", presto: "Presto", standard: "Standard", pomeriggio: "Pomeriggio", domenica: "Domenica" };
 const EMPTY = {
-  name: "", code: "", zone: "", vehicle_id: "", slot: "rotazione",
-  schedule_mode: "fixed", days: [0, 1, 2, 3, 4, 5], interval_days: 2, start_date: "", pinned: false,
+  name: "", code: "", zone: "", vehicle_id: "", vehicle_assignment_mode: "fixed",
+  slot: "rotazione", schedule_mode: "fixed", days: [0, 1, 2, 3, 4, 5],
+  interval_days: 2, start_date: "", pinned: false,
 };
 
 export default function RoutesPage() {
@@ -34,13 +35,25 @@ export default function RoutesPage() {
   useEffect(() => { load(); }, []);
   const vById = Object.fromEntries(vehicles.map((v) => [v.id, v]));
 
-  const openNew = () => { setEditing(null); setForm({ ...EMPTY, vehicle_id: vehicles[0]?.id || "" }); setOpen(true); };
+  const openNew = () => {
+    setEditing(null);
+    setForm({ ...EMPTY, vehicle_id: vehicles[0]?.id || "", vehicle_assignment_mode: "fixed" });
+    setOpen(true);
+  };
   const openEdit = (r) => {
     setEditing(r);
     setForm({
-      name: r.name, code: r.code, zone: r.zone, vehicle_id: r.vehicle_id, slot: r.slot,
-      schedule_mode: r.schedule_mode || "fixed", days: r.days || [],
-      interval_days: r.interval_days || 2, start_date: r.start_date || "", pinned: !!r.pinned,
+      name: r.name,
+      code: r.code,
+      zone: r.zone,
+      vehicle_id: r.vehicle_id || "",
+      vehicle_assignment_mode: r.vehicle_assignment_mode || (r.vehicle_id ? "fixed" : "auto"),
+      slot: r.slot,
+      schedule_mode: r.schedule_mode || "fixed",
+      days: r.days || [],
+      interval_days: r.interval_days || 2,
+      start_date: r.start_date || "",
+      pinned: !!r.pinned,
     });
     setOpen(true);
   };
@@ -50,7 +63,10 @@ export default function RoutesPage() {
   const toggleDay = (d) => setForm((f) => ({ ...f, days: f.days.includes(d) ? f.days.filter((x) => x !== d) : [...f.days, d].sort() }));
 
   const save = async () => {
-    if (!form.name.trim() || !form.code.trim() || !form.vehicle_id) return toast.error("Nome, codice e mezzo obbligatori");
+    if (!form.name.trim() || !form.code.trim()) return toast.error("Nome e codice sono obbligatori");
+    if (form.vehicle_assignment_mode === "fixed" && !form.vehicle_id) {
+      return toast.error("Seleziona il mezzo fisso per questo giro");
+    }
     try {
       if (editing) await api.put(`/routes/${editing.id}`, form);
       else await api.post("/routes", form);
@@ -93,7 +109,23 @@ export default function RoutesPage() {
                 {r.slot === "rotazione" ? <Repeat size={10} /> : <Clock size={10} />}
                 {SLOT_SHORT[r.slot]}
               </span>
-              <span className="font-mono text-[10px] px-1.5 py-0.5 bg-secondary rounded-sm">{vById[r.vehicle_id]?.name || "—"}</span>
+              <span className={`inline-flex items-center gap-1 font-mono text-[10px] px-1.5 py-0.5 rounded-sm ${
+                r.vehicle_assignment_mode === "auto"
+                  ? "bg-purple-500/15 text-purple-700 dark:text-purple-400 font-semibold border border-purple-500/20"
+                  : "bg-secondary text-foreground"
+              }`}>
+                {r.vehicle_assignment_mode === "auto" ? (
+                  <>
+                    <Sparkles size={10} className="text-purple-600 dark:text-purple-400" />
+                    <span>Mezzo Automatico</span>
+                  </>
+                ) : (
+                  <>
+                    <Truck size={10} className="text-muted-foreground" />
+                    <span>{vById[r.vehicle_id]?.name || "Mezzo fisso"}</span>
+                  </>
+                )}
+              </span>
               {r.schedule_mode === "frequency" && (
                 <span className="inline-flex items-center gap-1 font-mono text-[10px] px-1.5 py-0.5 bg-foreground text-background rounded-sm"><Repeat size={10} /> ogni {r.interval_days} gg</span>
               )}
@@ -128,12 +160,57 @@ export default function RoutesPage() {
               <Field label="Codice *"><Input data-testid="route-code-input" value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} placeholder="es. CS-01" className="rounded-sm font-mono uppercase" /></Field>
             </div>
             <Field label="Zona"><Input data-testid="route-zone-input" value={form.zone} onChange={(e) => setForm({ ...form, zone: e.target.value })} placeholder="es. Centro, Periferia Nord" className="rounded-sm" /></Field>
-            <Field label="Mezzo richiesto">
-              <Select value={form.vehicle_id} onValueChange={(v) => setForm({ ...form, vehicle_id: v })}>
-                <SelectTrigger className="rounded-sm h-10" data-testid="route-vehicle-select"><SelectValue placeholder="Seleziona mezzo" /></SelectTrigger>
-                <SelectContent className="max-h-56">{vehicles.map((v) => <SelectItem key={v.id} value={v.id}>{v.name} · {v.plate}</SelectItem>)}</SelectContent>
-              </Select>
-            </Field>
+            
+            {/* SCELTA MODALITÀ ASSEGNAZIONE MEZZO */}
+            <div className="border border-border/80 rounded-sm p-3 bg-secondary/30 space-y-3">
+              <Field label="Modalità Assegnazione Mezzo *">
+                <Select
+                  value={form.vehicle_assignment_mode || "fixed"}
+                  onValueChange={(val) => setForm({ ...form, vehicle_assignment_mode: val })}
+                >
+                  <SelectTrigger className="rounded-sm h-10" data-testid="route-vehicle-mode-select">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="fixed">
+                      <span className="flex items-center gap-2">
+                        <Truck size={14} className="text-primary" />
+                        <span>Mezzo Fisso (richiede un mezzo specifico)</span>
+                      </span>
+                    </SelectItem>
+                    <SelectItem value="auto">
+                      <span className="flex items-center gap-2">
+                        <Sparkles size={14} className="text-purple-600 dark:text-purple-400" />
+                        <span>Automatico (in base a disponibilità & abilitazione autista)</span>
+                      </span>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </Field>
+
+              {form.vehicle_assignment_mode === "fixed" ? (
+                <Field label="Seleziona Mezzo Specifico *">
+                  <Select value={form.vehicle_id} onValueChange={(v) => setForm({ ...form, vehicle_id: v })}>
+                    <SelectTrigger className="rounded-sm h-10" data-testid="route-vehicle-select"><SelectValue placeholder="Seleziona mezzo" /></SelectTrigger>
+                    <SelectContent className="max-h-56">
+                      {vehicles.map((v) => (
+                        <SelectItem key={v.id} value={v.id}>
+                          {v.name} · {v.plate} {v.status && v.status !== "available" ? `(${v.status === "faulty" ? "IN GUASTO" : "MANUTENZIONE"})` : ""}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Field>
+              ) : (
+                <div className="text-xs text-muted-foreground p-2 rounded-sm bg-card border border-border flex items-start gap-2">
+                  <Sparkles size={15} className="text-purple-600 dark:text-purple-400 shrink-0 mt-0.5" />
+                  <span className="leading-tight">
+                    Il sistema assegnerà automaticamente un mezzo disponibile (non guasto) tra quelli a cui l'autista assegnato è abilitato nella matrice delle formazioni.
+                  </span>
+                </div>
+              )}
+            </div>
+
             <Field label="Fascia oraria">
               <Select value={form.slot} onValueChange={setSlot}>
                 <SelectTrigger className="rounded-sm h-10" data-testid="route-slot-select"><SelectValue /></SelectTrigger>
