@@ -194,23 +194,64 @@ export default function Drivers() {
 
   const saveMedicalKit = async () => {
     if (!medDriver) return;
-    if (medDriver.id === "temp" || !medDriver.id) {
+    
+    // Se siamo all'interno del modale di creazione/modifica autista,
+    // aggiorniamo direttamente il form senza fare chiamate di rete premature
+    const isInsideDriverForm = open && (medDriver.id === "temp" || !medDriver.id || (editing && editing.id === medDriver.id));
+    if (isInsideDriverForm) {
       setForm((prev) => ({ ...prev, medical_kit: medItems }));
       toast.success("Medicinali aggiornati nel modulo autista");
       setMedOpen(false);
       return;
     }
+
     setMedSaving(true);
     try {
-      await api.put(`/drivers/${medDriver.id}/medical-kit`, { medical_kit: medItems });
+      try {
+        await api.put(`/drivers/${medDriver.id}/medical-kit`, { medical_kit: medItems });
+      } catch (err) {
+        // Fallback: se l'endpoint dedicato non è ancora disponibile sul server (404),
+        // proviamo a inviare l'intero record autista tramite l'endpoint principale PUT /drivers/{id}
+        if (err.response?.status === 404) {
+          const currentDriver = drivers.find((d) => d.id === medDriver.id) || medDriver;
+          await api.put(`/drivers/${medDriver.id}`, {
+            name: currentDriver.name,
+            email: currentDriver.email || "",
+            phone: currentDriver.phone || "",
+            active: currentDriver.active !== false,
+            group: currentDriver.group || "",
+            licenses: currentDriver.licenses || [],
+            medical_kit: medItems,
+          });
+        } else {
+          throw err;
+        }
+      }
+
       toast.success(`Kit medico salvato per ${medDriver.name}`);
       if (editing && editing.id === medDriver.id) {
         setForm((prev) => ({ ...prev, medical_kit: medItems }));
       }
+      // Aggiorna anche lo stato locale dei driver immediatamente per reattività istantanea
+      setDrivers((prev) =>
+        prev.map((d) => (d.id === medDriver.id ? { ...d, medical_kit: medItems } : d))
+      );
       setMedOpen(false);
       load();
     } catch (e) {
-      toast.error(apiError(e.response?.data?.detail));
+      const detail = e.response?.data?.detail;
+      if (e.response?.status === 404 || detail === "Not Found") {
+        // Aggiorna comunque in locale così l'utente non perde i dati inseriti
+        setDrivers((prev) =>
+          prev.map((d) => (d.id === medDriver.id ? { ...d, medical_kit: medItems } : d))
+        );
+        toast.warning(
+          "Il server online (Render) deve completare il deploy per salvare su database remoto. Dati mantenuti a schermo."
+        );
+        setMedOpen(false);
+      } else {
+        toast.error(apiError(detail) || "Errore durante il salvataggio del kit medico");
+      }
     } finally {
       setMedSaving(false);
     }

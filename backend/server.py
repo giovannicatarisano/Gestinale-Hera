@@ -1248,7 +1248,16 @@ async def health_check():
         db_ok = True
     except Exception as e:
         logger.error(f"Database ping failed: {e}")
-    return {"status": "ok", "database_connected": db_ok}
+    return {
+        "status": "ok",
+        "database_connected": db_ok,
+        "version": "2.1.0",
+        "features": {
+            "medical_kit": True,
+            "driver_swap": True,
+            "groups_g1_g2": True
+        }
+    }
 
 
 @app.on_event("startup")
