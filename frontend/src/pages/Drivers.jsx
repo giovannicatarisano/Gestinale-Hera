@@ -8,7 +8,7 @@ import { Switch } from "../components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, Users, KeyRound, ShieldCheck, UsersRound, Award, Calendar, AlertTriangle, X, BriefcaseMedical, ChevronRight, CheckCircle2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Users, KeyRound, ShieldCheck, UsersRound, Award, Calendar, AlertTriangle, X, BriefcaseMedical, ChevronRight, CheckCircle2, RotateCw, Clock } from "lucide-react";
 
 const EMPTY = { name: "", email: "", phone: "", active: true, group: "", password: "", licenses: [], medical_kit: [] };
 
@@ -50,8 +50,40 @@ export function getLicenseStatus(expiryDate) {
 // Verde: valido (> 30 giorni)
 // Arancione: in scadenza entro 1 mese (<= 30 giorni)
 // Rosso: scaduto (< 0 giorni)
-export function getMedicalItemStatus(expiryDate) {
-  if (!expiryDate) return { status: "unknown", days: 0, label: "N/D", color: "bg-secondary text-muted-foreground border-border" };
+// Viola/Allerta: Reintegro richiesto da autista
+export function getMedicalItemStatus(expiryDate, needsReplacement = false, replacementRequestedAt = null) {
+  if (needsReplacement) {
+    let reqDateStr = "";
+    if (replacementRequestedAt) {
+      try {
+        const d = new Date(replacementRequestedAt);
+        const day = String(d.getDate()).padStart(2, "0");
+        const month = String(d.getMonth() + 1).padStart(2, "0");
+        const hours = String(d.getHours()).padStart(2, "0");
+        const mins = String(d.getMinutes()).padStart(2, "0");
+        reqDateStr = ` (${day}/${month} ${hours}:${mins})`;
+      } catch (e) {}
+    }
+    return {
+      status: "replacement_needed",
+      days: 0,
+      label: `Reintegro richiesto${reqDateStr}`,
+      shortLabel: "Da reintegrare",
+      color: "bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-500/35",
+      badgeColor: "bg-purple-600 text-white",
+    };
+  }
+
+  if (!expiryDate) {
+    return {
+      status: "unknown",
+      days: 0,
+      label: "N/D",
+      shortLabel: "N/D",
+      color: "bg-secondary text-muted-foreground border-border",
+      badgeColor: "bg-secondary text-muted-foreground",
+    };
+  }
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const exp = new Date(expiryDate);
@@ -65,6 +97,7 @@ export function getMedicalItemStatus(expiryDate) {
       status: "expired",
       days: diffDays,
       label: `Scaduto (${Math.abs(diffDays)} gg fa)`,
+      shortLabel: "Scaduto",
       color: "bg-destructive/15 text-destructive border-destructive/30",
       badgeColor: "bg-destructive text-destructive-foreground",
     };
@@ -75,6 +108,7 @@ export function getMedicalItemStatus(expiryDate) {
       status: "expiring",
       days: diffDays,
       label: diffDays === 0 ? "Scade oggi" : `Scade tra ${diffDays} gg`,
+      shortLabel: "In scadenza",
       color: "bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30",
       badgeColor: "bg-amber-500 text-white",
     };
@@ -83,6 +117,7 @@ export function getMedicalItemStatus(expiryDate) {
     status: "valid",
     days: diffDays,
     label: `Scade tra ${diffDays} gg`,
+    shortLabel: "Valido",
     color: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30",
     badgeColor: "bg-emerald-600 text-white",
   };
@@ -94,23 +129,38 @@ export function getMedicalKitSummary(medicalKit = []) {
       status: "empty",
       label: "Non assegnato",
       count: 0,
+      replacementNeeded: 0,
       color: "bg-secondary text-muted-foreground border-border",
       iconColor: "text-muted-foreground",
     };
   }
+
+  const replacementNeeded = medicalKit.filter((i) => i.needs_replacement).length;
   let hasExpired = false;
   let hasExpiring = false;
   medicalKit.forEach((item) => {
-    const st = getMedicalItemStatus(item.expiry_date);
+    const st = getMedicalItemStatus(item.expiry_date, item.needs_replacement, item.replacement_requested_at);
     if (st.status === "expired") hasExpired = true;
     if (st.status === "expiring") hasExpiring = true;
   });
+
+  if (replacementNeeded > 0) {
+    return {
+      status: "replacement_needed",
+      label: `${replacementNeeded} da reintegrare`,
+      count: medicalKit.length,
+      replacementNeeded,
+      color: "bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-500/40 font-semibold",
+      iconColor: "text-purple-600 dark:text-purple-400",
+    };
+  }
 
   if (hasExpired) {
     return {
       status: "expired",
       label: "Scaduto",
       count: medicalKit.length,
+      replacementNeeded: 0,
       color: "bg-destructive/15 text-destructive border-destructive/30",
       iconColor: "text-destructive",
     };
@@ -120,6 +170,7 @@ export function getMedicalKitSummary(medicalKit = []) {
       status: "expiring",
       label: "In scadenza (<30gg)",
       count: medicalKit.length,
+      replacementNeeded: 0,
       color: "bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30",
       iconColor: "text-amber-600 dark:text-amber-400",
     };
@@ -128,6 +179,7 @@ export function getMedicalKitSummary(medicalKit = []) {
     status: "valid",
     label: "Kit in regola",
     count: medicalKit.length,
+    replacementNeeded: 0,
     color: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30",
     iconColor: "text-emerald-600 dark:text-emerald-400",
   };
@@ -390,15 +442,21 @@ export default function Drivers() {
                       ) : (
                         <div className="flex flex-wrap gap-1">
                           {d.medical_kit.map((item, mIdx) => {
-                            const st = getMedicalItemStatus(item.expiry_date);
+                            const st = getMedicalItemStatus(item.expiry_date, item.needs_replacement, item.replacement_requested_at);
                             return (
                               <div
                                 key={mIdx}
                                 className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-xs border text-[10px] font-medium ${st.color}`}
-                                title={`${item.name} - Scadenza: ${item.expiry_date} (${st.label})`}
+                                title={`${item.name} - ${st.label}${item.replacement_note ? ' (' + item.replacement_note + ')' : ''}`}
                               >
                                 <span className="font-semibold truncate max-w-[85px]">{item.name}</span>
-                                <span className="font-mono text-[9px] opacity-85">{item.expiry_date}</span>
+                                {item.needs_replacement ? (
+                                  <span className="font-mono text-[9px] font-bold text-purple-700 dark:text-purple-300 flex items-center gap-0.5">
+                                    <RotateCw size={9} className="animate-spin shrink-0" /> Da reintegrare
+                                  </span>
+                                ) : (
+                                  <span className="font-mono text-[9px] opacity-85">{item.expiry_date}</span>
+                                )}
                                 {st.status === "expiring" && <AlertTriangle size={10} className="text-amber-600 dark:text-amber-400 shrink-0" />}
                                 {st.status === "expired" && <AlertTriangle size={10} className="text-destructive shrink-0" />}
                               </div>
@@ -796,62 +854,115 @@ export default function Drivers() {
                 Usa i pulsanti rapidi sopra o il campo per aggiungerne.
               </div>
             ) : (
-              <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+              <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
                 {medItems.map((item, index) => {
-                  const st = getMedicalItemStatus(item.expiry_date);
+                  const st = getMedicalItemStatus(item.expiry_date, item.needs_replacement, item.replacement_requested_at);
+                  const isRepl = !!item.needs_replacement;
                   return (
                     <div
                       key={index}
-                      className="p-2 rounded-sm border border-border bg-card flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:border-border/90"
+                      className={`p-2.5 rounded-sm border transition-all ${
+                        isRepl
+                          ? "border-purple-500/50 bg-purple-500/5 dark:bg-purple-950/20 shadow-xs"
+                          : "border-border bg-card hover:border-border/90"
+                      }`}
                     >
-                      <div className="flex-1 min-w-0">
-                        <Input
-                          value={item.name}
-                          onChange={(e) => {
-                            const updated = [...medItems];
-                            updated[index] = { ...updated[index], name: e.target.value };
-                            setMedItems(updated);
-                          }}
-                          placeholder="Nome medicinale"
-                          className="h-8 text-xs font-semibold rounded-sm mb-1 sm:mb-0"
-                        />
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <Input
+                            value={item.name}
+                            onChange={(e) => {
+                              const updated = [...medItems];
+                              updated[index] = { ...updated[index], name: e.target.value };
+                              setMedItems(updated);
+                            }}
+                            placeholder="Nome medicinale"
+                            className="h-8 text-xs font-semibold rounded-sm mb-1 sm:mb-0"
+                          />
+                        </div>
+
+                        <div className="flex items-center gap-2 shrink-0">
+                          <Input
+                            type="date"
+                            value={item.expiry_date || ""}
+                            onChange={(e) => {
+                              const updated = [...medItems];
+                              updated[index] = { ...updated[index], expiry_date: e.target.value };
+                              setMedItems(updated);
+                            }}
+                            className="h-8 text-xs font-mono rounded-sm w-36"
+                          />
+
+                          {item.expiry_date && !isRepl && (
+                            <div className={`px-2 py-1 rounded-sm border text-[11px] font-semibold whitespace-nowrap flex items-center gap-1 ${st.color}`}>
+                              {st.status === "expired" && <AlertTriangle size={12} className="text-destructive shrink-0" />}
+                              {st.status === "expiring" && <AlertTriangle size={12} className="text-amber-600 dark:text-amber-400 shrink-0" />}
+                              {st.status === "valid" && <CheckCircle2 size={12} className="text-emerald-600 dark:text-emerald-400 shrink-0" />}
+                              <span>{st.label}</span>
+                            </div>
+                          )}
+
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              const updated = medItems.filter((_, i) => i !== index);
+                              setMedItems(updated);
+                            }}
+                            className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive shrink-0"
+                            title="Rimuovi medicinale"
+                          >
+                            <Trash2 size={14} />
+                          </Button>
+                        </div>
                       </div>
 
-                      <div className="flex items-center gap-2 shrink-0">
-                        <Input
-                          type="date"
-                          value={item.expiry_date || ""}
-                          onChange={(e) => {
-                            const updated = [...medItems];
-                            updated[index] = { ...updated[index], expiry_date: e.target.value };
-                            setMedItems(updated);
-                          }}
-                          className="h-8 text-xs font-mono rounded-sm w-36"
-                        />
-
-                        {item.expiry_date && (
-                          <div className={`px-2 py-1 rounded-sm border text-[11px] font-semibold whitespace-nowrap flex items-center gap-1 ${st.color}`}>
-                            {st.status === "expired" && <AlertTriangle size={12} className="text-destructive shrink-0" />}
-                            {st.status === "expiring" && <AlertTriangle size={12} className="text-amber-600 dark:text-amber-400 shrink-0" />}
-                            {st.status === "valid" && <CheckCircle2 size={12} className="text-emerald-600 dark:text-emerald-400 shrink-0" />}
-                            <span>{st.label}</span>
+                      {/* Box di allerta per reintegro richiesto dall'autista */}
+                      {isRepl && (
+                        <div className="mt-2 pt-2 border-t border-purple-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-purple-500/10 p-2 rounded-xs">
+                          <div className="text-xs">
+                            <div className="flex items-center gap-1.5 font-bold text-purple-700 dark:text-purple-300">
+                              <RotateCw size={13} className="shrink-0 text-purple-600" />
+                              <span>Segnalazione utilizzo da parte dell'autista</span>
+                            </div>
+                            {item.replacement_requested_at && (
+                              <div className="text-[10px] text-muted-foreground flex items-center gap-1 mt-0.5">
+                                <Clock size={11} />
+                                <span>Richiesto il: {new Date(item.replacement_requested_at).toLocaleString("it-IT")}</span>
+                              </div>
+                            )}
+                            {item.replacement_note && (
+                              <div className="text-[11px] italic text-foreground/90 mt-1">
+                                «{item.replacement_note}»
+                              </div>
+                            )}
                           </div>
-                        )}
 
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            const updated = medItems.filter((_, i) => i !== index);
-                            setMedItems(updated);
-                          }}
-                          className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive shrink-0"
-                          title="Rimuovi medicinale"
-                        >
-                          <Trash2 size={14} />
-                        </Button>
-                      </div>
+                          <Button
+                            type="button"
+                            size="sm"
+                            className="h-7 px-2.5 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white rounded-sm shrink-0 self-start sm:self-auto"
+                            onClick={() => {
+                              const defaultFuture = new Date();
+                              defaultFuture.setFullYear(defaultFuture.getFullYear() + 2);
+                              const futureStr = defaultFuture.toISOString().split("T")[0];
+                              const updated = [...medItems];
+                              updated[index] = {
+                                ...updated[index],
+                                needs_replacement: false,
+                                replacement_requested_at: null,
+                                replacement_note: "",
+                                expiry_date: futureStr,
+                              };
+                              setMedItems(updated);
+                              toast.success(`Presidio "${item.name}" segnato come reintegrato. Nuova scadenza impostata a ${futureStr}`);
+                            }}
+                          >
+                            <CheckCircle2 size={13} className="mr-1" /> Segna come reintegrato
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   );
                 })}

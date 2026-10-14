@@ -169,10 +169,28 @@ class MedicalItem(BaseModel):
     name: str          # es. "Disinfettante", "Bende sterili", "Cerotti", ecc.
     expiry_date: str   # YYYY-MM-DD
     notes: Optional[str] = ""
+    needs_replacement: bool = False
+    replacement_requested_at: Optional[str] = None  # ISO timestamp es. 2026-10-14T23:15:00Z
+    replacement_note: Optional[str] = ""            # Note dell'autista sull'utilizzo
 
 
 class MedicalKitInput(BaseModel):
     medical_kit: List[MedicalItem] = []
+
+
+class MedicalReplacementRequestInput(BaseModel):
+    item_name: str
+    note: Optional[str] = ""
+
+
+class MedicalCancelReplacementInput(BaseModel):
+    item_name: str
+
+
+class MedicalRestockInput(BaseModel):
+    item_name: str
+    new_expiry_date: str
+    notes: Optional[str] = ""
 
 
 class Driver(BaseModel):
@@ -399,6 +417,129 @@ async def update_driver_medical_kit(did: str, data: MedicalKitInput, user: dict 
         raise HTTPException(status_code=404, detail="Autista non trovato")
     kit_list = [item.model_dump() for item in data.medical_kit]
     await db.drivers.update_one({"id": did}, {"$set": {"medical_kit": kit_list}})
+    updated = await db.drivers.find_one({"id": did}, {"_id": 0})
+    return updated
+
+
+@api_router.post("/drivers/{did}/medical-kit/request-replacement")
+async def request_medical_kit_replacement(
+    did: str,
+    data: MedicalReplacementRequestInput,
+    user: dict = Depends(get_current_user),
+):
+    # Consenti solo all'autista interessato o a un admin
+    if user.get("role") != "admin" and user.get("driver_id") != did:
+        raise HTTPException(status_code=403, detail="Non autorizzato a modificare questo kit medico")
+
+    driver = await db.drivers.find_one({"id": did}, {"_id": 0})
+    if not driver:
+        raise HTTPException(status_code=404, detail="Autista non trovato")
+
+    kit = driver.get("medical_kit") or []
+    item_found = False
+    now_iso = datetime.now(timezone.utc).isoformat()
+
+    for item in kit:
+        if item.get("name") == data.item_name:
+            item["needs_replacement"] = True
+            item["replacement_requested_at"] = now_iso
+            item["replacement_note"] = (data.note or "").strip()
+            item_found = True
+            break
+
+    if not item_found:
+        # Se non è in elenco, aggiungiamolo come presidio con reintegro richiesto
+        kit.append({
+            "name": data.item_name,
+            "expiry_date": "",
+            "notes": "",
+            "needs_replacement": True,
+            "replacement_requested_at": now_iso,
+            "replacement_note": (data.note or "").strip(),
+        })
+
+    await db.drivers.update_one({"id": did}, {"$set": {"medical_kit": kit}})
+
+    # Invia notifica agli amministratori
+    note_text = f" Note: \"{data.note.strip()}\"" if (data.note or "").strip() else ""
+    await db.notifications.insert_one({
+        "id": str(uuid.uuid4()),
+        "target_role": "admin",
+        "driver_id": did,
+        "title": "Richiesta reintegro Kit Medico",
+        "message": f"L'autista {driver.get('name', 'Sconosciuto')} ha segnalato l'utilizzo di '{data.item_name}' e ne richiede la sostituzione.{note_text}",
+        "category": "medical_kit",
+        "created_at": now_iso,
+        "read": False,
+    })
+
+    updated = await db.drivers.find_one({"id": did}, {"_id": 0})
+    return updated
+
+
+@api_router.post("/drivers/{did}/medical-kit/cancel-replacement")
+async def cancel_medical_kit_replacement(
+    did: str,
+    data: MedicalCancelReplacementInput,
+    user: dict = Depends(get_current_user),
+):
+    if user.get("role") != "admin" and user.get("driver_id") != did:
+        raise HTTPException(status_code=403, detail="Non autorizzato")
+
+    driver = await db.drivers.find_one({"id": did}, {"_id": 0})
+    if not driver:
+        raise HTTPException(status_code=404, detail="Autista non trovato")
+
+    kit = driver.get("medical_kit") or []
+    for item in kit:
+        if item.get("name") == data.item_name:
+            item["needs_replacement"] = False
+            item["replacement_requested_at"] = None
+            item["replacement_note"] = ""
+            break
+
+    await db.drivers.update_one({"id": did}, {"$set": {"medical_kit": kit}})
+    updated = await db.drivers.find_one({"id": did}, {"_id": 0})
+    return updated
+
+
+@api_router.post("/drivers/{did}/medical-kit/restock")
+async def restock_medical_kit_item(
+    did: str,
+    data: MedicalRestockInput,
+    user: dict = Depends(require_admin),
+):
+    driver = await db.drivers.find_one({"id": did}, {"_id": 0})
+    if not driver:
+        raise HTTPException(status_code=404, detail="Autista non trovato")
+
+    kit = driver.get("medical_kit") or []
+    now_iso = datetime.now(timezone.utc).isoformat()
+    for item in kit:
+        if item.get("name") == data.item_name:
+            item["needs_replacement"] = False
+            item["replacement_requested_at"] = None
+            item["replacement_note"] = ""
+            if data.new_expiry_date:
+                item["expiry_date"] = data.new_expiry_date
+            if data.notes:
+                item["notes"] = data.notes
+            break
+
+    await db.drivers.update_one({"id": did}, {"$set": {"medical_kit": kit}})
+
+    # Notifica all'autista sul telefono
+    await db.notifications.insert_one({
+        "id": str(uuid.uuid4()),
+        "target_role": "driver",
+        "driver_id": did,
+        "title": "Presidio Kit Medico reintegrato",
+        "message": f"Il presidio '{data.item_name}' del tuo kit medico è stato sostituito/reintegrato.{' Nuova scadenza: ' + data.new_expiry_date if data.new_expiry_date else ''}",
+        "category": "medical_kit",
+        "created_at": now_iso,
+        "read": False,
+    })
+
     updated = await db.drivers.find_one({"id": did}, {"_id": 0})
     return updated
 

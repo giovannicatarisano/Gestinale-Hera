@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "../components/ui/dialog";
 import { requestNotificationPermission, triggerLocalNotification } from "../lib/pushNotifications";
 import { toast } from "sonner";
-import { ChevronLeft, ChevronRight, LogOut, LayoutDashboard, Clock, Bell, ArrowLeftRight, Check, X as XIcon, Info, RefreshCw, BriefcaseMedical } from "lucide-react";
+import { ChevronLeft, ChevronRight, LogOut, LayoutDashboard, Clock, Bell, ArrowLeftRight, Check, X as XIcon, Info, RefreshCw, BriefcaseMedical, RotateCw, CheckCircle2, AlertTriangle, MessageSquarePlus } from "lucide-react";
 import { getMedicalKitSummary, getMedicalItemStatus } from "./Drivers";
 
 const SLOT_TIME = { presto: "05:30 – 11:50", standard: "06:00 – 12:20", pomeriggio: "12:30 – 18:50", domenica: "06:00 – 12:20" };
@@ -42,8 +42,54 @@ export default function DriverView() {
   const [swapNote, setSwapNote] = useState("");
   const [refreshing, setRefreshing] = useState(false);
   const [notifsOpen, setNotifsOpen] = useState(false);
+
+  // Stati per la gestione del Kit Medico dell'autista
+  const [medDetailsOpen, setMedDetailsOpen] = useState(false);
+  const [medReportItem, setMedReportItem] = useState(null);
+  const [medReportNote, setMedReportNote] = useState("");
+  const [medReporting, setMedReporting] = useState(false);
+
   const wk = weekKey(ref);
   const myId = user?.driver_id;
+
+  const reloadDrivers = async () => {
+    try {
+      const res = await api.get("/drivers");
+      setDrivers(res.data);
+    } catch (e) {}
+  };
+
+  const handleRequestReplacement = async () => {
+    if (!medReportItem || !myId) return;
+    setMedReporting(true);
+    try {
+      await api.post(`/drivers/${myId}/medical-kit/request-replacement`, {
+        item_name: medReportItem.name,
+        note: medReportNote.trim(),
+      });
+      toast.success(`Richiesta di reintegro per "${medReportItem.name}" inviata all'amministrazione.`);
+      setMedReportItem(null);
+      setMedReportNote("");
+      await reloadDrivers();
+    } catch (e) {
+      toast.error(apiError(e.response?.data?.detail) || "Errore durante l'invio della richiesta");
+    } finally {
+      setMedReporting(false);
+    }
+  };
+
+  const handleCancelReplacement = async (item) => {
+    if (!myId || !item) return;
+    try {
+      await api.post(`/drivers/${myId}/medical-kit/cancel-replacement`, {
+        item_name: item.name,
+      });
+      toast.info(`Richiesta di reintegro per "${item.name}" annullata.`);
+      await reloadDrivers();
+    } catch (e) {
+      toast.error(apiError(e.response?.data?.detail) || "Errore durante l'annullamento");
+    }
+  };
 
   useEffect(() => {
     Promise.all([api.get("/routes"), api.get("/vehicles"), api.get("/drivers")]).then(([r, v, d]) => {
@@ -334,38 +380,51 @@ export default function DriverView() {
                       </div>
                     )}
                     {myDriver?.medical_kit && (
-                      <div className="border border-border/80 bg-card rounded-sm px-3.5 py-2 shrink-0 self-start sm:self-auto">
-                        <div className="flex items-center gap-2 mb-1">
-                          <BriefcaseMedical size={14} className="text-primary" />
-                          <div className="overline text-muted-foreground text-[10px]">Kit Medico in dotazione</div>
+                      <div
+                        onClick={() => setMedDetailsOpen(true)}
+                        className="border border-border/80 bg-card hover:bg-secondary/30 transition-all rounded-sm px-3.5 py-2.5 shrink-0 self-start sm:self-auto cursor-pointer shadow-xs group"
+                        title="Clicca per visualizzare i dettagli e segnalare l'utilizzo dei presidi"
+                      >
+                        <div className="flex items-center justify-between gap-2 mb-1.5">
+                          <div className="flex items-center gap-1.5">
+                            <BriefcaseMedical size={15} className="text-primary" />
+                            <div className="overline text-muted-foreground text-[10px] font-bold">Kit Medico in dotazione</div>
+                          </div>
                           {(() => {
                             const summary = getMedicalKitSummary(myDriver.medical_kit);
                             return (
-                              <span className={`text-[9px] px-1.5 py-0.2 rounded-xs border font-medium ${summary.color}`}>
-                                {summary.label}
+                              <span className={`text-[10px] px-1.5 py-0.2 rounded-xs border font-medium flex items-center gap-1 ${summary.color}`}>
+                                {summary.replacementNeeded > 0 && <RotateCw size={10} className="animate-spin text-purple-600" />}
+                                <span>{summary.label}</span>
+                                <ChevronRight size={11} className="text-muted-foreground group-hover:translate-x-0.5 transition-transform" />
                               </span>
                             );
                           })()}
                         </div>
+
                         {myDriver.medical_kit.length === 0 ? (
                           <div className="text-xs text-muted-foreground italic">Nessun presidio registrato</div>
                         ) : (
                           <div className="flex flex-wrap gap-1 mt-1 max-w-xs">
                             {myDriver.medical_kit.map((item, idx) => {
-                              const st = getMedicalItemStatus(item.expiry_date);
+                              const st = getMedicalItemStatus(item.expiry_date, item.needs_replacement, item.replacement_requested_at);
                               return (
                                 <span
                                   key={idx}
                                   className={`inline-flex items-center gap-1 text-[9px] font-medium px-1.5 py-0.5 rounded-xs border ${st.color}`}
-                                  title={`${item.name} - Scadenza: ${item.expiry_date}`}
+                                  title={`${item.name} - ${st.label}`}
                                 >
-                                  <span className="font-semibold truncate max-w-[80px]">{item.name}</span>
-                                  <span className="font-mono text-[8px] opacity-80">{item.expiry_date}</span>
+                                  {item.needs_replacement && <RotateCw size={9} className="animate-spin text-purple-600 shrink-0" />}
+                                  <span className="font-semibold truncate max-w-[85px]">{item.name}</span>
+                                  {!item.needs_replacement && <span className="font-mono text-[8px] opacity-80">{item.expiry_date}</span>}
                                 </span>
                               );
                             })}
                           </div>
                         )}
+                        <div className="text-[10px] text-primary group-hover:underline font-semibold mt-1.5 flex items-center gap-1">
+                          <span>Gestisci presidi / Segnala utilizzo</span>
+                        </div>
                       </div>
                     )}
                   </>
@@ -640,6 +699,183 @@ export default function DriverView() {
           <DialogFooter className="gap-2 sm:gap-0 mt-2">
             <Button variant="ghost" className="rounded-sm h-10 text-xs" onClick={() => setWeekSwapOpen(false)}>Annulla</Button>
             <Button className="rounded-sm bg-primary hover:bg-primary/90 h-10 text-xs font-semibold" data-testid="submit-week-swap-btn" onClick={submitWeekSwap}>Invia richiesta settimanale</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* MODALE DETTAGLI KIT MEDICO AUTISTA */}
+      <Dialog open={medDetailsOpen} onOpenChange={setMedDetailsOpen}>
+        <DialogContent className="w-[94vw] sm:max-w-lg rounded-sm p-4 sm:p-6 max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="font-head tracking-tight text-lg sm:text-xl flex items-center gap-2">
+              <BriefcaseMedical size={20} className="text-primary" />
+              <span>Kit Medico in dotazione</span>
+            </DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground">
+              Verifica le scadenze dei tuoi presidi e segnala all'amministrazione se hai utilizzato un prodotto per ottenerne la sostituzione.
+            </DialogDescription>
+          </DialogHeader>
+
+          {(() => {
+            const myDriver = drivers.find((d) => d.id === myId);
+            const kit = myDriver?.medical_kit || [];
+            if (kit.length === 0) {
+              return (
+                <div className="p-8 text-center text-xs text-muted-foreground border border-dashed rounded-sm bg-card my-2">
+                  Nessun medicinale o presidio registrato nel tuo kit medico.
+                </div>
+              );
+            }
+            return (
+              <div className="space-y-2.5 my-2">
+                {kit.map((item, idx) => {
+                  const st = getMedicalItemStatus(item.expiry_date, item.needs_replacement, item.replacement_requested_at);
+                  const isRepl = !!item.needs_replacement;
+                  return (
+                    <div
+                      key={idx}
+                      className={`p-3 rounded-sm border transition-all ${
+                        isRepl
+                          ? "border-purple-500/50 bg-purple-500/10 dark:bg-purple-950/20 shadow-xs"
+                          : "border-border bg-card"
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <div className="font-semibold text-sm flex items-center gap-1.5">
+                            <span>{item.name}</span>
+                            {item.notes && <span className="text-[11px] text-muted-foreground font-normal italic">({item.notes})</span>}
+                          </div>
+                          <div className="font-mono text-xs text-muted-foreground mt-0.5">
+                            Scadenza: <span className="font-medium text-foreground">{item.expiry_date || "N/D"}</span>
+                          </div>
+                        </div>
+
+                        {!isRepl ? (
+                          <div className={`px-2 py-0.5 rounded-sm border text-[11px] font-semibold whitespace-nowrap shrink-0 flex items-center gap-1 ${st.color}`}>
+                            {st.status === "expired" && <AlertTriangle size={12} className="text-destructive shrink-0" />}
+                            {st.status === "expiring" && <AlertTriangle size={12} className="text-amber-600 dark:text-amber-400 shrink-0" />}
+                            {st.status === "valid" && <CheckCircle2 size={12} className="text-emerald-600 dark:text-emerald-400 shrink-0" />}
+                            <span>{st.label}</span>
+                          </div>
+                        ) : (
+                          <span className="px-2 py-0.5 rounded-sm text-[11px] font-bold bg-purple-600 text-white flex items-center gap-1 shrink-0">
+                            <RotateCw size={11} className="animate-spin" /> In reintegro
+                          </span>
+                        )}
+                      </div>
+
+                      {isRepl ? (
+                        <div className="mt-2.5 pt-2 border-t border-purple-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-purple-500/5 p-2 rounded-xs">
+                          <div className="text-xs">
+                            <div className="font-semibold text-purple-700 dark:text-purple-300 flex items-center gap-1">
+                              <RotateCw size={12} className="shrink-0 text-purple-600" />
+                              <span>Richiesta inviata all'amministrazione</span>
+                            </div>
+                            {item.replacement_requested_at && (
+                              <div className="text-[10px] text-muted-foreground flex items-center gap-1 mt-0.5 font-mono">
+                                <Clock size={11} />
+                                <span>Data richiesta: {new Date(item.replacement_requested_at).toLocaleString("it-IT")}</span>
+                              </div>
+                            )}
+                            {item.replacement_note && (
+                              <div className="text-[11px] italic text-foreground/90 mt-1">
+                                «{item.replacement_note}»
+                              </div>
+                            )}
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 text-xs text-muted-foreground hover:text-destructive self-start sm:self-auto shrink-0"
+                            onClick={() => handleCancelReplacement(item)}
+                          >
+                            Annulla richiesta
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="mt-2.5 pt-2 border-t border-border/70 flex justify-end">
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            className="h-8 text-xs font-semibold rounded-sm border-primary/30 text-primary hover:bg-primary/10"
+                            onClick={() => {
+                              setMedReportItem(item);
+                              setMedReportNote("");
+                            }}
+                          >
+                            <BriefcaseMedical size={13} className="mr-1.5" /> Segnala utilizzo / Richiedi reintegro
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()}
+
+          <DialogFooter className="mt-3 pt-3 border-t border-border">
+            <Button variant="outline" className="rounded-sm h-9 text-xs" onClick={() => setMedDetailsOpen(false)}>
+              Chiudi
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* DIALOG CONFERMA SEGNALAZIONE UTILIZZO */}
+      <Dialog open={!!medReportItem} onOpenChange={(o) => !o && setMedReportItem(null)}>
+        <DialogContent className="w-[94vw] sm:max-w-md rounded-sm p-4 sm:p-5">
+          <DialogHeader>
+            <DialogTitle className="font-head tracking-tight text-lg flex items-center gap-2">
+              <BriefcaseMedical size={18} className="text-primary" />
+              <span>Segnala utilizzo presidio</span>
+            </DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground">
+              Verrà inviata una segnalazione all'amministrazione per provvedere alla sostituzione/reintegro.
+            </DialogDescription>
+          </DialogHeader>
+
+          {medReportItem && (
+            <div className="space-y-3.5 py-2">
+              <div className="border border-border rounded-sm p-3 bg-secondary/30">
+                <div className="text-xs font-semibold text-muted-foreground overline">Presidio utilizzato</div>
+                <div className="font-head font-bold text-base mt-0.5 text-foreground">{medReportItem.name}</div>
+                <div className="font-mono text-xs text-muted-foreground mt-1">
+                  Scadenza attuale: {medReportItem.expiry_date || "N/D"}
+                </div>
+              </div>
+
+              <div className="p-2 rounded-sm bg-primary/5 border border-primary/20 text-xs flex items-center gap-2">
+                <Clock size={13} className="text-primary shrink-0" />
+                <span>Data e ora richiesta: <b>{new Date().toLocaleString("it-IT")}</b></span>
+              </div>
+
+              <div>
+                <div className="text-xs font-semibold mb-1.5">Note sull'utilizzo (opzionale)</div>
+                <Textarea
+                  value={medReportNote}
+                  onChange={(e) => setMedReportNote(e.target.value)}
+                  rows={2}
+                  className="rounded-sm text-xs sm:text-sm"
+                  placeholder="es. Utilizzato durante il turno di raccolta, flacone terminato..."
+                />
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="gap-2 sm:gap-0 mt-2">
+            <Button variant="ghost" className="rounded-sm h-10 text-xs" onClick={() => setMedReportItem(null)}>
+              Annulla
+            </Button>
+            <Button
+              className="rounded-sm bg-primary hover:bg-primary/90 h-10 text-xs font-semibold"
+              disabled={medReporting}
+              onClick={handleRequestReplacement}
+            >
+              {medReporting ? "Invio in corso..." : "Invia richiesta reintegro"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
