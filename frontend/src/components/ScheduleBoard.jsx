@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { DAY_LABELS, DAY_FULL, SLOT_ORDER, initials } from "../lib/dates";
-import { Clock, Users, Calendar, LayoutGrid, AlertTriangle, ArrowRight, UserCheck, UserX, Award } from "lucide-react";
-import { getLicenseStatus } from "../pages/Drivers";
+import { Clock, Users, Calendar, LayoutGrid, AlertTriangle, ArrowRight, UserCheck, UserX, Award, BriefcaseMedical } from "lucide-react";
+import { getLicenseStatus, getMedicalKitSummary } from "../pages/Drivers";
 
 const SLOT_META = {
   presto: { label: "Mattino Presto", time: "05:30 – 11:50", max: 3, color: "border-blue-500/30 bg-blue-500/5 text-blue-700" },
@@ -224,6 +224,18 @@ export default function ScheduleBoard({
                                   })}
                                 </div>
                               )}
+                              {drv?.medical_kit && drv.medical_kit.length > 0 && (() => {
+                                const medSt = getMedicalKitSummary(drv.medical_kit);
+                                return (
+                                  <span
+                                    className={`inline-flex items-center gap-1 text-[9px] font-semibold px-1 py-0.2 rounded-sm border mt-1 ${medSt.color}`}
+                                    title={`Kit Medico in dotazione: ${medSt.label} (${drv.medical_kit.length} presidi)`}
+                                  >
+                                    <BriefcaseMedical size={9} />
+                                    <span>Kit {medSt.label}</span>
+                                  </span>
+                                );
+                              })()}
                               {mine && <span className="overline text-[9px] text-primary">Il tuo turno</span>}
                               {recovered && <span className="overline text-[9px] text-muted-foreground">Sostituito</span>}
                             </div>
@@ -363,6 +375,18 @@ export default function ScheduleBoard({
                                       })}
                                     </div>
                                   )}
+                                  {drv?.medical_kit && drv.medical_kit.length > 0 && (() => {
+                                    const medSt = getMedicalKitSummary(drv.medical_kit);
+                                    return (
+                                      <span
+                                        className={`inline-flex items-center gap-0.5 text-[8px] font-semibold px-1 py-0 rounded-xs border mt-0.5 ${medSt.color}`}
+                                        title={`Kit Medico in dotazione: ${medSt.label} (${drv.medical_kit.length} presidi)`}
+                                      >
+                                        <BriefcaseMedical size={8} />
+                                        <span>Kit</span>
+                                      </span>
+                                    );
+                                  })()}
                                 </div>
                               ) : (
                                 <span className="text-destructive font-medium text-[10px]">Da assegnare</span>

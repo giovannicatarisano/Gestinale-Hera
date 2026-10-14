@@ -12,7 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "../components/ui/dialog";
 import { requestNotificationPermission, triggerLocalNotification } from "../lib/pushNotifications";
 import { toast } from "sonner";
-import { ChevronLeft, ChevronRight, LogOut, LayoutDashboard, Clock, Bell, ArrowLeftRight, Check, X as XIcon, Info, RefreshCw } from "lucide-react";
+import { ChevronLeft, ChevronRight, LogOut, LayoutDashboard, Clock, Bell, ArrowLeftRight, Check, X as XIcon, Info, RefreshCw, BriefcaseMedical } from "lucide-react";
+import { getMedicalKitSummary, getMedicalItemStatus } from "./Drivers";
 
 const SLOT_TIME = { presto: "05:30 – 11:50", standard: "06:00 – 12:20", pomeriggio: "12:30 – 18:50", domenica: "06:00 – 12:20" };
 const SLOT_LABEL = { presto: "Mattino Presto", standard: "Mattino Standard", pomeriggio: "Pomeriggio", domenica: "Turno Domenica" };
@@ -330,6 +331,41 @@ export default function DriverView() {
                         <div className="overline text-muted-foreground text-[10px]">Turno specifico questa settimana</div>
                         <div className="font-head font-bold text-primary text-sm sm:text-base">{SLOT_LABEL[mySlot]}</div>
                         <div className="font-mono text-xs text-muted-foreground">{SLOT_TIME[mySlot]}</div>
+                      </div>
+                    )}
+                    {myDriver?.medical_kit && (
+                      <div className="border border-border/80 bg-card rounded-sm px-3.5 py-2 shrink-0 self-start sm:self-auto">
+                        <div className="flex items-center gap-2 mb-1">
+                          <BriefcaseMedical size={14} className="text-primary" />
+                          <div className="overline text-muted-foreground text-[10px]">Kit Medico in dotazione</div>
+                          {(() => {
+                            const summary = getMedicalKitSummary(myDriver.medical_kit);
+                            return (
+                              <span className={`text-[9px] px-1.5 py-0.2 rounded-xs border font-medium ${summary.color}`}>
+                                {summary.label}
+                              </span>
+                            );
+                          })()}
+                        </div>
+                        {myDriver.medical_kit.length === 0 ? (
+                          <div className="text-xs text-muted-foreground italic">Nessun presidio registrato</div>
+                        ) : (
+                          <div className="flex flex-wrap gap-1 mt-1 max-w-xs">
+                            {myDriver.medical_kit.map((item, idx) => {
+                              const st = getMedicalItemStatus(item.expiry_date);
+                              return (
+                                <span
+                                  key={idx}
+                                  className={`inline-flex items-center gap-1 text-[9px] font-medium px-1.5 py-0.5 rounded-xs border ${st.color}`}
+                                  title={`${item.name} - Scadenza: ${item.expiry_date}`}
+                                >
+                                  <span className="font-semibold truncate max-w-[80px]">{item.name}</span>
+                                  <span className="font-mono text-[8px] opacity-80">{item.expiry_date}</span>
+                                </span>
+                              );
+                            })}
+                          </div>
+                        )}
                       </div>
                     )}
                   </>

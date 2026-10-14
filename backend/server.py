@@ -165,6 +165,16 @@ class License(BaseModel):
     expiry_date: str  # YYYY-MM-DD
 
 
+class MedicalItem(BaseModel):
+    name: str          # es. "Disinfettante", "Bende sterili", "Cerotti", ecc.
+    expiry_date: str   # YYYY-MM-DD
+    notes: Optional[str] = ""
+
+
+class MedicalKitInput(BaseModel):
+    medical_kit: List[MedicalItem] = []
+
+
 class Driver(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     name: str
@@ -173,6 +183,7 @@ class Driver(BaseModel):
     active: bool = True
     group: str = ""   # "" | "gruppo1" | "gruppo2"
     licenses: List[License] = []
+    medical_kit: List[MedicalItem] = []
     vehicle_skills: List[str] = []
     route_skills: List[str] = []
 
@@ -184,6 +195,7 @@ class DriverInput(BaseModel):
     active: bool = True
     group: str = ""   # "" | "gruppo1" | "gruppo2"
     licenses: List[License] = []
+    medical_kit: List[MedicalItem] = []
     password: Optional[str] = None
 
 
@@ -378,6 +390,17 @@ async def update_driver(did: str, data: DriverInput, user: dict = Depends(requir
         # keep linked account name/email in sync
         await db.users.update_one({"driver_id": did}, {"$set": {"name": driver["name"]}})
     return driver
+
+
+@api_router.put("/drivers/{did}/medical-kit")
+async def update_driver_medical_kit(did: str, data: MedicalKitInput, user: dict = Depends(require_admin)):
+    driver = await db.drivers.find_one({"id": did}, {"_id": 0})
+    if not driver:
+        raise HTTPException(status_code=404, detail="Autista non trovato")
+    kit_list = [item.model_dump() for item in data.medical_kit]
+    await db.drivers.update_one({"id": did}, {"$set": {"medical_kit": kit_list}})
+    updated = await db.drivers.find_one({"id": did}, {"_id": 0})
+    return updated
 
 
 @api_router.post("/drivers/{did}/credentials")

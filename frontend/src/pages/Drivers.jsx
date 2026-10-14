@@ -8,9 +8,9 @@ import { Switch } from "../components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, Users, KeyRound, ShieldCheck, UsersRound, Award, Calendar, AlertTriangle, X } from "lucide-react";
+import { Plus, Pencil, Trash2, Users, KeyRound, ShieldCheck, UsersRound, Award, Calendar, AlertTriangle, X, BriefcaseMedical, ChevronRight, CheckCircle2 } from "lucide-react";
 
-const EMPTY = { name: "", email: "", phone: "", active: true, group: "", password: "", licenses: [] };
+const EMPTY = { name: "", email: "", phone: "", active: true, group: "", password: "", licenses: [], medical_kit: [] };
 
 const AVAILABLE_LICENSES = ["B", "C", "CQC Merci"];
 
@@ -46,6 +46,104 @@ export function getLicenseStatus(expiryDate) {
   };
 }
 
+// Logica di scadenza e colori per medicinali:
+// Verde: valido (> 30 giorni)
+// Arancione: in scadenza entro 1 mese (<= 30 giorni)
+// Rosso: scaduto (< 0 giorni)
+export function getMedicalItemStatus(expiryDate) {
+  if (!expiryDate) return { status: "unknown", days: 0, label: "N/D", color: "bg-secondary text-muted-foreground border-border" };
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const exp = new Date(expiryDate);
+  exp.setHours(0, 0, 0, 0);
+
+  const diffTime = exp.getTime() - today.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+  if (diffDays < 0) {
+    return {
+      status: "expired",
+      days: diffDays,
+      label: `Scaduto (${Math.abs(diffDays)} gg fa)`,
+      color: "bg-destructive/15 text-destructive border-destructive/30",
+      badgeColor: "bg-destructive text-destructive-foreground",
+    };
+  }
+  // In scadenza ad un mese (<= 30 giorni)
+  if (diffDays <= 30) {
+    return {
+      status: "expiring",
+      days: diffDays,
+      label: diffDays === 0 ? "Scade oggi" : `Scade tra ${diffDays} gg`,
+      color: "bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30",
+      badgeColor: "bg-amber-500 text-white",
+    };
+  }
+  return {
+    status: "valid",
+    days: diffDays,
+    label: `Scade tra ${diffDays} gg`,
+    color: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30",
+    badgeColor: "bg-emerald-600 text-white",
+  };
+}
+
+export function getMedicalKitSummary(medicalKit = []) {
+  if (!medicalKit || medicalKit.length === 0) {
+    return {
+      status: "empty",
+      label: "Non assegnato",
+      count: 0,
+      color: "bg-secondary text-muted-foreground border-border",
+      iconColor: "text-muted-foreground",
+    };
+  }
+  let hasExpired = false;
+  let hasExpiring = false;
+  medicalKit.forEach((item) => {
+    const st = getMedicalItemStatus(item.expiry_date);
+    if (st.status === "expired") hasExpired = true;
+    if (st.status === "expiring") hasExpiring = true;
+  });
+
+  if (hasExpired) {
+    return {
+      status: "expired",
+      label: "Scaduto",
+      count: medicalKit.length,
+      color: "bg-destructive/15 text-destructive border-destructive/30",
+      iconColor: "text-destructive",
+    };
+  }
+  if (hasExpiring) {
+    return {
+      status: "expiring",
+      label: "In scadenza (<30gg)",
+      count: medicalKit.length,
+      color: "bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30",
+      iconColor: "text-amber-600 dark:text-amber-400",
+    };
+  }
+  return {
+    status: "valid",
+    label: "Kit in regola",
+    count: medicalKit.length,
+    color: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30",
+    iconColor: "text-emerald-600 dark:text-emerald-400",
+  };
+}
+
+const COMMON_MEDICAL_ITEMS = [
+  "Disinfettante",
+  "Bende sterili",
+  "Cerotti",
+  "Garze idrofile",
+  "Ghiaccio istantaneo",
+  "Laccio emostatico",
+  "Guanti monouso",
+  "Soluzione fisiologica",
+];
+
 const GROUP_LABEL = { gruppo1: "Gruppo 1", gruppo2: "Gruppo 2", "": "Nessun gruppo" };
 const GROUP_CLS = {
   gruppo1: "bg-blue-500/15 text-blue-700 dark:text-blue-400",
@@ -58,6 +156,14 @@ export default function Drivers() {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(EMPTY);
+
+  // Stato per la finestra supplementare del Kit Medico
+  const [medOpen, setMedOpen] = useState(false);
+  const [medDriver, setMedDriver] = useState(null);
+  const [medItems, setMedItems] = useState([]);
+  const [newItemName, setNewItemName] = useState("");
+  const [newItemExpiry, setNewItemExpiry] = useState("");
+  const [medSaving, setMedSaving] = useState(false);
 
   const load = () => api.get("/drivers").then((r) => setDrivers(r.data));
   useEffect(() => { load(); }, []);
@@ -73,8 +179,41 @@ export default function Drivers() {
       group: d.group || "",
       password: "",
       licenses: Array.isArray(d.licenses) ? [...d.licenses] : [],
+      medical_kit: Array.isArray(d.medical_kit) ? [...d.medical_kit] : [],
     });
     setOpen(true);
+  };
+
+  const openMedicalKit = (driver) => {
+    setMedDriver(driver);
+    setMedItems(Array.isArray(driver.medical_kit) ? JSON.parse(JSON.stringify(driver.medical_kit)) : []);
+    setNewItemName("");
+    setNewItemExpiry("");
+    setMedOpen(true);
+  };
+
+  const saveMedicalKit = async () => {
+    if (!medDriver) return;
+    if (medDriver.id === "temp" || !medDriver.id) {
+      setForm((prev) => ({ ...prev, medical_kit: medItems }));
+      toast.success("Medicinali aggiornati nel modulo autista");
+      setMedOpen(false);
+      return;
+    }
+    setMedSaving(true);
+    try {
+      await api.put(`/drivers/${medDriver.id}/medical-kit`, { medical_kit: medItems });
+      toast.success(`Kit medico salvato per ${medDriver.name}`);
+      if (editing && editing.id === medDriver.id) {
+        setForm((prev) => ({ ...prev, medical_kit: medItems }));
+      }
+      setMedOpen(false);
+      load();
+    } catch (e) {
+      toast.error(apiError(e.response?.data?.detail));
+    } finally {
+      setMedSaving(false);
+    }
   };
 
   const save = async () => {
@@ -173,6 +312,63 @@ export default function Drivers() {
                   })}
                 </div>
               )}
+            </div>
+
+            {/* Kit Medico in Dotazione */}
+            <div className="mt-2.5 pt-2.5 border-t border-border/70">
+              {(() => {
+                const medSummary = getMedicalKitSummary(d.medical_kit);
+                const hasItems = d.medical_kit && d.medical_kit.length > 0;
+                return (
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-[11px] font-semibold flex items-center gap-1 text-muted-foreground">
+                        <BriefcaseMedical size={13} className={medSummary.iconColor} /> Kit Medico in dotazione
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => openMedicalKit(d)}
+                        className={`inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-sm border hover:opacity-80 transition-opacity cursor-pointer ${medSummary.color}`}
+                        title="Clicca per aprire la finestra di gestione del Kit Medico"
+                      >
+                        <span>{medSummary.label}</span>
+                        <ChevronRight size={11} />
+                      </button>
+                    </div>
+
+                    <div
+                      onClick={() => openMedicalKit(d)}
+                      className="cursor-pointer group p-1.5 rounded-sm bg-secondary/20 hover:bg-secondary/40 border border-border/60 transition-colors"
+                      title="Clicca per aprire la finestra dei medicinali"
+                    >
+                      {!hasItems ? (
+                        <div className="text-[10px] text-muted-foreground italic flex items-center justify-between">
+                          <span>Nessun medicinale registrato</span>
+                          <span className="text-[10px] text-primary group-hover:underline font-semibold">+ Configura</span>
+                        </div>
+                      ) : (
+                        <div className="flex flex-wrap gap-1">
+                          {d.medical_kit.map((item, mIdx) => {
+                            const st = getMedicalItemStatus(item.expiry_date);
+                            return (
+                              <div
+                                key={mIdx}
+                                className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-xs border text-[10px] font-medium ${st.color}`}
+                                title={`${item.name} - Scadenza: ${item.expiry_date} (${st.label})`}
+                              >
+                                <span className="font-semibold truncate max-w-[85px]">{item.name}</span>
+                                <span className="font-mono text-[9px] opacity-85">{item.expiry_date}</span>
+                                {st.status === "expiring" && <AlertTriangle size={10} className="text-amber-600 dark:text-amber-400 shrink-0" />}
+                                {st.status === "expired" && <AlertTriangle size={10} className="text-destructive shrink-0" />}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
 
             <div className="flex items-center justify-between mt-3">
@@ -341,6 +537,37 @@ export default function Drivers() {
               )}
             </div>
 
+            {/* SEZIONE KIT MEDICO */}
+            <div className="border border-border/80 rounded-sm p-3 bg-secondary/30 space-y-2">
+              <div className="flex items-center justify-between">
+                  <Label className="text-xs font-bold flex items-center gap-1.5">
+                    <BriefcaseMedical size={14} className="text-primary" /> Kit Medico in dotazione
+                  </Label>
+                  {(() => {
+                    const summary = getMedicalKitSummary(form.medical_kit);
+                    return (
+                      <span className={`text-[10px] px-1.5 py-0.2 rounded-xs border font-medium ${summary.color}`}>
+                        {summary.label}
+                      </span>
+                    );
+                  })()}
+                </div>
+                <div className="flex items-center justify-between gap-2 bg-card p-2 rounded-sm border border-border">
+                  <div className="text-xs text-muted-foreground">
+                    <span className="font-semibold text-foreground">{form.medical_kit?.length || 0}</span> medicinali/presidi configurati
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => openMedicalKit({ ...form, id: editing?.id || "temp" })}
+                    className="h-7 text-xs rounded-sm"
+                  >
+                    <BriefcaseMedical size={13} className="mr-1.5 text-primary" /> Gestisci medicinali
+                  </Button>
+                </div>
+              </div>
+
             <Field label="Gruppo turni *">
               <Select
                 value={form.group || "none"}
@@ -399,6 +626,209 @@ export default function Drivers() {
           <DialogFooter className="gap-2 sm:gap-0 mt-2">
             <Button variant="ghost" className="rounded-sm h-10 text-xs sm:text-sm" onClick={() => setOpen(false)}>Annulla</Button>
             <Button className="rounded-sm bg-primary hover:bg-primary/90 h-10 text-xs sm:text-sm font-semibold" data-testid="save-driver-btn" onClick={save}>Salva</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Finestra Supplementare: Modale Gestione Kit Medico */}
+      <Dialog open={medOpen} onOpenChange={setMedOpen}>
+        <DialogContent className="w-[94vw] sm:max-w-xl rounded-sm max-h-[88vh] overflow-y-auto p-4 sm:p-6" data-testid="medical-kit-modal">
+          <DialogHeader>
+            <div className="flex items-center gap-2.5">
+              <div className="p-2 rounded-sm bg-primary/10 text-primary border border-primary/20 shrink-0">
+                <BriefcaseMedical size={22} />
+              </div>
+              <div>
+                <DialogTitle className="font-head tracking-tight text-lg sm:text-xl">
+                  Kit Medico in Dotazione
+                </DialogTitle>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Autista: <span className="font-semibold text-foreground">{medDriver?.name || "Nuovo autista"}</span>
+                </p>
+              </div>
+            </div>
+          </DialogHeader>
+
+          {/* Riepilogo stato globale del Kit */}
+          {(() => {
+            const summary = getMedicalKitSummary(medItems);
+            return (
+              <div className={`p-3 rounded-sm border flex items-center justify-between gap-2 ${summary.color}`}>
+                <div className="flex items-center gap-2">
+                  <BriefcaseMedical size={18} className="shrink-0" />
+                  <div>
+                    <div className="text-xs font-bold uppercase tracking-wider">{summary.label}</div>
+                    <div className="text-[11px] opacity-90">
+                      {medItems.length} medicinali registrati nella cassetta
+                    </div>
+                  </div>
+                </div>
+                <div className="text-[11px] font-mono font-bold shrink-0">
+                  {summary.status === "expired" && "🔴 Richiede sostituzione"}
+                  {summary.status === "expiring" && "🟠 In scadenza (< 30 gg)"}
+                  {summary.status === "valid" && "🟢 Tutti conformi"}
+                  {summary.status === "empty" && "⚪ Kit vuoto"}
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* Aggiunta Rapida con Presidi Comuni */}
+          <div className="space-y-2.5 border border-border/80 rounded-sm p-3 bg-secondary/30">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-bold flex items-center gap-1.5">
+                <Plus size={14} className="text-primary" /> Aggiungi medicinali al kit
+              </Label>
+              <span className="text-[10px] text-muted-foreground">Arancione &le; 30 gg · Rosso scaduto</span>
+            </div>
+
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-[10px] text-muted-foreground mr-1">Suggerimenti rapidi:</span>
+              {COMMON_MEDICAL_ITEMS.map((item) => {
+                const already = medItems.some((m) => m.name.toLowerCase() === item.toLowerCase());
+                return (
+                  <Button
+                    key={item}
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={already}
+                    onClick={() => {
+                      const nextYear = new Date();
+                      nextYear.setFullYear(nextYear.getFullYear() + 1);
+                      const defaultExp = nextYear.toISOString().split("T")[0];
+                      setMedItems([...medItems, { name: item, expiry_date: defaultExp }]);
+                    }}
+                    className="h-6 text-[10px] px-2 rounded-sm border-dashed"
+                  >
+                    + {item}
+                  </Button>
+                );
+              })}
+            </div>
+
+            {/* Inserimento personalizzato nuovo medicinale */}
+            <div className="flex flex-col sm:flex-row items-center gap-2 pt-1">
+              <div className="flex-1 w-full">
+                <Input
+                  placeholder="Nome medicinale o presidio (es. Paracetamolo)"
+                  value={newItemName}
+                  onChange={(e) => setNewItemName(e.target.value)}
+                  className="h-8 text-xs rounded-sm"
+                />
+              </div>
+              <div className="w-full sm:w-44">
+                <Input
+                  type="date"
+                  value={newItemExpiry}
+                  onChange={(e) => setNewItemExpiry(e.target.value)}
+                  className="h-8 text-xs font-mono rounded-sm"
+                />
+              </div>
+              <Button
+                type="button"
+                size="sm"
+                className="h-8 text-xs rounded-sm w-full sm:w-auto px-3 bg-primary text-primary-foreground font-semibold shrink-0"
+                onClick={() => {
+                  if (!newItemName.trim()) return toast.error("Inserisci il nome del medicinale");
+                  if (!newItemExpiry) return toast.error("Seleziona la data di scadenza");
+                  setMedItems([...medItems, { name: newItemName.trim(), expiry_date: newItemExpiry }]);
+                  setNewItemName("");
+                  setNewItemExpiry("");
+                }}
+              >
+                <Plus size={14} className="mr-1" /> Aggiungi
+              </Button>
+            </div>
+          </div>
+
+          {/* Elenco dei medicinali nel Kit */}
+          <div className="space-y-2 mt-1">
+            <div className="flex items-center justify-between text-xs font-semibold px-1">
+              <span>Elenco medicinali registrati ({medItems.length})</span>
+              <span className="text-[10px] text-muted-foreground">Verde = OK · Arancione &le; 30 gg · Rosso = Scaduto</span>
+            </div>
+
+            {medItems.length === 0 ? (
+              <div className="p-6 text-center text-xs text-muted-foreground border border-dashed rounded-sm bg-card">
+                Nessun medicinale presente nel kit di questo autista.<br />
+                Usa i pulsanti rapidi sopra o il campo per aggiungerne.
+              </div>
+            ) : (
+              <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+                {medItems.map((item, index) => {
+                  const st = getMedicalItemStatus(item.expiry_date);
+                  return (
+                    <div
+                      key={index}
+                      className="p-2 rounded-sm border border-border bg-card flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:border-border/90"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <Input
+                          value={item.name}
+                          onChange={(e) => {
+                            const updated = [...medItems];
+                            updated[index] = { ...updated[index], name: e.target.value };
+                            setMedItems(updated);
+                          }}
+                          placeholder="Nome medicinale"
+                          className="h-8 text-xs font-semibold rounded-sm mb-1 sm:mb-0"
+                        />
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        <Input
+                          type="date"
+                          value={item.expiry_date || ""}
+                          onChange={(e) => {
+                            const updated = [...medItems];
+                            updated[index] = { ...updated[index], expiry_date: e.target.value };
+                            setMedItems(updated);
+                          }}
+                          className="h-8 text-xs font-mono rounded-sm w-36"
+                        />
+
+                        {item.expiry_date && (
+                          <div className={`px-2 py-1 rounded-sm border text-[11px] font-semibold whitespace-nowrap flex items-center gap-1 ${st.color}`}>
+                            {st.status === "expired" && <AlertTriangle size={12} className="text-destructive shrink-0" />}
+                            {st.status === "expiring" && <AlertTriangle size={12} className="text-amber-600 dark:text-amber-400 shrink-0" />}
+                            {st.status === "valid" && <CheckCircle2 size={12} className="text-emerald-600 dark:text-emerald-400 shrink-0" />}
+                            <span>{st.label}</span>
+                          </div>
+                        )}
+
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            const updated = medItems.filter((_, i) => i !== index);
+                            setMedItems(updated);
+                          }}
+                          className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive shrink-0"
+                          title="Rimuovi medicinale"
+                        >
+                          <Trash2 size={14} />
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-0 mt-3 pt-3 border-t border-border">
+            <Button variant="ghost" className="rounded-sm h-10 text-xs sm:text-sm" onClick={() => setMedOpen(false)}>
+              Annulla
+            </Button>
+            <Button
+              className="rounded-sm bg-primary hover:bg-primary/90 h-10 text-xs sm:text-sm font-semibold"
+              disabled={medSaving}
+              onClick={saveMedicalKit}
+            >
+              {medSaving ? "Salvataggio..." : "Salva Kit Medico"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
