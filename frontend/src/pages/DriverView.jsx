@@ -12,8 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "../components/ui/dialog";
 import { requestNotificationPermission, triggerLocalNotification } from "../lib/pushNotifications";
 import { toast } from "sonner";
-import { ChevronLeft, ChevronRight, LogOut, LayoutDashboard, Clock, Bell, ArrowLeftRight, Check, X as XIcon, Info, RefreshCw, BriefcaseMedical, RotateCw, CheckCircle2, AlertTriangle, MessageSquarePlus } from "lucide-react";
-import { getMedicalKitSummary, getMedicalItemStatus } from "./Drivers";
+import { ChevronLeft, ChevronRight, LogOut, LayoutDashboard, Clock, Bell, ArrowLeftRight, Check, X as XIcon, Info, RefreshCw, BriefcaseMedical, RotateCw, CheckCircle2, AlertTriangle, MessageSquarePlus, Award } from "lucide-react";
+import { getMedicalKitSummary, getMedicalItemStatus, getLicensesSummary, getLicenseStatus } from "./Drivers";
 
 const SLOT_TIME = { presto: "05:30 – 11:50", standard: "06:00 – 12:20", pomeriggio: "12:30 – 18:50", domenica: "06:00 – 12:20" };
 const SLOT_LABEL = { presto: "Mattino Presto", standard: "Mattino Standard", pomeriggio: "Pomeriggio", domenica: "Turno Domenica" };
@@ -43,7 +43,8 @@ export default function DriverView() {
   const [refreshing, setRefreshing] = useState(false);
   const [notifsOpen, setNotifsOpen] = useState(false);
 
-  // Stati per la gestione del Kit Medico dell'autista
+  // Stati per la gestione del Kit Medico e Patenti dell'autista
+  const [driverLicModalOpen, setDriverLicModalOpen] = useState(false);
   const [medDetailsOpen, setMedDetailsOpen] = useState(false);
   const [medReportItem, setMedReportItem] = useState(null);
   const [medReportNote, setMedReportNote] = useState("");
@@ -379,52 +380,64 @@ export default function DriverView() {
                         <div className="font-mono text-xs text-muted-foreground">{SLOT_TIME[mySlot]}</div>
                       </div>
                     )}
+                    {/* Card Compatta Patenti & CQC */}
+                    {myDriver && (
+                      <div
+                        onClick={() => setDriverLicModalOpen(true)}
+                        className="border border-border/80 bg-card hover:bg-secondary/30 transition-all rounded-sm px-3 py-2 shrink-0 self-start sm:self-auto cursor-pointer shadow-xs group"
+                        title="Clicca per visualizzare le tue patenti e le date di scadenza"
+                      >
+                        <div className="flex items-center justify-between gap-2 mb-1">
+                          <div className="flex items-center gap-1.5">
+                            <Award size={14} className="text-primary" />
+                            <div className="overline text-muted-foreground text-[10px] font-bold">Patenti & CQC</div>
+                          </div>
+                          <ChevronRight size={11} className="text-muted-foreground group-hover:translate-x-0.5 transition-transform" />
+                        </div>
+                        {(() => {
+                          const licSum = getLicensesSummary(myDriver.licenses);
+                          return (
+                            <div className="flex items-center gap-1.5">
+                              <span className={`inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-xs border font-medium ${licSum.color}`}>
+                                {licSum.status === "expired" && <AlertTriangle size={10} className="text-destructive shrink-0" />}
+                                {licSum.status === "expiring" && <AlertTriangle size={10} className="text-amber-600 dark:text-amber-400 shrink-0" />}
+                                {licSum.status === "valid" && <CheckCircle2 size={10} className="text-emerald-600 dark:text-emerald-400 shrink-0" />}
+                                <span>{licSum.label}</span>
+                              </span>
+                            </div>
+                          );
+                        })()}
+                      </div>
+                    )}
+
+                    {/* Card Compatta Kit Medico */}
                     {myDriver?.medical_kit && (
                       <div
                         onClick={() => setMedDetailsOpen(true)}
-                        className="border border-border/80 bg-card hover:bg-secondary/30 transition-all rounded-sm px-3.5 py-2.5 shrink-0 self-start sm:self-auto cursor-pointer shadow-xs group"
+                        className="border border-border/80 bg-card hover:bg-secondary/30 transition-all rounded-sm px-3 py-2 shrink-0 self-start sm:self-auto cursor-pointer shadow-xs group"
                         title="Clicca per visualizzare i dettagli e segnalare l'utilizzo dei presidi"
                       >
-                        <div className="flex items-center justify-between gap-2 mb-1.5">
+                        <div className="flex items-center justify-between gap-2 mb-1">
                           <div className="flex items-center gap-1.5">
-                            <BriefcaseMedical size={15} className="text-primary" />
-                            <div className="overline text-muted-foreground text-[10px] font-bold">Kit Medico in dotazione</div>
+                            <BriefcaseMedical size={14} className="text-primary" />
+                            <div className="overline text-muted-foreground text-[10px] font-bold">Kit Medico</div>
                           </div>
-                          {(() => {
-                            const summary = getMedicalKitSummary(myDriver.medical_kit);
-                            return (
-                              <span className={`text-[10px] px-1.5 py-0.2 rounded-xs border font-medium flex items-center gap-1 ${summary.color}`}>
-                                {summary.replacementNeeded > 0 && <RotateCw size={10} className="animate-spin text-purple-600" />}
+                          <ChevronRight size={11} className="text-muted-foreground group-hover:translate-x-0.5 transition-transform" />
+                        </div>
+                        {(() => {
+                          const summary = getMedicalKitSummary(myDriver.medical_kit);
+                          return (
+                            <div className="flex items-center gap-1.5">
+                              <span className={`inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-xs border font-medium ${summary.color}`}>
+                                {summary.replacementNeeded > 0 && <RotateCw size={10} className="animate-spin text-purple-600 shrink-0" />}
+                                {summary.status === "expired" && <AlertTriangle size={10} className="text-destructive shrink-0" />}
+                                {summary.status === "expiring" && <AlertTriangle size={10} className="text-amber-600 dark:text-amber-400 shrink-0" />}
+                                {summary.status === "valid" && <CheckCircle2 size={10} className="text-emerald-600 dark:text-emerald-400 shrink-0" />}
                                 <span>{summary.label}</span>
-                                <ChevronRight size={11} className="text-muted-foreground group-hover:translate-x-0.5 transition-transform" />
                               </span>
-                            );
-                          })()}
-                        </div>
-
-                        {myDriver.medical_kit.length === 0 ? (
-                          <div className="text-xs text-muted-foreground italic">Nessun presidio registrato</div>
-                        ) : (
-                          <div className="flex flex-wrap gap-1 mt-1 max-w-xs">
-                            {myDriver.medical_kit.map((item, idx) => {
-                              const st = getMedicalItemStatus(item.expiry_date, item.needs_replacement, item.replacement_requested_at);
-                              return (
-                                <span
-                                  key={idx}
-                                  className={`inline-flex items-center gap-1 text-[9px] font-medium px-1.5 py-0.5 rounded-xs border ${st.color}`}
-                                  title={`${item.name} - ${st.label}`}
-                                >
-                                  {item.needs_replacement && <RotateCw size={9} className="animate-spin text-purple-600 shrink-0" />}
-                                  <span className="font-semibold truncate max-w-[85px]">{item.name}</span>
-                                  {!item.needs_replacement && <span className="font-mono text-[8px] opacity-80">{item.expiry_date}</span>}
-                                </span>
-                              );
-                            })}
-                          </div>
-                        )}
-                        <div className="text-[10px] text-primary group-hover:underline font-semibold mt-1.5 flex items-center gap-1">
-                          <span>Gestisci presidi / Segnala utilizzo</span>
-                        </div>
+                            </div>
+                          );
+                        })()}
                       </div>
                     )}
                   </>
@@ -699,6 +712,62 @@ export default function DriverView() {
           <DialogFooter className="gap-2 sm:gap-0 mt-2">
             <Button variant="ghost" className="rounded-sm h-10 text-xs" onClick={() => setWeekSwapOpen(false)}>Annulla</Button>
             <Button className="rounded-sm bg-primary hover:bg-primary/90 h-10 text-xs font-semibold" data-testid="submit-week-swap-btn" onClick={submitWeekSwap}>Invia richiesta settimanale</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* MODALE DETTAGLI PATENTI & ABILITAZIONI AUTISTA */}
+      <Dialog open={driverLicModalOpen} onOpenChange={setDriverLicModalOpen}>
+        <DialogContent className="w-[94vw] sm:max-w-md rounded-sm p-4 sm:p-6 max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="font-head tracking-tight text-lg sm:text-xl flex items-center gap-2">
+              <Award size={20} className="text-primary" />
+              <span>Le mie patenti & abilitazioni</span>
+            </DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground">
+              Verifica le date di validità e le scadenze delle tue patenti e del CQC Merci.
+            </DialogDescription>
+          </DialogHeader>
+
+          {(() => {
+            const myDriver = drivers.find((d) => d.id === myId);
+            const lics = myDriver?.licenses || [];
+            if (lics.length === 0) {
+              return (
+                <div className="p-8 text-center text-xs text-muted-foreground border border-dashed rounded-sm bg-card my-2">
+                  Nessuna patente o abilitazione registrata a tuo nome. Rivolgiti all'amministrazione se necessario.
+                </div>
+              );
+            }
+            return (
+              <div className="space-y-2.5 my-3">
+                {lics.map((lic, idx) => {
+                  const st = getLicenseStatus(lic.expiry_date);
+                  return (
+                    <div key={idx} className="p-3 rounded-sm border border-border bg-card flex items-center justify-between gap-2 shadow-2xs">
+                      <div>
+                        <div className="font-bold text-sm text-foreground">{lic.name}</div>
+                        <div className="font-mono text-xs text-muted-foreground mt-0.5">
+                          Scadenza: <span className="font-semibold text-foreground">{lic.expiry_date || "N/D"}</span>
+                        </div>
+                      </div>
+                      <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-sm border shrink-0 ${st.color}`}>
+                        {st.status === "expired" && <AlertTriangle size={12} className="text-destructive shrink-0" />}
+                        {st.status === "expiring" && <AlertTriangle size={12} className="text-amber-600 dark:text-amber-400 shrink-0" />}
+                        {st.status === "valid" && <CheckCircle2 size={12} className="text-emerald-600 dark:text-emerald-400 shrink-0" />}
+                        <span>{st.label}</span>
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()}
+
+          <DialogFooter className="mt-3 pt-3 border-t border-border">
+            <Button variant="outline" className="rounded-sm h-9 text-xs" onClick={() => setDriverLicModalOpen(false)}>
+              Chiudi
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

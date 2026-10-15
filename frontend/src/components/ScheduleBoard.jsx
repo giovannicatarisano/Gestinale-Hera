@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { DAY_LABELS, DAY_FULL, SLOT_ORDER, initials } from "../lib/dates";
-import { Clock, Users, Calendar, LayoutGrid, AlertTriangle, ArrowRight, UserCheck, UserX, Award, BriefcaseMedical } from "lucide-react";
-import { getLicenseStatus, getMedicalKitSummary } from "../pages/Drivers";
+import { Clock, Users, Calendar, LayoutGrid, AlertTriangle, ArrowRight, UserCheck, UserX, Award, BriefcaseMedical, CheckCircle2, RotateCw } from "lucide-react";
+import { getLicenseStatus, getLicensesSummary, getMedicalKitSummary } from "../pages/Drivers";
 
 const SLOT_META = {
   presto: { label: "Mattino Presto", time: "05:30 – 11:50", max: 3, color: "border-blue-500/30 bg-blue-500/5 text-blue-700" },
@@ -206,36 +206,36 @@ export default function ScheduleBoard({
                                   </span>
                                 )}
                               </div>
-                              {drv?.licenses && drv.licenses.length > 0 && (
-                                <div className="flex items-center gap-1 mt-1 flex-wrap justify-end sm:justify-start">
-                                  {drv.licenses.map((lic, lIdx) => {
-                                    const st = getLicenseStatus(lic.expiry_date);
-                                    return (
-                                      <span
-                                        key={lIdx}
-                                        className={`inline-flex items-center gap-0.5 text-[9px] font-semibold px-1 py-0.2 rounded-sm border ${st.color}`}
-                                        title={`${lic.name} - Scadenza: ${lic.expiry_date || "N/D"} (${st.label})`}
-                                      >
-                                        <span>{lic.name}</span>
-                                        {st.status === "expiring" && <AlertTriangle size={9} className="text-amber-600 dark:text-amber-400" />}
-                                        {st.status === "expired" && <AlertTriangle size={9} className="text-destructive" />}
-                                      </span>
-                                    );
-                                  })}
-                                </div>
-                              )}
-                              {drv?.medical_kit && drv.medical_kit.length > 0 && (() => {
-                                const medSt = getMedicalKitSummary(drv.medical_kit);
-                                return (
-                                  <span
-                                    className={`inline-flex items-center gap-1 text-[9px] font-semibold px-1 py-0.2 rounded-sm border mt-1 ${medSt.color}`}
-                                    title={`Kit Medico in dotazione: ${medSt.label} (${drv.medical_kit.length} presidi)`}
-                                  >
-                                    <BriefcaseMedical size={9} />
-                                    <span>Kit {medSt.label}</span>
-                                  </span>
-                                );
-                              })()}
+                              <div className="flex items-center gap-1.5 mt-1 flex-wrap justify-end sm:justify-start">
+                                {drv?.licenses && drv.licenses.length > 0 && (() => {
+                                  const licSt = getLicensesSummary(drv.licenses);
+                                  return (
+                                    <span
+                                      className={`inline-flex items-center gap-1 text-[9px] font-semibold px-1.5 py-0.2 rounded-xs border ${licSt.color}`}
+                                      title={`Patenti autista: ${licSt.label}`}
+                                    >
+                                      <Award size={10} className="shrink-0" />
+                                      <span>{licSt.label}</span>
+                                    </span>
+                                  );
+                                })()}
+                                {drv?.medical_kit && drv.medical_kit.length > 0 && (() => {
+                                  const medSt = getMedicalKitSummary(drv.medical_kit);
+                                  return (
+                                    <span
+                                      className={`inline-flex items-center gap-1 text-[9px] font-semibold px-1.5 py-0.2 rounded-xs border ${medSt.color}`}
+                                      title={`Kit Medico: ${medSt.label}`}
+                                    >
+                                      {medSt.replacementNeeded > 0 ? (
+                                        <RotateCw size={10} className="shrink-0 animate-spin text-purple-600" />
+                                      ) : (
+                                        <BriefcaseMedical size={10} className="shrink-0" />
+                                      )}
+                                      <span>Kit {medSt.label}</span>
+                                    </span>
+                                  );
+                                })()}
+                              </div>
                               {mine && <span className="overline text-[9px] text-primary">Il tuo turno</span>}
                               {recovered && <span className="overline text-[9px] text-muted-foreground">Sostituito</span>}
                             </div>
@@ -357,36 +357,32 @@ export default function ScheduleBoard({
                                       {drv.name}
                                     </span>
                                   </div>
-                                  {drv?.licenses && drv.licenses.length > 0 && (
-                                    <div className="flex items-center gap-1 mt-0.5 flex-wrap">
-                                      {drv.licenses.map((lic, lIdx) => {
-                                        const st = getLicenseStatus(lic.expiry_date);
-                                        return (
-                                          <span
-                                            key={lIdx}
-                                            className={`inline-flex items-center gap-0.5 text-[8px] font-semibold px-1 py-0 rounded-xs border ${st.color}`}
-                                            title={`${lic.name} - Scadenza: ${lic.expiry_date || "N/D"} (${st.label})`}
-                                          >
-                                            <span>{lic.name}</span>
-                                            {st.status === "expiring" && <AlertTriangle size={8} className="text-amber-600 dark:text-amber-400" />}
-                                            {st.status === "expired" && <AlertTriangle size={8} className="text-destructive" />}
-                                          </span>
-                                        );
-                                      })}
-                                    </div>
-                                  )}
-                                  {drv?.medical_kit && drv.medical_kit.length > 0 && (() => {
-                                    const medSt = getMedicalKitSummary(drv.medical_kit);
-                                    return (
-                                      <span
-                                        className={`inline-flex items-center gap-0.5 text-[8px] font-semibold px-1 py-0 rounded-xs border mt-0.5 ${medSt.color}`}
-                                        title={`Kit Medico in dotazione: ${medSt.label} (${drv.medical_kit.length} presidi)`}
-                                      >
-                                        <BriefcaseMedical size={8} />
-                                        <span>Kit</span>
-                                      </span>
-                                    );
-                                  })()}
+                                  <div className="flex items-center gap-1 mt-0.5 flex-wrap">
+                                    {drv?.licenses && drv.licenses.length > 0 && (() => {
+                                      const licSt = getLicensesSummary(drv.licenses);
+                                      return (
+                                        <span
+                                          className={`inline-flex items-center gap-0.5 text-[8px] font-semibold px-1 py-0 rounded-xs border ${licSt.color}`}
+                                          title={`Patenti autista: ${licSt.label}`}
+                                        >
+                                          <Award size={8} />
+                                          <span>{licSt.shortLabel}</span>
+                                        </span>
+                                      );
+                                    })()}
+                                    {drv?.medical_kit && drv.medical_kit.length > 0 && (() => {
+                                      const medSt = getMedicalKitSummary(drv.medical_kit);
+                                      return (
+                                        <span
+                                          className={`inline-flex items-center gap-0.5 text-[8px] font-semibold px-1 py-0 rounded-xs border ${medSt.color}`}
+                                          title={`Kit Medico in dotazione: ${medSt.label} (${drv.medical_kit.length} presidi)`}
+                                        >
+                                          <BriefcaseMedical size={8} />
+                                          <span>Kit</span>
+                                        </span>
+                                      );
+                                    })()}
+                                  </div>
                                 </div>
                               ) : (
                                 <span className="text-destructive font-medium text-[10px]">Da assegnare</span>
