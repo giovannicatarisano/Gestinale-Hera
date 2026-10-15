@@ -11,6 +11,7 @@ import Absences from "./pages/Absences";
 import Swaps from "./pages/Swaps";
 import SkillMatrix from "./pages/SkillMatrix";
 import DriverView from "./pages/DriverView";
+import Assistants from "./pages/Assistants";
 import "./App.css";
 
 function Loader() {
@@ -21,12 +22,13 @@ function Loader() {
   );
 }
 
-function Protected({ children, role }) {
+function Protected({ children, roles, role }) {
   const { user, loading } = useAuth();
   if (loading || user === null) return <Loader />;
   if (!user) return <Navigate to="/login" replace />;
-  if (role && user.role !== role) {
-    return <Navigate to={user.role === "admin" ? "/" : "/tabellone"} replace />;
+  const allowed = roles || (role ? [role] : null);
+  if (allowed && !allowed.includes(user.role)) {
+    return <Navigate to={user.role === "driver" ? "/tabellone" : "/dashboard"} replace />;
   }
   return children;
 }
@@ -35,7 +37,7 @@ function Root() {
   const { user, loading } = useAuth();
   if (loading || user === null) return <Loader />;
   if (!user) return <Navigate to="/login" replace />;
-  return <Navigate to={user.role === "admin" ? "/dashboard" : "/tabellone"} replace />;
+  return <Navigate to={user.role === "driver" ? "/tabellone" : "/dashboard"} replace />;
 }
 
 function App() {
@@ -56,7 +58,7 @@ function App() {
           />
           <Route
             element={
-              <Protected role="admin">
+              <Protected roles={["admin", "assistant"]}>
                 <Layout />
               </Protected>
             }
@@ -68,6 +70,14 @@ function App() {
             <Route path="/assenze" element={<Absences />} />
             <Route path="/scambi" element={<Swaps />} />
             <Route path="/formazioni" element={<SkillMatrix />} />
+            <Route
+              path="/assistenti"
+              element={
+                <Protected roles={["admin"]}>
+                  <Assistants />
+                </Protected>
+              }
+            />
           </Route>
         </Routes>
       </BrowserRouter>
