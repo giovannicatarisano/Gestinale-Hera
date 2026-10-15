@@ -48,7 +48,9 @@ export default function Assistants() {
       const res = await api.get("/assistants");
       setAssistants(res.data || []);
     } catch (e) {
-      toast.error(apiError(e.response?.data?.detail || "Errore nel caricamento assistenti"));
+      if (e.response?.status !== 404) {
+        toast.error(apiError(e.response?.data?.detail || "Errore nel caricamento assistenti"));
+      }
     } finally {
       setLoading(false);
     }
@@ -84,7 +86,12 @@ export default function Assistants() {
       setCreateOpen(false);
       load();
     } catch (e) {
-      toast.error(apiError(e.response?.data?.detail || "Errore creazione assistente"));
+      const detail = e.response?.data?.detail;
+      if (e.response?.status === 404 || detail === "Not Found") {
+        toast.error("Il server Render è ancora alla versione precedente. Clicca 'Manual Deploy' su dashboard.render.com!");
+      } else {
+        toast.error(apiError(detail || "Errore creazione assistente"));
+      }
     } finally {
       setCreating(false);
     }
