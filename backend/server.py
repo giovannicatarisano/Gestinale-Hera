@@ -104,12 +104,30 @@ async def require_admin(user: dict = Depends(get_current_user)) -> dict:
     return user
 
 
+async def require_staff(user: dict = Depends(get_current_user)) -> dict:
+    if user.get("role") not in ("admin", "assistant"):
+        raise HTTPException(status_code=403, detail="Accesso riservato al personale di gestione")
+    return user
+
+
 # ---------------------------------------------------------------------------
 # Models
 # ---------------------------------------------------------------------------
 class LoginInput(BaseModel):
     email: str
     password: str
+
+
+class AssistantInput(BaseModel):
+    name: str
+    email: str
+    password: str
+
+
+class AssistantUpdateInput(BaseModel):
+    name: Optional[str] = None
+    email: Optional[str] = None
+    password: Optional[str] = None
 
 
 class Vehicle(BaseModel):
@@ -302,6 +320,90 @@ async def me(user: dict = Depends(get_current_user)):
 
 
 # ---------------------------------------------------------------------------
+# Assistants management (Admin only)
+# ---------------------------------------------------------------------------
+@api_router.get("/assistants")
+async def list_assistants(user: dict = Depends(require_admin)):
+    return await db.users.find(
+        {"role": "assistant"},
+        {"_id": 0, "password_hash": 0}
+    ).sort("created_at", -1).to_list(100)
+
+
+@api_router.post("/assistants")
+async def create_assistant(data: AssistantInput, user: dict = Depends(require_admin)):
+    email = data.email.strip().lower()
+    if not email:
+        raise HTTPException(status_code=400, detail="Email obbligatoria")
+    if not data.password or len(data.password.strip()) < 4:
+        raise HTTPException(status_code=400, detail="Password troppo breve (minimo 4 caratteri)")
+    existing = await db.users.find_one({"email": email})
+    if existing:
+        raise HTTPException(status_code=400, detail="Esiste già un account con questa email")
+
+    aid = str(uuid.uuid4())
+    now_iso = datetime.now(timezone.utc).isoformat()
+    new_user = {
+        "id": aid,
+        "name": data.name.strip(),
+        "email": email,
+        "password_hash": hash_password(data.password.strip()),
+        "role": "assistant",
+        "created_at": now_iso,
+        "created_by": user.get("email"),
+    }
+    await db.users.insert_one(new_user)
+    return {
+        "id": aid,
+        "name": new_user["name"],
+        "email": new_user["email"],
+        "role": "assistant",
+        "created_at": now_iso,
+    }
+
+
+@api_router.put("/assistants/{aid}")
+async def update_assistant(aid: str, data: AssistantUpdateInput, user: dict = Depends(require_admin)):
+    target = await db.users.find_one({"id": aid})
+    if not target:
+        raise HTTPException(status_code=404, detail="Assistente non trovato")
+    if target.get("role") != "assistant":
+        raise HTTPException(status_code=403, detail="Modifica consentita solo per gli account assistente")
+
+    updates = {}
+    if data.name is not None and data.name.strip():
+        updates["name"] = data.name.strip()
+    if data.email is not None and data.email.strip():
+        new_email = data.email.strip().lower()
+        if new_email != target["email"]:
+            exists = await db.users.find_one({"email": new_email})
+            if exists:
+                raise HTTPException(status_code=400, detail="Email già utilizzata da un altro account")
+            updates["email"] = new_email
+    if data.password is not None and data.password.strip():
+        if len(data.password.strip()) < 4:
+            raise HTTPException(status_code=400, detail="Password troppo breve (minimo 4 caratteri)")
+        updates["password_hash"] = hash_password(data.password.strip())
+
+    if updates:
+        await db.users.update_one({"id": aid}, {"$set": updates})
+
+    return await db.users.find_one({"id": aid}, {"_id": 0, "password_hash": 0})
+
+
+@api_router.delete("/assistants/{aid}")
+async def delete_assistant(aid: str, user: dict = Depends(require_admin)):
+    target = await db.users.find_one({"id": aid})
+    if not target:
+        raise HTTPException(status_code=404, detail="Assistente non trovato")
+    if target.get("role") != "assistant":
+        raise HTTPException(status_code=403, detail="Impossibile eliminare un account non-assistente")
+    await db.users.delete_one({"id": aid})
+    return {"ok": True, "message": "Assistente eliminato con successo"}
+
+
+
+# ---------------------------------------------------------------------------
 # Vehicles
 # ---------------------------------------------------------------------------
 @api_router.get("/vehicles")
@@ -310,20 +412,20 @@ async def list_vehicles(user: dict = Depends(get_current_user)):
 
 
 @api_router.post("/vehicles")
-async def create_vehicle(data: VehicleInput, user: dict = Depends(require_admin)):
+async def create_vehicle(data: VehicleInput, user: dict = Depends(require_staff)):
     v = Vehicle(**data.model_dump())
     await db.vehicles.insert_one(v.model_dump())
     return v
 
 
 @api_router.put("/vehicles/{vid}")
-async def update_vehicle(vid: str, data: VehicleInput, user: dict = Depends(require_admin)):
+async def update_vehicle(vid: str, data: VehicleInput, user: dict = Depends(require_staff)):
     await db.vehicles.update_one({"id": vid}, {"$set": data.model_dump()})
     return await db.vehicles.find_one({"id": vid}, {"_id": 0})
 
 
 @api_router.delete("/vehicles/{vid}")
-async def delete_vehicle(vid: str, user: dict = Depends(require_admin)):
+async def delete_vehicle(vid: str, user: dict = Depends(require_staff)):
     await db.vehicles.delete_one({"id": vid})
     return {"ok": True}
 
@@ -337,20 +439,20 @@ async def list_routes(user: dict = Depends(get_current_user)):
 
 
 @api_router.post("/routes")
-async def create_route(data: RouteInput, user: dict = Depends(require_admin)):
+async def create_route(data: RouteInput, user: dict = Depends(require_staff)):
     r = Route(**data.model_dump())
     await db.routes.insert_one(r.model_dump())
     return r
 
 
 @api_router.put("/routes/{rid}")
-async def update_route(rid: str, data: RouteInput, user: dict = Depends(require_admin)):
+async def update_route(rid: str, data: RouteInput, user: dict = Depends(require_staff)):
     await db.routes.update_one({"id": rid}, {"$set": data.model_dump()})
     return await db.routes.find_one({"id": rid}, {"_id": 0})
 
 
 @api_router.delete("/routes/{rid}")
-async def delete_route(rid: str, user: dict = Depends(require_admin)):
+async def delete_route(rid: str, user: dict = Depends(require_staff)):
     await db.routes.delete_one({"id": rid})
     return {"ok": True}
 
@@ -386,7 +488,7 @@ async def _create_driver_account(driver: dict, password: str):
 
 
 @api_router.post("/drivers")
-async def create_driver(data: DriverInput, user: dict = Depends(require_admin)):
+async def create_driver(data: DriverInput, user: dict = Depends(require_staff)):
     payload = data.model_dump()
     password = payload.pop("password", None)
     d = Driver(**payload)
@@ -397,7 +499,7 @@ async def create_driver(data: DriverInput, user: dict = Depends(require_admin)):
 
 
 @api_router.put("/drivers/{did}")
-async def update_driver(did: str, data: DriverInput, user: dict = Depends(require_admin)):
+async def update_driver(did: str, data: DriverInput, user: dict = Depends(require_staff)):
     payload = data.model_dump()
     password = payload.pop("password", None)
     await db.drivers.update_one({"id": did}, {"$set": payload})
@@ -411,7 +513,7 @@ async def update_driver(did: str, data: DriverInput, user: dict = Depends(requir
 
 
 @api_router.put("/drivers/{did}/medical-kit")
-async def update_driver_medical_kit(did: str, data: MedicalKitInput, user: dict = Depends(require_admin)):
+async def update_driver_medical_kit(did: str, data: MedicalKitInput, user: dict = Depends(require_staff)):
     driver = await db.drivers.find_one({"id": did}, {"_id": 0})
     if not driver:
         raise HTTPException(status_code=404, detail="Autista non trovato")
@@ -427,8 +529,8 @@ async def request_medical_kit_replacement(
     data: MedicalReplacementRequestInput,
     user: dict = Depends(get_current_user),
 ):
-    # Consenti solo all'autista interessato o a un admin
-    if user.get("role") != "admin" and user.get("driver_id") != did:
+    # Consenti solo all'autista interessato o allo staff (admin/assistente)
+    if user.get("role") not in ("admin", "assistant") and user.get("driver_id") != did:
         raise HTTPException(status_code=403, detail="Non autorizzato a modificare questo kit medico")
 
     driver = await db.drivers.find_one({"id": did}, {"_id": 0})
@@ -483,7 +585,7 @@ async def cancel_medical_kit_replacement(
     data: MedicalCancelReplacementInput,
     user: dict = Depends(get_current_user),
 ):
-    if user.get("role") != "admin" and user.get("driver_id") != did:
+    if user.get("role") not in ("admin", "assistant") and user.get("driver_id") != did:
         raise HTTPException(status_code=403, detail="Non autorizzato")
 
     driver = await db.drivers.find_one({"id": did}, {"_id": 0})
@@ -507,7 +609,7 @@ async def cancel_medical_kit_replacement(
 async def restock_medical_kit_item(
     did: str,
     data: MedicalRestockInput,
-    user: dict = Depends(require_admin),
+    user: dict = Depends(require_staff),
 ):
     driver = await db.drivers.find_one({"id": did}, {"_id": 0})
     if not driver:
@@ -545,7 +647,7 @@ async def restock_medical_kit_item(
 
 
 @api_router.post("/drivers/{did}/credentials")
-async def set_driver_credentials(did: str, data: CredentialsInput, user: dict = Depends(require_admin)):
+async def set_driver_credentials(did: str, data: CredentialsInput, user: dict = Depends(require_staff)):
     driver = await db.drivers.find_one({"id": did}, {"_id": 0})
     if not driver:
         raise HTTPException(status_code=404, detail="Autista non trovato")
@@ -556,14 +658,14 @@ async def set_driver_credentials(did: str, data: CredentialsInput, user: dict = 
 
 
 @api_router.delete("/drivers/{did}")
-async def delete_driver(did: str, user: dict = Depends(require_admin)):
+async def delete_driver(did: str, user: dict = Depends(require_staff)):
     await db.drivers.delete_one({"id": did})
     await db.users.delete_many({"driver_id": did, "role": "driver"})
     return {"ok": True}
 
 
 @api_router.put("/drivers/{did}/skills")
-async def update_skills(did: str, data: SkillsInput, user: dict = Depends(require_admin)):
+async def update_skills(did: str, data: SkillsInput, user: dict = Depends(require_staff)):
     await db.drivers.update_one({"id": did}, {"$set": data.model_dump()})
     return await db.drivers.find_one({"id": did}, {"_id": 0})
 
@@ -577,7 +679,7 @@ async def list_absences(user: dict = Depends(get_current_user)):
 
 
 @api_router.post("/absences")
-async def create_absence(data: AbsenceInput, user: dict = Depends(require_admin)):
+async def create_absence(data: AbsenceInput, user: dict = Depends(require_staff)):
     if data.end_date < data.start_date:
         raise HTTPException(status_code=400, detail="La data di fine precede la data di inizio")
     a = Absence(**data.model_dump())
@@ -586,7 +688,7 @@ async def create_absence(data: AbsenceInput, user: dict = Depends(require_admin)
 
 
 @api_router.put("/absences/{aid}")
-async def update_absence(aid: str, data: AbsenceInput, user: dict = Depends(require_admin)):
+async def update_absence(aid: str, data: AbsenceInput, user: dict = Depends(require_staff)):
     if data.end_date < data.start_date:
         raise HTTPException(status_code=400, detail="La data di fine precede la data di inizio")
     await db.absences.update_one({"id": aid}, {"$set": data.model_dump()})
@@ -594,7 +696,7 @@ async def update_absence(aid: str, data: AbsenceInput, user: dict = Depends(requ
 
 
 @api_router.delete("/absences/{aid}")
-async def delete_absence(aid: str, user: dict = Depends(require_admin)):
+async def delete_absence(aid: str, user: dict = Depends(require_staff)):
     await db.absences.delete_one({"id": aid})
     return {"ok": True}
 
@@ -687,12 +789,12 @@ async def notify(driver_id: str, message: str, kind: str = "shift", shift_id: st
 
 
 async def notify_admins(message: str, kind: str = "swap", shift_id: str = None):
-    """Broadcast a notification to all admin users via their user_id."""
-    admins = await db.users.find({"role": "admin"}, {"_id": 0}).to_list(100)
-    for admin in admins:
+    """Broadcast a notification to all admin and assistant users via their user_id."""
+    staff = await db.users.find({"role": {"$in": ["admin", "assistant"]}}, {"_id": 0}).to_list(100)
+    for member in staff:
         await db.notifications.insert_one({
             "id": str(uuid.uuid4()),
-            "user_id": admin["id"],
+            "user_id": member["id"],
             "driver_id": None,
             "kind": kind,
             "message": message,
@@ -816,7 +918,7 @@ async def get_rotation(week_start: str, user: dict = Depends(get_current_user)):
 
 
 @api_router.post("/shifts/generate")
-async def generate_shifts(data: GenerateInput, user: dict = Depends(require_admin)):
+async def generate_shifts(data: GenerateInput, user: dict = Depends(require_staff)):
     week_start = data.week_start
     await db.shifts.delete_many({"week_start": week_start})
 
@@ -950,7 +1052,7 @@ async def generate_shifts(data: GenerateInput, user: dict = Depends(require_admi
 
 
 @api_router.post("/shifts/{sid}/recover")
-async def recover_shift(sid: str, user: dict = Depends(require_admin)):
+async def recover_shift(sid: str, user: dict = Depends(require_staff)):
     """Re-propose a skipped/uncovered route on the next available day."""
     shift = await db.shifts.find_one({"id": sid}, {"_id": 0})
     if not shift:
@@ -997,7 +1099,7 @@ async def recover_shift(sid: str, user: dict = Depends(require_admin)):
 
 
 @api_router.get("/shifts/{sid}/substitutes")
-async def substitutes(sid: str, user: dict = Depends(require_admin)):
+async def substitutes(sid: str, user: dict = Depends(require_staff)):
     shift = await db.shifts.find_one({"id": sid}, {"_id": 0})
     if not shift:
         raise HTTPException(status_code=404, detail="Turno non trovato")
@@ -1043,7 +1145,7 @@ async def substitutes(sid: str, user: dict = Depends(require_admin)):
 
 
 @api_router.patch("/shifts/{sid}")
-async def patch_shift(sid: str, data: ShiftPatch, user: dict = Depends(require_admin)):
+async def patch_shift(sid: str, data: ShiftPatch, user: dict = Depends(require_staff)):
     shift = await db.shifts.find_one({"id": sid}, {"_id": 0})
     if not shift:
         raise HTTPException(status_code=404, detail="Turno non trovato")
@@ -1084,8 +1186,8 @@ async def meta_slots(user: dict = Depends(get_current_user)):
 # ---------------------------------------------------------------------------
 @api_router.get("/notifications")
 async def list_notifications(user: dict = Depends(get_current_user)):
-    if user.get("role") == "admin":
-        # Admins see their own notifications (targeted by user_id)
+    if user.get("role") in ("admin", "assistant"):
+        # Staff see their notifications targeted by user_id
         return await db.notifications.find(
             {"user_id": user["id"]}, {"_id": 0}
         ).sort("created_at", -1).to_list(100)
@@ -1097,7 +1199,7 @@ async def list_notifications(user: dict = Depends(get_current_user)):
 
 @api_router.post("/notifications/read")
 async def mark_notifications_read(data: NotifRead, user: dict = Depends(get_current_user)):
-    if user.get("role") == "admin":
+    if user.get("role") in ("admin", "assistant"):
         q = {"user_id": user["id"]}
         if data.ids:
             q["id"] = {"$in": data.ids}
@@ -1289,7 +1391,7 @@ async def driver_respond_swap(swid: str, data: DriverSwapResponse, user: dict = 
 
 
 @api_router.patch("/swap-requests/{swid}")
-async def decide_swap(swid: str, data: SwapDecision, user: dict = Depends(require_admin)):
+async def decide_swap(swid: str, data: SwapDecision, user: dict = Depends(require_staff)):
     sw = await db.swap_requests.find_one({"id": swid}, {"_id": 0})
     if not sw:
         raise HTTPException(status_code=404, detail="Richiesta non trovata")
@@ -1392,11 +1494,12 @@ async def health_check():
     return {
         "status": "ok",
         "database_connected": db_ok,
-        "version": "2.1.0",
+        "version": "2.2.0",
         "features": {
             "medical_kit": True,
             "driver_swap": True,
-            "groups_g1_g2": True
+            "groups_g1_g2": True,
+            "assistants_rbac": True
         }
     }
 

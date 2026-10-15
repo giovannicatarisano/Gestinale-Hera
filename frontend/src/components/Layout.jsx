@@ -16,7 +16,8 @@ import {
   Menu,
   X,
   ChevronRight,
-  RefreshCw
+  RefreshCw,
+  ShieldCheck
 } from "lucide-react";
 import { initials } from "../lib/dates";
 
@@ -33,7 +34,10 @@ const SECONDARY_NAV = [
   { to: "/formazioni", label: "Abilitazioni", icon: GraduationCap, tid: "nav-skills" },
 ];
 
-const ALL_NAV = [...PRIMARY_NAV, ...SECONDARY_NAV];
+const ADMIN_NAV = [
+  { to: "/assistenti", label: "Assistenti", icon: ShieldCheck, tid: "nav-assistants" },
+];
+
 
 export default function Layout() {
   const { user, logout } = useAuth();
@@ -51,6 +55,8 @@ export default function Layout() {
   }, []);
 
   const isSecondaryActive = SECONDARY_NAV.some((n) => location.pathname === n.to);
+  const userRoleLabel = user?.role === "admin" ? "Amministratore" : user?.role === "assistant" ? "Assistente" : "Autista";
+  const drawerNavItems = user?.role === "admin" ? [...PRIMARY_NAV, ...SECONDARY_NAV, ...ADMIN_NAV] : [...PRIMARY_NAV, ...SECONDARY_NAV];
 
   return (
     <div className="min-h-screen flex flex-col lg:flex-row bg-background">
@@ -100,6 +106,29 @@ export default function Layout() {
               <span>{n.label}</span>
             </NavLink>
           ))}
+
+          {user?.role === "admin" && (
+            <>
+              <div className="overline text-muted-foreground px-3 pt-4 pb-1 text-[10px]">Sicurezza</div>
+              {ADMIN_NAV.map((n) => (
+                <NavLink
+                  key={n.to}
+                  to={n.to}
+                  data-testid={n.tid}
+                  className={({ isActive }) =>
+                    `flex items-center gap-3 px-3 py-2.5 rounded-sm text-sm font-medium transition-colors duration-150 ${
+                      isActive
+                        ? "bg-primary text-primary-foreground shadow-sm"
+                        : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                    }`
+                  }
+                >
+                  <n.icon size={18} className="shrink-0" />
+                  <span>{n.label}</span>
+                </NavLink>
+              ))}
+            </>
+          )}
         </nav>
 
         {/* Footer actions */}
@@ -189,12 +218,12 @@ export default function Layout() {
             {/* Header */}
             <div className="h-14 flex items-center justify-between px-4 border-b border-border">
               <div className="flex items-center gap-2.5">
-                <div className="h-8 w-8 rounded-sm bg-primary text-primary-foreground flex items-center justify-center font-head font-bold text-xs">
+                <div className={`h-8 w-8 rounded-sm ${user?.role === "assistant" ? "bg-teal-600 text-white" : "bg-primary text-primary-foreground"} flex items-center justify-center font-head font-bold text-xs`}>
                   {initials(user?.name || "A")}
                 </div>
                 <div>
                   <div className="text-xs font-bold leading-none">{user?.name}</div>
-                  <div className="overline text-[9px] text-primary mt-0.5">Amministratore</div>
+                  <div className="overline text-[9px] text-primary mt-0.5">{userRoleLabel}</div>
                 </div>
               </div>
               <button
@@ -209,7 +238,7 @@ export default function Layout() {
             {/* Menu items */}
             <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto board-scroll">
               <div className="overline text-muted-foreground px-3 py-1 text-[10px]">Tutte le Sezioni</div>
-              {ALL_NAV.map((n) => (
+              {drawerNavItems.map((n) => (
                 <NavLink
                   key={n.to}
                   to={n.to}
@@ -257,9 +286,9 @@ export default function Layout() {
           <div className="flex items-center gap-3">
             <div className="text-right leading-tight">
               <div className="text-sm font-semibold">{user?.name}</div>
-              <div className="overline text-primary">Amministratore</div>
+              <div className="overline text-primary">{userRoleLabel}</div>
             </div>
-            <div className="h-9 w-9 rounded-sm bg-primary text-primary-foreground flex items-center justify-center font-head font-bold text-sm shadow-sm">
+            <div className={`h-9 w-9 rounded-sm ${user?.role === "assistant" ? "bg-teal-600 text-white" : "bg-primary text-primary-foreground"} flex items-center justify-center font-head font-bold text-sm shadow-sm`}>
               {initials(user?.name || "A")}
             </div>
           </div>
