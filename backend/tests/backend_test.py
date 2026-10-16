@@ -1,10 +1,4 @@
-"""Backend API tests for HERA S.p.A. Turni scheduler — Iteration 5.
-
-Focus: demo removal, admin-created driver accounts, weekly slot rotation,
-rest constraint, notifications, shift-swap requests. Legacy CRUD + engine
-sanity kept, but strict counts on seeded demo data are removed (demo dataset
-was wiped in iteration 5).
-"""
+"""Test di integrazione API Backend per Gestionale HERA S.p.A."""
 import os
 import uuid
 import pytest
@@ -12,7 +6,7 @@ import requests
 from datetime import date, datetime, timedelta
 
 BASE_URL = (os.environ.get("REACT_APP_BACKEND_URL")
-            or "https://route-assigner.preview.emergentagent.com").rstrip("/")
+            or "https://hera-gestionale-backend.onrender.com").rstrip("/")
 
 ADMIN = {"email": "admin@hera.it", "password": "admin123"}
 EXISTING_DRIVER = {"email": "a1@hera.it", "password": "pass123"}  # created in prev iter
