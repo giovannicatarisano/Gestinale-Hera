@@ -1017,6 +1017,9 @@ async def generate_shifts(data: GenerateInput, user: dict = Depends(require_staf
             if best_vehicle_id:
                 final_vehicle_id = best_vehicle_id
 
+            now_iso = datetime.now(timezone.utc).isoformat()
+            creator_name = user.get("name") or user.get("email")
+            creator_role = user.get("role")
             shift = {
                 "id": str(uuid.uuid4()),
                 "week_start": week_start,
@@ -1028,6 +1031,18 @@ async def generate_shifts(data: GenerateInput, user: dict = Depends(require_staf
                 "status": "assigned" if assigned else "uncovered",
                 "pinned": route.get("pinned", False),
                 "recovery": False,
+                "created_by": creator_name,
+                "created_by_role": creator_role,
+                "created_at": now_iso,
+                "history": [
+                    {
+                        "action": "generated",
+                        "by": creator_name,
+                        "role": creator_role,
+                        "at": now_iso,
+                        "detail": f"Assegnazione iniziale ({'Coperto: ' + assigned['name'] if assigned else 'Scoperto'})"
+                    }
+                ]
             }
             shifts.append(shift)
             if assigned:
@@ -1080,6 +1095,10 @@ async def recover_shift(sid: str, user: dict = Depends(require_staff)):
         if cands:
             assigned = cands[0]
 
+    now_iso = datetime.now(timezone.utc).isoformat()
+    user_name = user.get("name") or user.get("email")
+    user_role = user.get("role")
+
     new_shift = {
         "id": str(uuid.uuid4()),
         "week_start": shift["week_start"],
@@ -1091,9 +1110,40 @@ async def recover_shift(sid: str, user: dict = Depends(require_staff)):
         "status": "assigned" if assigned else "uncovered",
         "pinned": shift.get("pinned", False),
         "recovery": True,
+        "created_by": user_name,
+        "created_by_role": user_role,
+        "created_at": now_iso,
+        "history": [
+            {
+                "action": "recovered",
+                "by": user_name,
+                "role": user_role,
+                "at": now_iso,
+                "detail": f"Creato come recupero dal turno originale del giorno {shift['day']}"
+            }
+        ]
     }
     await db.shifts.insert_one(new_shift)
-    await db.shifts.update_one({"id": sid}, {"$set": {"status": "recovered"}})
+    await db.shifts.update_one(
+        {"id": sid},
+        {
+            "$set": {
+                "status": "recovered",
+                "last_modified_by": user_name,
+                "last_modified_role": user_role,
+                "last_modified_at": now_iso,
+            },
+            "$push": {
+                "history": {
+                    "action": "marked_recovered",
+                    "by": user_name,
+                    "role": user_role,
+                    "at": now_iso,
+                    "detail": f"Turno riprogrammato al giorno {next_day}"
+                }
+            }
+        }
+    )
     new_shift.pop("_id", None)
     if assigned:
         await notify(assigned["id"], f"Turno di recupero assegnato: {await _shift_label(new_shift)}", "shift", new_shift["id"])
@@ -1153,19 +1203,52 @@ async def patch_shift(sid: str, data: ShiftPatch, user: dict = Depends(require_s
         raise HTTPException(status_code=404, detail="Turno non trovato")
     prev_driver = shift.get("driver_id")
     update = {}
-    new_driver = prev_driver
+    detail_parts = []
     if "driver_id" in data.model_fields_set:
         update["driver_id"] = data.driver_id
         update["status"] = "assigned" if data.driver_id else "uncovered"
         new_driver = data.driver_id
+        if data.driver_id:
+            d_doc = await db.drivers.find_one({"id": data.driver_id}, {"_id": 0, "name": 1})
+            detail_parts.append(f"Nuovo autista: {d_doc['name'] if d_doc else data.driver_id}")
+        else:
+            detail_parts.append("Autista rimosso (turno scoperto)")
     if "vehicle_id" in data.model_fields_set and data.vehicle_id is not None:
         update["vehicle_id"] = data.vehicle_id
+        v_doc = await db.vehicles.find_one({"id": data.vehicle_id}, {"_id": 0, "plate": 1})
+        detail_parts.append(f"Mezzo: {v_doc['plate'] if v_doc else data.vehicle_id}")
     if data.status is not None:
         update["status"] = data.status
         if data.status == "absence":
             update["driver_id"] = None
             new_driver = None
-    await db.shifts.update_one({"id": sid}, {"$set": update})
+            detail_parts.append("Segnata assenza autista")
+        elif data.status != shift.get("status"):
+            detail_parts.append(f"Stato: {data.status}")
+
+    user_name = user.get("name") or user.get("email")
+    user_role = user.get("role")
+    now_iso = datetime.now(timezone.utc).isoformat()
+
+    update["last_modified_by"] = user_name
+    update["last_modified_role"] = user_role
+    update["last_modified_at"] = now_iso
+
+    history_entry = {
+        "action": "manual_update",
+        "by": user_name,
+        "role": user_role,
+        "at": now_iso,
+        "detail": " · ".join(detail_parts) if detail_parts else "Parametri turno aggiornati"
+    }
+
+    await db.shifts.update_one(
+        {"id": sid},
+        {
+            "$set": update,
+            "$push": {"history": history_entry}
+        }
+    )
     updated = await db.shifts.find_one({"id": sid}, {"_id": 0})
 
     # notifications on change
@@ -1402,18 +1485,24 @@ async def decide_swap(swid: str, data: SwapDecision, user: dict = Depends(requir
     if sw.get("driver_approved") is not True and data.status == "approved":
         raise HTTPException(status_code=400, detail="Il collega non ha ancora accettato. Attendi la sua risposta prima di approvare.")
 
+    user_name = user.get("name") or user.get("email")
+    user_role = user.get("role")
+    now_iso = datetime.now(timezone.utc).isoformat()
+
     await db.swap_requests.update_one({"id": swid}, {"$set": {
         "status": data.status,
         "admin_approved": data.status == "approved",
-        "decided_at": datetime.now(timezone.utc).isoformat()
+        "decided_at": now_iso,
+        "decided_by": user_name,
+        "decided_by_role": user_role,
     }})
 
     is_week = sw.get("kind") == "week"
+    role_label = "Assistente" if user_role == "assistant" else "Admin"
     if is_week:
         wk = sw.get("week_start")
         label = f"l'intera settimana del {wk}"
         if data.status == "approved":
-            # Swap all shifts in this week between from_driver and to_driver
             from_did = sw["from_driver_id"]
             to_did = sw["to_driver_id"]
             
@@ -1423,21 +1512,64 @@ async def decide_swap(swid: str, data: SwapDecision, user: dict = Depends(requir
             await db.shifts.update_many({"week_start": wk, "driver_id": to_did}, {"$set": {"driver_id": from_did}})
             await db.shifts.update_many({"week_start": wk, "driver_id": temp_tag}, {"$set": {"driver_id": to_did}})
             
-            await notify(from_did, f"✅ Scambio settimanale APPROVATO dall'admin per la settimana del {wk}.", "swap")
-            await notify(to_did, f"✅ Scambio settimanale APPROVATO dall'admin per la settimana del {wk}.", "swap")
+            # Audit history entry on all week shifts
+            audit_msg = f"Scambio settimanale approvato da {user_name} ({role_label})"
+            await db.shifts.update_many(
+                {"week_start": wk, "driver_id": {"$in": [from_did, to_did]}},
+                {
+                    "$set": {
+                        "last_modified_by": user_name,
+                        "last_modified_role": user_role,
+                        "last_modified_at": now_iso
+                    },
+                    "$push": {
+                        "history": {
+                            "action": "swap_approved",
+                            "by": user_name,
+                            "role": user_role,
+                            "at": now_iso,
+                            "detail": audit_msg
+                        }
+                    }
+                }
+            )
+            
+            await notify(from_did, f"✅ Scambio settimanale APPROVATO ({role_label}) per la settimana del {wk}.", "swap")
+            await notify(to_did, f"✅ Scambio settimanale APPROVATO ({role_label}) per la settimana del {wk}.", "swap")
         else:
-            await notify(sw["from_driver_id"], f"❌ Scambio settimanale RIFIUTATO dall'admin per {label}.", "swap")
-            await notify(sw["to_driver_id"], f"❌ Scambio settimanale RIFIUTATO dall'admin: turni invariati.", "swap")
+            await notify(sw["from_driver_id"], f"❌ Scambio settimanale RIFIUTATO ({role_label}) per {label}.", "swap")
+            await notify(sw["to_driver_id"], f"❌ Scambio settimanale RIFIUTATO ({role_label}): turni invariati.", "swap")
     else:
         shift = await db.shifts.find_one({"id": sw["shift_id"]}, {"_id": 0})
         label = await _shift_label(shift) if shift else "turno"
         if data.status == "approved" and shift:
-            await db.shifts.update_one({"id": sw["shift_id"]}, {"$set": {"driver_id": sw["to_driver_id"], "status": "assigned"}})
-            await notify(sw["from_driver_id"], f"✅ Cambio APPROVATO dall'admin: {label} è ora del tuo collega.", "swap", sw["shift_id"])
-            await notify(sw["to_driver_id"], f"✅ Cambio APPROVATO: ti è stato assegnato il turno {label}.", "swap", sw["shift_id"])
+            audit_msg = f"Scambio turno singolo approvato da {user_name} ({role_label})"
+            await db.shifts.update_one(
+                {"id": sw["shift_id"]},
+                {
+                    "$set": {
+                        "driver_id": sw["to_driver_id"],
+                        "status": "assigned",
+                        "last_modified_by": user_name,
+                        "last_modified_role": user_role,
+                        "last_modified_at": now_iso
+                    },
+                    "$push": {
+                        "history": {
+                            "action": "swap_approved",
+                            "by": user_name,
+                            "role": user_role,
+                            "at": now_iso,
+                            "detail": audit_msg
+                        }
+                    }
+                }
+            )
+            await notify(sw["from_driver_id"], f"✅ Cambio APPROVATO ({role_label}): {label} è ora del tuo collega.", "swap", sw["shift_id"])
+            await notify(sw["to_driver_id"], f"✅ Cambio APPROVATO ({role_label}): ti è stato assegnato il turno {label}.", "swap", sw["shift_id"])
         else:
-            await notify(sw["from_driver_id"], f"❌ Cambio RIFIUTATO dall'admin per {label}.", "swap", sw["shift_id"])
-            await notify(sw["to_driver_id"], f"❌ Cambio RIFIUTATO dall'admin: il turno {label} rimane invariato.", "swap", sw["shift_id"])
+            await notify(sw["from_driver_id"], f"❌ Cambio RIFIUTATO ({role_label}) per {label}.", "swap", sw["shift_id"])
+            await notify(sw["to_driver_id"], f"❌ Cambio RIFIUTATO ({role_label}): il turno {label} rimane invariato.", "swap", sw["shift_id"])
     return await db.swap_requests.find_one({"id": swid}, {"_id": 0})
 
 

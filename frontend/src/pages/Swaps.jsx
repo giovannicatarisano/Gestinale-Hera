@@ -177,11 +177,28 @@ function SwapCard({ r, onDecide }) {
         />
         <div className="flex-1 h-px bg-border" />
         <Step
-          label="Admin"
+          label={r.decided_by ? (r.decided_by_role === "assistant" ? "Assistente" : "Admin") : "Staff"}
           icon={<ShieldCheck size={12} />}
           state={r.admin_approved === true ? "done" : r.admin_approved === false ? "rejected" : r.driver_approved === true ? "ready" : "locked"}
         />
       </div>
+
+      {/* Tracciabilità decisione staff */}
+      {r.decided_by && (
+        <div className="text-[11px] text-muted-foreground mt-2 bg-secondary/40 px-2.5 py-1 rounded-sm border border-border/40 flex items-center justify-between flex-wrap gap-1">
+          <span>
+            {r.admin_approved ? "Approvato da:" : "Rifiutato da:"}{" "}
+            <strong className="text-foreground">{r.decided_by}</strong> ({r.decided_by_role === "assistant" ? "Assistente" : "Amministratore"})
+          </span>
+          {r.decided_at && (
+            <span className="font-mono text-[10px]">
+              {new Date(r.decided_at).toLocaleString("it-IT", {
+                day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit"
+              })}
+            </span>
+          )}
+        </div>
+      )}
 
       {/* Admin action buttons — only shown when driver has accepted */}
       {canAdminAct && (
