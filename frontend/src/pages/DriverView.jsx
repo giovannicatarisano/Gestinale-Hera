@@ -283,9 +283,9 @@ export default function DriverView() {
       <header className="h-14 sm:h-16 border-b border-border bg-card/90 backdrop-blur-xl sticky top-0 z-20 flex items-center justify-between px-3 sm:px-6">
         <Logo size={28} />
         <div className="flex items-center gap-1.5 sm:gap-2">
-          {user?.role === "admin" && (
+          {(user?.role === "admin" || user?.role === "assistant") && (
             <Button variant="outline" size="sm" className="rounded-sm text-xs h-9 px-2.5 sm:px-3" data-testid="back-admin-btn" onClick={() => navigate("/dashboard")}>
-              <LayoutDashboard size={14} className="mr-1 sm:mr-1.5" /> <span>Admin</span>
+              <LayoutDashboard size={14} className="mr-1 sm:mr-1.5" /> <span>{user?.role === "assistant" ? "Area Gestione" : "Admin"}</span>
             </Button>
           )}
           {/* Refresh button */}

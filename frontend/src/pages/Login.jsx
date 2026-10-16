@@ -84,7 +84,7 @@ export default function Login() {
     try {
       const u = await login(email.trim(), password);
       toast.success(`Benvenuto, ${u.name}`);
-      navigate(u.role === "admin" ? "/dashboard" : "/tabellone");
+      navigate(u.role === "driver" ? "/tabellone" : "/dashboard");
     } catch (err) {
       toast.error(apiError(err.response?.data?.detail) || "Accesso non riuscito");
     } finally {
