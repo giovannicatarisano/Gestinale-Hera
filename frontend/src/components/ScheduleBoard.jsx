@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { DAY_LABELS, DAY_FULL, SLOT_ORDER, initials } from "../lib/dates";
-import { Clock, Users, Calendar, LayoutGrid, AlertTriangle, ArrowRight, UserCheck, UserX, Award, BriefcaseMedical, CheckCircle2, RotateCw } from "lucide-react";
+import { Clock, Users, Calendar, LayoutGrid, AlertTriangle, ArrowRight, UserCheck, UserX, Award, BriefcaseMedical, CheckCircle2, RotateCw, History } from "lucide-react";
 import { getLicenseStatus, getLicensesSummary, getMedicalKitSummary } from "../pages/Drivers";
 
 const SLOT_META = {
@@ -175,6 +175,19 @@ export default function ScheduleBoard({
                         <div className="font-mono text-xs text-muted-foreground">
                           Mezzo: <span className="font-medium text-foreground">{veh?.name || "—"}</span> ({veh?.plate || "N/D"})
                         </div>
+                        {s.last_modified_by && (
+                          <div className="flex items-center gap-1.5 text-[10px] text-amber-700 dark:text-amber-400 bg-amber-500/10 border border-amber-500/25 px-2 py-0.5 rounded-xs w-fit mt-1">
+                            <History size={11} className="shrink-0 text-amber-600" />
+                            <span>
+                              Modificato da: <strong className="font-semibold">{s.last_modified_by}</strong> ({s.last_modified_role === 'assistant' ? 'Assistente' : 'Admin'})
+                            </span>
+                            {s.last_modified_at && (
+                              <span className="font-mono text-[9px] text-muted-foreground ml-1">
+                                {new Date(s.last_modified_at).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}
+                              </span>
+                            )}
+                          </div>
+                        )}
                       </div>
 
                       {/* Right info: Driver assignment */}
@@ -398,11 +411,11 @@ export default function ScheduleBoard({
                             </div>
                             {s.last_modified_by && (
                               <div
-                                className="text-[8px] font-mono text-muted-foreground truncate mt-0.5 flex items-center gap-0.5"
-                                title={`Modificato da: ${s.last_modified_by} (${s.last_modified_role === 'assistant' ? 'Assistente' : 'Admin'})${s.last_modified_at ? ' il ' + new Date(s.last_modified_at).toLocaleDateString('it-IT') : ''}`}
+                                className="text-[9px] font-mono text-amber-700 dark:text-amber-400 bg-amber-500/15 border border-amber-500/25 px-1 py-0.5 rounded-xs truncate mt-1 flex items-center gap-1 font-semibold"
+                                title={`Ultima modifica: ${s.last_modified_by} (${s.last_modified_role === 'assistant' ? 'Assistente' : 'Admin'})${s.last_modified_at ? ' - ' + new Date(s.last_modified_at).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }) : ''}`}
                               >
-                                <span className="h-1.5 w-1.5 rounded-full bg-primary/60 shrink-0" />
-                                <span>Mod. {s.last_modified_by.split('@')[0]}</span>
+                                <History size={9} className="shrink-0 text-amber-600" />
+                                <span className="truncate">Mod: {s.last_modified_by.split('@')[0]}</span>
                               </div>
                             )}
                           </button>
