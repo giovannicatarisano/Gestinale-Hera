@@ -125,8 +125,16 @@ export default function DriverView() {
   const loadSwaps = useCallback(() => { if (myId) api.get("/swap-requests").then((r) => setSwaps(r.data)); }, [myId]);
   useEffect(() => {
     loadNotifs(); loadSwaps();
-    const timer = setInterval(() => { loadNotifs(); loadSwaps(); }, 20000);
-    const onRefresh = () => { loadNotifs(); loadSwaps(); };
+    const timer = setInterval(() => {
+      loadNotifs();
+      loadSwaps();
+      reloadDrivers();
+    }, 15000);
+    const onRefresh = () => {
+      loadNotifs();
+      loadSwaps();
+      reloadDrivers();
+    };
     window.addEventListener("hera:refresh", onRefresh);
     return () => {
       clearInterval(timer);

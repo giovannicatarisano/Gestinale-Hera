@@ -593,8 +593,9 @@ async def cancel_medical_kit_replacement(
         raise HTTPException(status_code=404, detail="Autista non trovato")
 
     kit = driver.get("medical_kit") or []
+    target_name = (data.item_name or "").strip().lower()
     for item in kit:
-        if item.get("name") == data.item_name:
+        if (item.get("name") or "").strip().lower() == target_name:
             item["needs_replacement"] = False
             item["replacement_requested_at"] = None
             item["replacement_note"] = ""
@@ -617,8 +618,9 @@ async def restock_medical_kit_item(
 
     kit = driver.get("medical_kit") or []
     now_iso = datetime.now(timezone.utc).isoformat()
+    target_name = (data.item_name or "").strip().lower()
     for item in kit:
-        if item.get("name") == data.item_name:
+        if (item.get("name") or "").strip().lower() == target_name:
             item["needs_replacement"] = False
             item["replacement_requested_at"] = None
             item["replacement_note"] = ""
