@@ -294,6 +294,50 @@ export default function Drivers() {
     setMedOpen(true);
   };
 
+  const handleRestockDirect = async (item, index) => {
+    const defaultFuture = new Date();
+    defaultFuture.setFullYear(defaultFuture.getFullYear() + 2);
+    const futureStr = defaultFuture.toISOString().split("T")[0];
+
+    const updated = [...medItems];
+    updated[index] = {
+      ...updated[index],
+      needs_replacement: false,
+      replacement_requested_at: null,
+      replacement_note: "",
+      expiry_date: futureStr,
+    };
+    setMedItems(updated);
+
+    if (medDriver && medDriver.id && medDriver.id !== "temp") {
+      setMedSaving(true);
+      try {
+        try {
+          await api.post(`/drivers/${medDriver.id}/medical-kit/restock`, {
+            item_name: item.name,
+            new_expiry_date: futureStr,
+          });
+        } catch (restockErr) {
+          // Fallback: aggiorna l'intero medical kit sul server
+          await api.put(`/drivers/${medDriver.id}/medical-kit`, { medical_kit: updated });
+        }
+
+        // Aggiorna subito lo stato locale del driver e dei driver generali
+        setDrivers((prev) =>
+          prev.map((d) => (d.id === medDriver.id ? { ...d, medical_kit: updated } : d))
+        );
+        toast.success(`✅ Presidio "${item.name}" reintegrato e salvato automaticamente! Nuova scadenza: ${futureStr}`);
+        window.dispatchEvent(new CustomEvent("hera:refresh"));
+      } catch (err) {
+        toast.error("Errore salvataggio reintegro: " + apiError(err.response?.data?.detail));
+      } finally {
+        setMedSaving(false);
+      }
+    } else {
+      toast.success(`Presidio "${item.name}" aggiornato. Ricorda di salvare l'autista.`);
+    }
+  };
+
   const saveMedicalKit = async () => {
     if (!medDriver) return;
     
@@ -954,24 +998,11 @@ export default function Drivers() {
                           <Button
                             type="button"
                             size="sm"
-                            className="h-7 px-2.5 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white rounded-sm shrink-0 self-start sm:self-auto"
-                            onClick={() => {
-                              const defaultFuture = new Date();
-                              defaultFuture.setFullYear(defaultFuture.getFullYear() + 2);
-                              const futureStr = defaultFuture.toISOString().split("T")[0];
-                              const updated = [...medItems];
-                              updated[index] = {
-                                ...updated[index],
-                                needs_replacement: false,
-                                replacement_requested_at: null,
-                                replacement_note: "",
-                                expiry_date: futureStr,
-                              };
-                              setMedItems(updated);
-                              toast.success(`Presidio "${item.name}" segnato come reintegrato. Nuova scadenza impostata a ${futureStr}`);
-                            }}
+                            className="h-7 px-2.5 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white rounded-sm shrink-0 self-start sm:self-auto shadow-xs"
+                            disabled={medSaving}
+                            onClick={() => handleRestockDirect(item, index)}
                           >
-                            <CheckCircle2 size={13} className="mr-1" /> Segna come reintegrato
+                            <CheckCircle2 size={13} className="mr-1" /> Segna come reintegrato e salva
                           </Button>
                         </div>
                       )}
