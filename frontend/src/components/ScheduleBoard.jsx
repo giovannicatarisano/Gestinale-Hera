@@ -238,6 +238,14 @@ export default function ScheduleBoard({
                               </div>
                               {mine && <span className="overline text-[9px] text-primary">Il tuo turno</span>}
                               {recovered && <span className="overline text-[9px] text-muted-foreground">Sostituito</span>}
+                              {s.last_modified_by && (
+                                <span
+                                  className="inline-flex items-center gap-0.5 text-[9px] text-muted-foreground font-mono"
+                                  title={`Ultima modifica: ${s.last_modified_by} (${s.last_modified_role === 'assistant' ? 'Assistente' : 'Admin'})${s.last_modified_at ? ' - ' + new Date(s.last_modified_at).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }) : ''}`}
+                                >
+                                  <Clock size={8} /> Mod. {s.last_modified_by.split('@')[0]}
+                                </span>
+                              )}
                             </div>
                           </div>
                         )}
@@ -388,6 +396,15 @@ export default function ScheduleBoard({
                                 <span className="text-destructive font-medium text-[10px]">Da assegnare</span>
                               )}
                             </div>
+                            {s.last_modified_by && (
+                              <div
+                                className="text-[8px] font-mono text-muted-foreground truncate mt-0.5 flex items-center gap-0.5"
+                                title={`Modificato da: ${s.last_modified_by} (${s.last_modified_role === 'assistant' ? 'Assistente' : 'Admin'})${s.last_modified_at ? ' il ' + new Date(s.last_modified_at).toLocaleDateString('it-IT') : ''}`}
+                              >
+                                <span className="h-1.5 w-1.5 rounded-full bg-primary/60 shrink-0" />
+                                <span>Mod. {s.last_modified_by.split('@')[0]}</span>
+                              </div>
+                            )}
                           </button>
                         );
                       })}

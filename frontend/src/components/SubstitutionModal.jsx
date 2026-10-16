@@ -4,7 +4,7 @@ import { initials } from "../lib/dates";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "./ui/dialog";
 import { Button } from "./ui/button";
 import { toast } from "sonner";
-import { Check, X, UserX, Truck, Route as RouteIcon, ShieldCheck, ShieldAlert, RotateCcw } from "lucide-react";
+import { Check, X, UserX, Truck, Route as RouteIcon, ShieldCheck, ShieldAlert, RotateCcw, History, Clock } from "lucide-react";
 
 export default function SubstitutionModal({ shift, open, onClose, onChanged, vehicleById }) {
   const [data, setData] = useState(null);
@@ -86,6 +86,46 @@ export default function SubstitutionModal({ shift, open, onClose, onChanged, veh
               </div>
             </div>
           )}
+
+          {/* Box Tracciabilità e Autore */}
+          {(shift?.last_modified_by || shift?.created_by) && (
+            <div className="mt-2.5 p-2 rounded-sm bg-secondary/50 border border-border text-[11px] flex items-start gap-2">
+              <History size={13} className="text-primary shrink-0 mt-0.5" />
+              <div className="min-w-0 flex-1">
+                {shift.last_modified_by ? (
+                  <div>
+                    <span className="font-semibold text-foreground">Ultima modifica:</span>{" "}
+                    <span>{shift.last_modified_by}</span>{" "}
+                    <span className="px-1 py-0.2 rounded-xs bg-primary/10 text-primary font-semibold text-[10px]">
+                      {shift.last_modified_role === "assistant" ? "Assistente" : "Admin"}
+                    </span>
+                    {shift.last_modified_at && (
+                      <span className="text-muted-foreground ml-1.5 font-mono text-[10px]">
+                        {new Date(shift.last_modified_at).toLocaleString("it-IT", {
+                          day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit"
+                        })}
+                      </span>
+                    )}
+                  </div>
+                ) : (
+                  <div>
+                    <span className="font-semibold text-foreground">Creato da:</span>{" "}
+                    <span>{shift.created_by}</span>{" "}
+                    <span className="px-1 py-0.2 rounded-xs bg-secondary text-muted-foreground font-semibold text-[10px]">
+                      {shift.created_by_role === "assistant" ? "Assistente" : "Admin"}
+                    </span>
+                    {shift.created_at && (
+                      <span className="text-muted-foreground ml-1.5 font-mono text-[10px]">
+                        {new Date(shift.created_at).toLocaleString("it-IT", {
+                          day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit"
+                        })}
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </DialogHeader>
 
         <div className="p-5 max-h-[55vh] overflow-y-auto board-scroll">
@@ -162,6 +202,34 @@ export default function SubstitutionModal({ shift, open, onClose, onChanged, veh
               <div className="text-sm text-muted-foreground py-6 text-center">Nessun autista disponibile.</div>
             )}
           </div>
+
+          {/* Registro Storico Modifiche */}
+          {shift?.history && shift.history.length > 0 && (
+            <div className="mt-5 pt-3 border-t border-border">
+              <div className="overline text-[10px] text-muted-foreground flex items-center gap-1.5 mb-2">
+                <History size={11} className="text-primary" /> Cronologia Modifiche / Audit Trail
+              </div>
+              <div className="space-y-1.5 max-h-36 overflow-y-auto board-scroll">
+                {shift.history.slice().reverse().map((h, idx) => (
+                  <div key={idx} className="text-[10px] p-2 rounded-sm bg-secondary/30 border border-border/40 flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-semibold text-foreground truncate">{h.by}</span>
+                        <span className="px-1 py-0.2 rounded-xs bg-secondary text-muted-foreground font-semibold text-[9px]">
+                          {h.role === "assistant" ? "Assistente" : "Admin"}
+                        </span>
+                      </div>
+                      <div className="text-muted-foreground mt-0.5">{h.detail}</div>
+                    </div>
+                    <span className="font-mono text-muted-foreground shrink-0 text-[9px]">
+                      {new Date(h.at).toLocaleDateString("it-IT", { day: "2-digit", month: "2-digit" })}{" "}
+                      {new Date(h.at).toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" })}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="p-4 border-t border-border flex justify-end">
