@@ -25,7 +25,7 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Server settings state
+  // Stato configurazione indirizzo server
   const [serverUrl, setServerUrlState] = useState(getBaseUrl());
   const [isTestingServer, setIsTestingServer] = useState(false);
   const [serverStatus, setServerStatus] = useState(null); // 'ok' | 'err' | null
@@ -40,7 +40,7 @@ export default function Login() {
     setServerStatus(null);
     try {
       const trimmed = serverUrl.trim().replace(/\/+$/, "");
-      // Build headers to bypass localtunnel / ngrok interstitial pages
+      // Intestazioni per bypassare le pagine di avviso tunnel
       const headers = {};
       if (trimmed.includes("loca.lt") || trimmed.includes("localtunnel")) {
         headers["bypass-tunnel-reminder"] = "true";
@@ -94,7 +94,7 @@ export default function Login() {
 
   return (
     <div className="min-h-screen grid lg:grid-cols-2 bg-background">
-      {/* Left visual */}
+      {/* Pannello visivo laterale */}
       <div className="relative hidden lg:flex flex-col justify-between p-12 bg-primary text-primary-foreground overflow-hidden">
         <div
           className="absolute inset-0 opacity-20"
@@ -118,7 +118,7 @@ export default function Login() {
         <div className="relative z-10 overline text-primary-foreground/60">Hera S.p.A. · Gestione Autisti</div>
       </div>
 
-      {/* Form */}
+      {/* Modulo di accesso */}
       <div className="flex items-center justify-center p-6">
         <div className="w-full max-w-sm">
           <div className="lg:hidden mb-8"><Logo size={38} /></div>

@@ -20,7 +20,7 @@ export default function ScheduleBoard({
   highlightDriverId,
 }) {
   const [activeTab, setActiveTab] = useState(0); // 0 = Lunedi, etc.
-  const [viewMode, setViewMode] = useState("auto"); // 'auto' | 'day' | 'grid'
+  const [viewMode, setViewMode] = useState("auto"); // Modalità di visualizzazione: 'auto' | 'day' | 'grid'
 
   const routeById = Object.fromEntries(routes.map((r) => [r.id, r]));
   const vehicleById = Object.fromEntries(vehicles.map((v) => [v.id, v]));
@@ -36,9 +36,9 @@ export default function ScheduleBoard({
 
   return (
     <div className="space-y-4">
-      {/* View Switcher Header (Compact & Responsive) */}
+      {/* Intestazione selettore visualizzazione (Compatta e reattiva) */}
       <div className="flex items-center justify-between gap-2 flex-wrap bg-card border border-border rounded-2xl p-2.5 shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
-        {/* Day Selector Pills for Mobile / Tablet */}
+        {/* Selettore pillole dei giorni per smartphone e tablet */}
         <div className="flex items-center gap-1.5 overflow-x-auto board-scroll py-0.5 max-w-full">
           {days.map((d) => {
             const count = shifts.filter((s) => s.day === d && s.driver_id).length;
@@ -66,7 +66,7 @@ export default function ScheduleBoard({
           })}
         </div>
 
-        {/* Grid vs Day View Toggle */}
+        {/* Pulsanti di commutazione tra vista giornaliera e matrice completa */}
         <div className="flex items-center gap-1 bg-secondary/50 p-1 rounded-xl border border-border shrink-0 ml-auto shadow-2xs">
           <button
             type="button"
@@ -97,7 +97,7 @@ export default function ScheduleBoard({
         </div>
       </div>
 
-      {/* ================= 1. DAY CARDS VIEW (Mobile-friendly vertical cards) ================= */}
+      {/* ================= 1. VISTA SCHEDE GIORNALIERE (Ottimizzata per smartphone) ================= */}
       <div className={`${viewMode === "grid" ? "hidden" : viewMode === "day" ? "block" : "block md:hidden"} space-y-4`}>
         <div className="bg-card border border-border rounded-2xl p-4 flex items-center justify-between shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
           <div>
@@ -121,7 +121,7 @@ export default function ScheduleBoard({
 
           return (
             <div key={slot} className="bg-card border border-border rounded-2xl overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-md transition-all">
-              {/* Slot Header */}
+              {/* Intestazione fascia oraria */}
               <div className="bg-secondary/40 border-b border-border px-4 py-3 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span className="font-head font-bold text-sm text-foreground">{meta.label}</span>
@@ -136,7 +136,7 @@ export default function ScheduleBoard({
                 )}
               </div>
 
-              {/* Shifts list in this slot */}
+              {/* Elenco turni per questa fascia oraria */}
               <div className="p-2.5 space-y-2">
                 {items.map((s) => {
                   const route = routeById[s.route_id];
@@ -162,7 +162,7 @@ export default function ScheduleBoard({
                           : "bg-card hover:bg-secondary/40 border-border hover:border-foreground/40 border-l-4 border-l-emerald-600"
                       }`}
                     >
-                      {/* Left info: Route + Vehicle */}
+                      {/* Informazioni giro e mezzo */}
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
                           <span className="font-mono text-xs font-bold px-2 py-0.5 bg-secondary border border-border rounded-lg shadow-2xs">
@@ -190,7 +190,7 @@ export default function ScheduleBoard({
                         )}
                       </div>
 
-                      {/* Right info: Driver assignment */}
+                      {/* Informazioni autista assegnato */}
                       <div className="flex items-center justify-between sm:justify-end gap-3 pt-1 sm:pt-0 border-t sm:border-t-0 border-border/40">
                         {uncovered ? (
                           <div className="flex items-center gap-1.5 text-xs font-bold text-destructive">
@@ -279,10 +279,10 @@ export default function ScheduleBoard({
         })}
       </div>
 
-      {/* ================= 2. FULL MATRIX GRID VIEW (Desktop & scrollable) ================= */}
+      {/* ================= 2. MATRICE COMPLETA A GRIGLIA (Desktop e schermi estesi) ================= */}
       <div className={`${viewMode === "day" ? "hidden" : viewMode === "grid" ? "block" : "hidden md:block"} board-scroll overflow-x-auto border border-border bg-card rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04)]`}>
         <div className="min-w-[900px]">
-          {/* Header row */}
+          {/* Riga di intestazione */}
           <div className="grid" style={{ gridTemplateColumns: `160px repeat(${days.length}, minmax(0,1fr))` }}>
             <div className="border-b border-r border-border p-3 bg-secondary/70">
               <span className="overline text-muted-foreground">Turno / Giorno</span>
@@ -295,7 +295,7 @@ export default function ScheduleBoard({
             ))}
           </div>
 
-          {/* Slot rows */}
+          {/* Righe delle fasce orarie */}
           {SLOT_ORDER.filter(
             (slot) => slot !== "domenica" || shifts.some((s) => s.slot === "domenica")
           ).map((slot) => {

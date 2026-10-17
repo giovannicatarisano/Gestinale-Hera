@@ -161,7 +161,7 @@ export default function DriverView() {
       setRoutes(r.data); setVehicles(v.data); setDrivers(d.data);
       toast.success("Dati aggiornati");
     } catch {
-      // ignore
+      // ignora
     } finally {
       setTimeout(() => setRefreshing(false), 500);
     }
@@ -173,9 +173,9 @@ export default function DriverView() {
   const unread = notifs.filter((n) => !n.read).length;
   const mySlot = rotation?.rotation?.find((r) => r.driver_id === myId)?.slot;
 
-  // Swaps I sent
+  // Richieste di scambio inviate dall'autista
   const mySentSwaps = swaps.filter((sw) => sw.from_driver_id === myId);
-  // Swaps I received and must respond to
+  // Richieste di scambio ricevute da colleghi a cui rispondere
   const myIncomingSwaps = swaps.filter((sw) => sw.to_driver_id === myId && sw.status === "pending_driver");
 
   const swapForShift = (sid) => swaps.find((s) => s.shift_id === sid && ["pending_driver","pending_admin","pending"].includes(s.status) && s.from_driver_id === myId);
@@ -288,7 +288,7 @@ export default function DriverView() {
               <LayoutDashboard size={14} className="mr-1 sm:mr-1.5" /> <span>{user?.role === "assistant" ? "Area Gestione" : "Admin"}</span>
             </Button>
           )}
-          {/* Refresh button */}
+          {/* Pulsante aggiorna */}
           <button
             data-testid="driver-refresh-btn"
             onClick={handleRefresh}
@@ -357,12 +357,12 @@ export default function DriverView() {
           </div>
           {myId && (
             <div className="flex flex-wrap gap-2">
-              {/* Group badge */}
+              {/* Badge gruppo di appartenenza */}
               {(() => {
                 const myDriver = drivers.find(d => d.id === myId);
                 const myGroup = myDriver?.group;
                 const myEntry = rotation?.rotation?.find((r) => r.driver_id === myId);
-                const cat = myEntry?.group_category; // "mattina" or "pomeriggio"
+                const cat = myEntry?.group_category; // "mattina" oppure "pomeriggio"
                 return (
                   <>
                     {myGroup && (
@@ -455,7 +455,7 @@ export default function DriverView() {
           )}
         </div>
 
-        {/* my shifts */}
+        {/* I miei turni della settimana */}
         {myId && (
           <div id="my-shifts-section">
             <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
@@ -512,7 +512,7 @@ export default function DriverView() {
           </div>
         )}
 
-        {/* incoming swaps — requests where I am the target driver */}
+        {/* Richieste di scambio ricevute */}
         {myId && myIncomingSwaps.length > 0 && (
           <div id="incoming-swaps-section">
             <div className="overline text-primary mb-2 flex items-center gap-1.5">
@@ -546,7 +546,7 @@ export default function DriverView() {
           </div>
         )}
 
-        {/* my swap requests */}
+        {/* Le mie richieste di cambio inviate */}
         {myId && mySentSwaps.length > 0 && (
           <div id="my-swaps-section">
             <div className="overline text-muted-foreground mb-2">Le mie richieste di cambio</div>
@@ -567,7 +567,7 @@ export default function DriverView() {
           </div>
         )}
 
-        {/* week nav */}
+        {/* Navigazione settimanale */}
         <div className="border border-border bg-card rounded-sm p-2.5 flex items-center justify-between w-full sm:max-w-md shadow-xs">
           <button data-testid="dv-prev-week" onClick={() => setRef(shiftWeek(ref, -1))} className="h-9 w-9 flex items-center justify-center border border-border rounded-sm hover:bg-secondary transition-colors duration-150" title="Settimana precedente">
             <ChevronLeft size={18} />
@@ -590,7 +590,7 @@ export default function DriverView() {
         </div>
       </main>
 
-      {/* swap request modal */}
+      {/* Modale per richiesta cambio turno singolo */}
       <Dialog open={!!swapShift} onOpenChange={(o) => !o && setSwapShift(null)}>
         <DialogContent className="w-[94vw] sm:max-w-md rounded-sm p-4 sm:p-5 max-h-[85vh] overflow-y-auto" data-testid="swap-modal">
           <DialogHeader>
@@ -638,7 +638,7 @@ export default function DriverView() {
                 <div className="text-xs font-semibold mb-1.5">Motivazione (opzionale)</div>
                 <Textarea data-testid="swap-note-input" value={swapNote} onChange={(e) => setSwapNote(e.target.value)} rows={2} className="rounded-sm text-xs sm:text-sm" placeholder="es. Impegno personale, visita..." />
               </div>
-              {/* Dual-approval info banner */}
+              {/* Avviso processo di doppia approvazione (collega + coordinatore) */}
               <div className="flex items-start gap-2 bg-blue-500/10 border border-blue-500/20 rounded-sm p-3 text-xs text-blue-700 dark:text-blue-400">
                 <Info size={13} className="shrink-0 mt-0.5" />
                 <span>Il collega riceverà una notifica e dovrà accettare. Dopo, l'admin approverà definitivamente. Solo con <b>entrambe le approvazioni</b> il cambio viene effettuato.</span>
@@ -659,7 +659,7 @@ export default function DriverView() {
         </DialogContent>
       </Dialog>
 
-      {/* weekly swap request modal */}
+      {/* Modale per richiesta cambio intera settimana */}
       <Dialog open={weekSwapOpen} onOpenChange={setWeekSwapOpen}>
         <DialogContent className="w-[94vw] sm:max-w-md rounded-sm p-4 sm:p-5 max-h-[85vh] overflow-y-auto" data-testid="week-swap-modal">
           <DialogHeader>

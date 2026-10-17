@@ -1,5 +1,5 @@
 "use client";
-// Inspired by react-hot-toast library
+// Gestione notifiche toast a comparsa
 import * as React from "react"
 
 const TOAST_LIMIT = 1
@@ -55,8 +55,8 @@ export const reducer = (state, action) => {
     case "DISMISS_TOAST": {
       const { toastId } = action
 
-      // ! Side effects ! - This could be extracted into a dismissToast() action,
-      // but I'll keep it here for simplicity
+      // Chiusura e rimozione notifica dopo timeout
+      // operazione gestita localmente per semplicità
       if (toastId) {
         addToRemoveQueue(toastId)
       } else {

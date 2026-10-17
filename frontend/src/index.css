@@ -55,7 +55,7 @@
     border-color: hsl(var(--border));
 }
 
-/* Mobile viewport safe-areas and touch optimizations */
+/* Ottimizzazioni touch e margini di sicurezza per dispositivi mobili */
 :root {
     --sab: env(safe-area-inset-bottom, 0px);
     --sat: env(safe-area-inset-top, 0px);
@@ -94,7 +94,7 @@ h1, h2, h3, .font-head {
     font-weight: 600;
 }
 
-/* Thin and smooth scrollbar */
+/* Barra di scorrimento compatta */
 .board-scroll {
     -webkit-overflow-scrolling: touch;
     scrollbar-width: thin;
@@ -103,12 +103,12 @@ h1, h2, h3, .font-head {
 .board-scroll::-webkit-scrollbar { height: 6px; width: 6px; }
 .board-scroll::-webkit-scrollbar-thumb { background: hsl(0 0% 75%); border-radius: 4px; }
 
-/* Safe area padding for mobile bottom bar */
+/* Margine inferiore di sicurezza per la barra di navigazione mobile */
 .pb-safe {
     padding-bottom: calc(4.5rem + var(--sab));
 }
 
-/* Print / PDF: show only the schedule board */
+/* Stampa e PDF: mostra unicamente la tabella dei turni */
 @media print {
   @page { size: A4 landscape; margin: 10mm; }
   body { background: #fff !important; padding: 0 !important; }

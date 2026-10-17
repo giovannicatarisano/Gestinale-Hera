@@ -5,7 +5,7 @@ import { Button } from "../components/ui/button";
 import { toast } from "sonner";
 import { ArrowLeftRight, Check, X, Clock, UserCheck, ShieldCheck, AlertCircle } from "lucide-react";
 
-// Multi-step approval statuses
+// Stati di approvazione a più passaggi
 const STATUS = {
   pending_driver: {
     label: "In attesa del collega",
@@ -31,7 +31,7 @@ const STATUS = {
     icon: <X size={11} />,
     desc: "Richiesta rifiutata",
   },
-  // Legacy fallback
+  // Fallback per compatibilità
   pending: {
     label: "In attesa",
     cls: "bg-orange-100 text-orange-700",
@@ -78,7 +78,7 @@ export default function Swaps() {
         </h1>
       </div>
 
-      {/* Legend */}
+      {/* Legenda stati */}
       <div className="flex flex-wrap gap-2 text-[10px]">
         {Object.entries(STATUS).filter(([k]) => k !== "pending").map(([k, v]) => (
           <span key={k} className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-semibold ${v.cls}`}>
@@ -93,7 +93,7 @@ export default function Swaps() {
         </div>
       ) : (
         <div className="space-y-4">
-          {/* Active requests */}
+          {/* Richieste attive in attesa */}
           {actionable.length > 0 && (
             <div className="space-y-3">
               <div className="overline text-muted-foreground text-[10px]">Da gestire</div>
@@ -101,7 +101,7 @@ export default function Swaps() {
             </div>
           )}
 
-          {/* Decided */}
+          {/* Storico richieste concluse */}
           {decided.length > 0 && (
             <div className="space-y-3">
               <div className="overline text-muted-foreground text-[10px]">Storico</div>
@@ -120,7 +120,7 @@ function SwapCard({ r, onDecide }) {
 
   return (
     <div className="group relative bg-card border border-border hover:border-foreground/40 rounded-2xl p-4 sm:p-5 shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-md transition-all duration-200" data-testid={`swap-row-${r.id}`}>
-      {/* Status row */}
+      {/* Riga stato */}
       <div className="flex items-center justify-between gap-2 flex-wrap mb-3.5">
         <div className="flex items-center gap-1.5 flex-wrap">
           <span className={`inline-flex items-center gap-1.5 text-[10px] px-2.5 py-0.5 rounded-full font-bold border shadow-2xs ${st.cls}`}>
@@ -135,7 +135,7 @@ function SwapCard({ r, onDecide }) {
         <span className="font-mono text-xs text-muted-foreground truncate">{r.shift_label}</span>
       </div>
 
-      {/* Driver row */}
+      {/* Riga autisti coinvolti */}
       <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 py-1.5">
         <div className="flex items-center gap-2.5">
           <div className="h-9 w-9 rounded-xl bg-secondary flex items-center justify-center font-head font-bold text-xs shrink-0 shadow-2xs border border-border">{initials(r.from_name)}</div>
@@ -157,10 +157,10 @@ function SwapCard({ r, onDecide }) {
         </div>
       </div>
 
-      {/* Note */}
+      {/* Note e motivazioni */}
       {r.note && <div className="text-xs text-muted-foreground mt-2 italic bg-secondary/30 p-2 rounded-sm">"{r.note}"</div>}
 
-      {/* Status description */}
+      {/* Descrizione dettagliata dello stato */}
       {st.desc && (
         <div className="flex items-center gap-1.5 mt-2.5 text-[11px] text-muted-foreground bg-secondary/20 px-2.5 py-1.5 rounded-sm">
           <AlertCircle size={11} className="shrink-0" />
@@ -168,7 +168,7 @@ function SwapCard({ r, onDecide }) {
         </div>
       )}
 
-      {/* Approval steps indicator */}
+      {/* Indicatore degli stati di avanzamento approvazione */}
       <div className="flex items-center gap-2 mt-3">
         <Step
           label="Collega"
@@ -183,7 +183,7 @@ function SwapCard({ r, onDecide }) {
         />
       </div>
 
-      {/* Tracciabilità decisione staff */}
+      {/* Tracciabilità decisione coordinatore */}
       {r.decided_by && (
         <div className="text-[11px] text-muted-foreground mt-2 bg-secondary/40 px-2.5 py-1 rounded-sm border border-border/40 flex items-center justify-between flex-wrap gap-1">
           <span>
@@ -200,7 +200,7 @@ function SwapCard({ r, onDecide }) {
         </div>
       )}
 
-      {/* Admin action buttons — only shown when driver has accepted */}
+      {/* Pulsanti di azione per il coordinatore (visibili solo dopo l'accettazione del collega) */}
       {canAdminAct && (
         <div className="flex gap-2 mt-4 pt-2 border-t border-border/40">
           <Button

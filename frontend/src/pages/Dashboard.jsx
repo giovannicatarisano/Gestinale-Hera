@@ -82,7 +82,7 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-5">
-      {/* header */}
+      {/* Intestazione */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 no-print">
         <div>
           <div className="overline text-primary mb-0.5">Pianificazione settimanale</div>
@@ -110,7 +110,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* controls + stats */}
+      {/* Controlli settimana e statistiche */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-3.5 no-print">
         <div className="sm:col-span-2 border border-border bg-card rounded-2xl p-3.5 sm:p-4 flex items-center justify-between shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-md transition-all">
           <button
@@ -140,7 +140,7 @@ export default function Dashboard() {
         <Stat icon={AlertTriangle} label="Turni scoperti" value={uncovered} total={total} tone={uncovered ? "bad" : "ok"} tid="stat-uncovered" />
       </div>
 
-      {/* Group rotation info panel */}
+      {/* Pannello informativo rotazione gruppi */}
       {rotation && (rotation.gruppo1_turno || rotation.gruppo2_turno) && (
         <div className="flex flex-wrap gap-2 items-center no-print">
           <span className="overline text-[10px] text-muted-foreground">Rotazione questa settimana:</span>

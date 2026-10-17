@@ -4,7 +4,7 @@ import { Capacitor } from "@capacitor/core";
 let isCapacitor = Capacitor.isNativePlatform();
 
 /**
- * Request notification permissions from device/browser
+ * Richiede i permessi per le notifiche push al browser o dispositivo
  */
 export async function requestNotificationPermission() {
   try {
@@ -24,7 +24,7 @@ export async function requestNotificationPermission() {
 }
 
 /**
- * Display a device/browser pop-up banner notification
+ * Mostra un banner di notifica di sistema sul dispositivo o browser
  */
 export async function triggerLocalNotification(title, body, id = Date.now()) {
   try {
