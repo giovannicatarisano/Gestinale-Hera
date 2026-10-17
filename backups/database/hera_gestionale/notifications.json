@@ -1,0 +1,208 @@
+[
+  {
+    "id": "2535a627-c7de-4e42-96f9-83e71f753278",
+    "driver_id": "5ddad5dd-94b0-4e5f-80a7-6447df52b2e7",
+    "kind": "swap",
+    "message": "Giacomo Tassi ti propone uno scambio turno: CDR Mattino · Lunedì · Mattino Standard. Apri l'app per rispondere.",
+    "shift_id": "d19d60b2-40d8-491b-983c-9c217a5ae15b",
+    "read": true,
+    "created_at": "2026-10-11T18:47:14.486137+00:00"
+  },
+  {
+    "id": "6d0a726b-c251-40bd-a332-2e1ca285249d",
+    "user_id": "b27c02ff-5a5b-4b82-8f3a-5ec47245625d",
+    "driver_id": null,
+    "kind": "swap",
+    "message": "Nuova richiesta cambio (Giacomo Tassi → Giovanni Catarisano): CDR Mattino · Lunedì · Mattino Standard. In attesa della risposta del collega.",
+    "shift_id": "d19d60b2-40d8-491b-983c-9c217a5ae15b",
+    "read": true,
+    "created_at": "2026-10-11T18:47:14.516087+00:00"
+  },
+  {
+    "id": "0c488ebb-3a65-40c7-a059-bb568dba66b3",
+    "driver_id": "52729506-03db-4078-aa37-6e0a3b329c6d",
+    "kind": "swap",
+    "message": "Giovanni Catarisano ha ACCETTATO lo scambio per CDR Mattino · Lunedì · Mattino Standard. In attesa dell'approvazione dell'admin.",
+    "shift_id": "d19d60b2-40d8-491b-983c-9c217a5ae15b",
+    "read": true,
+    "created_at": "2026-10-11T18:49:36.644267+00:00"
+  },
+  {
+    "id": "50fbfedf-bb99-4a77-82c5-3383af1e7579",
+    "user_id": "b27c02ff-5a5b-4b82-8f3a-5ec47245625d",
+    "driver_id": null,
+    "kind": "swap",
+    "message": "Giovanni Catarisano ha accettato lo scambio per CDR Mattino · Lunedì · Mattino Standard. La tua approvazione è ora richiesta.",
+    "shift_id": "d19d60b2-40d8-491b-983c-9c217a5ae15b",
+    "read": true,
+    "created_at": "2026-10-11T18:49:36.649441+00:00"
+  },
+  {
+    "id": "00f73a04-be7b-4d6c-9e2b-a9ea678a6870",
+    "driver_id": "52729506-03db-4078-aa37-6e0a3b329c6d",
+    "kind": "swap",
+    "message": "❌ Cambio RIFIUTATO dall'admin per CDR Mattino · Lunedì · Mattino Standard.",
+    "shift_id": "d19d60b2-40d8-491b-983c-9c217a5ae15b",
+    "read": true,
+    "created_at": "2026-10-11T18:50:43.033245+00:00"
+  },
+  {
+    "id": "b5541b16-e718-461c-832f-fdf5bcf517dd",
+    "driver_id": "5ddad5dd-94b0-4e5f-80a7-6447df52b2e7",
+    "kind": "swap",
+    "message": "❌ Cambio RIFIUTATO dall'admin: il turno CDR Mattino · Lunedì · Mattino Standard rimane invariato.",
+    "shift_id": "d19d60b2-40d8-491b-983c-9c217a5ae15b",
+    "read": true,
+    "created_at": "2026-10-11T18:50:43.036989+00:00"
+  },
+  {
+    "id": "f84948de-8e8f-4aa6-82f0-b61526ca0de7",
+    "driver_id": "52729506-03db-4078-aa37-6e0a3b329c6d",
+    "kind": "swap",
+    "message": "Giovanni Catarisano ti propone uno scambio turno: CDR Mattino · Lunedì · Mattino Standard. Apri l'app per rispondere.",
+    "shift_id": "1f4780e9-e369-4513-9f2d-2446e07f8da4",
+    "read": true,
+    "created_at": "2026-10-14T09:18:48.806789+00:00"
+  },
+  {
+    "id": "1aed7d85-a3dd-45d3-9bec-12ebcc3c4181",
+    "user_id": "b27c02ff-5a5b-4b82-8f3a-5ec47245625d",
+    "driver_id": null,
+    "kind": "swap",
+    "message": "Nuova richiesta cambio (Giovanni Catarisano → Giacomo Tassi): CDR Mattino · Lunedì · Mattino Standard. In attesa della risposta del collega.",
+    "shift_id": "1f4780e9-e369-4513-9f2d-2446e07f8da4",
+    "read": true,
+    "created_at": "2026-10-14T09:18:48.813047+00:00"
+  },
+  {
+    "id": "f80ae492-e9b1-46ed-af41-5b7bf7721295",
+    "target_role": "admin",
+    "driver_id": "5ddad5dd-94b0-4e5f-80a7-6447df52b2e7",
+    "title": "Richiesta reintegro Kit Medico",
+    "message": "L'autista Giovanni Catarisano ha segnalato l'utilizzo di 'Disinfettante' e ne richiede la sostituzione. Note: \"Utilizzato per un taglio durante il servizio\"",
+    "category": "medical_kit",
+    "created_at": "2026-10-16T08:44:47.265150+00:00",
+    "read": true
+  },
+  {
+    "id": "f0851a2d-c6e8-4302-be44-a2fef83929b8",
+    "target_role": "admin",
+    "driver_id": "5ddad5dd-94b0-4e5f-80a7-6447df52b2e7",
+    "title": "Richiesta reintegro Kit Medico",
+    "message": "L'autista Giovanni Catarisano ha segnalato l'utilizzo di 'Disinfettante' e ne richiede la sostituzione.",
+    "category": "medical_kit",
+    "created_at": "2026-10-16T09:02:28.981143+00:00",
+    "read": true
+  },
+  {
+    "id": "203e201e-8821-4948-9cf2-03c314a569ba",
+    "target_role": "driver",
+    "driver_id": "5ddad5dd-94b0-4e5f-80a7-6447df52b2e7",
+    "title": "Presidio Kit Medico reintegrato",
+    "message": "Il presidio 'Disinfettante' del tuo kit medico è stato sostituito/reintegrato. Nuova scadenza: 2028-10-16",
+    "category": "medical_kit",
+    "created_at": "2026-10-16T09:02:52.233558+00:00",
+    "read": true
+  },
+  {
+    "id": "097b351f-d5f9-4744-91a2-ee9177323766",
+    "target_role": "admin",
+    "driver_id": "5ddad5dd-94b0-4e5f-80a7-6447df52b2e7",
+    "title": "Richiesta reintegro Kit Medico",
+    "message": "L'autista Giovanni Catarisano ha segnalato l'utilizzo di 'Disinfettante' e ne richiede la sostituzione.",
+    "category": "medical_kit",
+    "created_at": "2026-10-16T10:00:22.725725+00:00",
+    "read": true
+  },
+  {
+    "id": "e2c52db8-32e7-4f51-a833-9768949a6049",
+    "target_role": "driver",
+    "driver_id": "5ddad5dd-94b0-4e5f-80a7-6447df52b2e7",
+    "title": "Presidio Kit Medico reintegrato",
+    "message": "Il presidio 'Disinfettante' del tuo kit medico è stato sostituito/reintegrato. Nuova scadenza: 2028-10-16",
+    "category": "medical_kit",
+    "created_at": "2026-10-16T10:01:04.454480+00:00",
+    "read": false
+  },
+  {
+    "id": "8a61ddf4-2901-4240-a156-916e1b2c168f",
+    "driver_id": "52729506-03db-4078-aa37-6e0a3b329c6d",
+    "kind": "shift",
+    "message": "Ti è stato assegnato un nuovo turno: Plastica 10 · Martedì · Mattino Presto",
+    "shift_id": "95b8b595-849e-49bc-8959-45372e8f7fd1",
+    "read": false,
+    "created_at": "2026-10-16T22:40:01.820423+00:00"
+  },
+  {
+    "id": "41bf94f1-9b2b-412f-bd38-d0cf4efdc374",
+    "driver_id": "5ddad5dd-94b0-4e5f-80a7-6447df52b2e7",
+    "kind": "shift",
+    "message": "Sei stato rimosso dal turno: Plastica 5 · Lunedì · Mattino Presto",
+    "shift_id": "2f26127f-e348-4ea5-b0c9-5811624cda8b",
+    "read": false,
+    "created_at": "2026-10-16T22:40:43.863532+00:00"
+  },
+  {
+    "id": "9af70ebb-c401-4b7a-9e53-4eb92b35f145",
+    "driver_id": "6dc529d9-b6d8-4e21-8adb-828a850c4d34",
+    "kind": "shift",
+    "message": "Ti è stato assegnato un nuovo turno: Plastica 5 · Lunedì · Mattino Presto",
+    "shift_id": "2f26127f-e348-4ea5-b0c9-5811624cda8b",
+    "read": false,
+    "created_at": "2026-10-16T22:40:43.867004+00:00"
+  },
+  {
+    "id": "34a66785-7aa4-4528-acb5-fe6064e8048b",
+    "driver_id": "52729506-03db-4078-aa37-6e0a3b329c6d",
+    "kind": "shift",
+    "message": "Sei stato rimosso dal turno: Plastica 10 · Martedì · Mattino Presto",
+    "shift_id": "95b8b595-849e-49bc-8959-45372e8f7fd1",
+    "read": false,
+    "created_at": "2026-10-16T22:52:41.020438+00:00"
+  },
+  {
+    "id": "7219c74f-38d4-4c04-b64a-feaa852447f4",
+    "driver_id": "5ddad5dd-94b0-4e5f-80a7-6447df52b2e7",
+    "kind": "shift",
+    "message": "Ti è stato assegnato un nuovo turno: Plastica 10 · Martedì · Mattino Presto",
+    "shift_id": "95b8b595-849e-49bc-8959-45372e8f7fd1",
+    "read": false,
+    "created_at": "2026-10-16T22:52:41.025158+00:00"
+  },
+  {
+    "id": "da73f6ba-ae6c-44df-9ed0-b8681a8ea173",
+    "driver_id": "5ddad5dd-94b0-4e5f-80a7-6447df52b2e7",
+    "kind": "shift",
+    "message": "Sei stato rimosso dal turno: Plastica 10 · Martedì · Mattino Presto",
+    "shift_id": "95b8b595-849e-49bc-8959-45372e8f7fd1",
+    "read": false,
+    "created_at": "2026-10-16T22:53:36.914696+00:00"
+  },
+  {
+    "id": "36c205a5-7fca-48f0-8d9c-d81412e3afb3",
+    "driver_id": "52729506-03db-4078-aa37-6e0a3b329c6d",
+    "kind": "shift",
+    "message": "Ti è stato assegnato un nuovo turno: Plastica 10 · Martedì · Mattino Presto",
+    "shift_id": "95b8b595-849e-49bc-8959-45372e8f7fd1",
+    "read": false,
+    "created_at": "2026-10-16T22:53:36.918218+00:00"
+  },
+  {
+    "id": "197414a1-f980-42df-adc2-860799ff50fa",
+    "driver_id": "52729506-03db-4078-aa37-6e0a3b329c6d",
+    "kind": "shift",
+    "message": "Sei stato rimosso dal turno: Plastica 10 · Martedì · Mattino Presto",
+    "shift_id": "95b8b595-849e-49bc-8959-45372e8f7fd1",
+    "read": false,
+    "created_at": "2026-10-16T22:55:57.743222+00:00"
+  },
+  {
+    "id": "30faff38-e553-445d-9315-f6492e892530",
+    "driver_id": "5ddad5dd-94b0-4e5f-80a7-6447df52b2e7",
+    "kind": "shift",
+    "message": "Ti è stato assegnato un nuovo turno: Plastica 10 · Martedì · Mattino Presto",
+    "shift_id": "95b8b595-849e-49bc-8959-45372e8f7fd1",
+    "read": false,
+    "created_at": "2026-10-16T22:55:57.747140+00:00"
+  }
+]

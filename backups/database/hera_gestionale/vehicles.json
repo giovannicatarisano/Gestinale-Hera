@@ -1,0 +1,56 @@
+[
+  {
+    "id": "9fef3d50-9b82-4bac-9561-0ae176659d11",
+    "name": "20562",
+    "plate": "ab123cd",
+    "type": "Monoperatore",
+    "fault_note": "",
+    "status": "available"
+  },
+  {
+    "id": "a78e5539-c0b7-488d-8147-62459a52fa9c",
+    "name": "61424",
+    "plate": "ac123vd",
+    "type": "Monoperatore"
+  },
+  {
+    "id": "d065cbbc-7e6d-4311-ac2d-523f202250f1",
+    "name": "61429",
+    "plate": "sc123bf",
+    "type": "Monoperatore"
+  },
+  {
+    "id": "4f57e9d0-68a0-4d48-af8c-59407f3eff3d",
+    "name": "60200",
+    "plate": "qw152we",
+    "type": "Scarrabile",
+    "fault_note": "",
+    "status": "available"
+  },
+  {
+    "id": "e6c9e15d-50fb-423d-89c7-3ce36e18c1be",
+    "name": "71138",
+    "plate": "ws152wd",
+    "type": "Scarrabile",
+    "fault_note": "",
+    "status": "available"
+  },
+  {
+    "id": "ed25c806-f660-4c69-9ff0-437f4219465d",
+    "name": "60202",
+    "plate": "wd354gb",
+    "type": "Scarrabile"
+  },
+  {
+    "id": "bfae7452-1531-406e-bfe8-1f5328bc2f15",
+    "name": "60233",
+    "plate": "FX898ml",
+    "type": "Ragnino"
+  },
+  {
+    "id": "56ba1042-7478-4985-aca8-9f36683ce1e9",
+    "name": "60234",
+    "plate": "fx890ml",
+    "type": "Ragnino"
+  }
+]
