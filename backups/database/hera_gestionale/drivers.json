@@ -1,0 +1,319 @@
+[
+  {
+    "id": "5ddad5dd-94b0-4e5f-80a7-6447df52b2e7",
+    "name": "Giovanni Catarisano",
+    "email": "giovanni.catarisano@gruppohera.it",
+    "phone": "",
+    "active": true,
+    "group": "gruppo1",
+    "vehicle_skills": [
+      "9fef3d50-9b82-4bac-9561-0ae176659d11",
+      "4f57e9d0-68a0-4d48-af8c-59407f3eff3d",
+      "e6c9e15d-50fb-423d-89c7-3ce36e18c1be",
+      "ed25c806-f660-4c69-9ff0-437f4219465d",
+      "bfae7452-1531-406e-bfe8-1f5328bc2f15",
+      "56ba1042-7478-4985-aca8-9f36683ce1e9"
+    ],
+    "route_skills": [
+      "8a2739c4-6416-426b-a160-f03cd99eb5b8",
+      "4e8804e6-e4f6-4248-bd18-cba940850c7b",
+      "95ee4c80-cefe-45d7-a889-11ca5340d10b",
+      "3a28f023-e2e8-48f9-a772-fd0460f15673",
+      "81b5234d-f5fa-4c2e-9622-4afdfd813b5e",
+      "44da0f7e-12b7-479e-a125-8a908554170e",
+      "4c971319-4824-4e27-bb21-00cf8c7395c9",
+      "fc9993ce-efd6-4b5c-9fba-16f105505c98"
+    ],
+    "licenses": [
+      {
+        "name": "B",
+        "expiry_date": "2028-02-08"
+      },
+      {
+        "name": "C",
+        "expiry_date": "2028-02-08"
+      },
+      {
+        "name": "CQC Merci",
+        "expiry_date": "2028-02-21"
+      },
+      {
+        "name": "Ragno",
+        "expiry_date": "2029-11-27"
+      }
+    ],
+    "medical_kit": [
+      {
+        "name": "Disinfettante",
+        "expiry_date": "2028-10-16",
+        "notes": "",
+        "needs_replacement": false,
+        "replacement_requested_at": null,
+        "replacement_note": ""
+      },
+      {
+        "name": "Bende sterili",
+        "expiry_date": "2027-10-15",
+        "notes": "",
+        "needs_replacement": false,
+        "replacement_requested_at": null,
+        "replacement_note": ""
+      },
+      {
+        "name": "Cerotti",
+        "expiry_date": "2027-10-15",
+        "notes": "",
+        "needs_replacement": false,
+        "replacement_requested_at": null,
+        "replacement_note": ""
+      },
+      {
+        "name": "Garze idrofile",
+        "expiry_date": "2027-10-15",
+        "notes": "",
+        "needs_replacement": false,
+        "replacement_requested_at": null,
+        "replacement_note": ""
+      }
+    ]
+  },
+  {
+    "id": "52729506-03db-4078-aa37-6e0a3b329c6d",
+    "name": "Giacomo Tassi",
+    "email": "giacomo.tassi@gruppohera.it",
+    "phone": "",
+    "active": true,
+    "group": "gruppo2",
+    "vehicle_skills": [
+      "9fef3d50-9b82-4bac-9561-0ae176659d11",
+      "a78e5539-c0b7-488d-8147-62459a52fa9c",
+      "4f57e9d0-68a0-4d48-af8c-59407f3eff3d",
+      "e6c9e15d-50fb-423d-89c7-3ce36e18c1be",
+      "ed25c806-f660-4c69-9ff0-437f4219465d",
+      "bfae7452-1531-406e-bfe8-1f5328bc2f15",
+      "56ba1042-7478-4985-aca8-9f36683ce1e9"
+    ],
+    "route_skills": [
+      "8a2739c4-6416-426b-a160-f03cd99eb5b8",
+      "4e8804e6-e4f6-4248-bd18-cba940850c7b",
+      "95ee4c80-cefe-45d7-a889-11ca5340d10b",
+      "3a28f023-e2e8-48f9-a772-fd0460f15673",
+      "81b5234d-f5fa-4c2e-9622-4afdfd813b5e",
+      "44da0f7e-12b7-479e-a125-8a908554170e",
+      "4c971319-4824-4e27-bb21-00cf8c7395c9"
+    ]
+  },
+  {
+    "id": "418dd457-1a23-4989-8730-c947ef7cbb0b",
+    "name": "Gianni Bonifazzi",
+    "email": "gianni.bonifazzi@gruppohera.it",
+    "phone": "",
+    "active": true,
+    "group": "gruppo1",
+    "vehicle_skills": [
+      "9fef3d50-9b82-4bac-9561-0ae176659d11",
+      "4f57e9d0-68a0-4d48-af8c-59407f3eff3d",
+      "ed25c806-f660-4c69-9ff0-437f4219465d",
+      "bfae7452-1531-406e-bfe8-1f5328bc2f15",
+      "56ba1042-7478-4985-aca8-9f36683ce1e9",
+      "a78e5539-c0b7-488d-8147-62459a52fa9c"
+    ],
+    "route_skills": [
+      "8a2739c4-6416-426b-a160-f03cd99eb5b8",
+      "4e8804e6-e4f6-4248-bd18-cba940850c7b",
+      "95ee4c80-cefe-45d7-a889-11ca5340d10b",
+      "3a28f023-e2e8-48f9-a772-fd0460f15673",
+      "81b5234d-f5fa-4c2e-9622-4afdfd813b5e",
+      "44da0f7e-12b7-479e-a125-8a908554170e",
+      "4c971319-4824-4e27-bb21-00cf8c7395c9"
+    ]
+  },
+  {
+    "id": "1927d8f7-a996-4411-a0e3-8429c4253b31",
+    "name": "Francesco Soffritti",
+    "email": "francesco.soffritti@gruppohera.it",
+    "phone": "",
+    "active": true,
+    "group": "gruppo2",
+    "vehicle_skills": [
+      "d065cbbc-7e6d-4311-ac2d-523f202250f1",
+      "a78e5539-c0b7-488d-8147-62459a52fa9c",
+      "9fef3d50-9b82-4bac-9561-0ae176659d11",
+      "ed25c806-f660-4c69-9ff0-437f4219465d",
+      "56ba1042-7478-4985-aca8-9f36683ce1e9",
+      "bfae7452-1531-406e-bfe8-1f5328bc2f15"
+    ],
+    "route_skills": [
+      "8a2739c4-6416-426b-a160-f03cd99eb5b8",
+      "4e8804e6-e4f6-4248-bd18-cba940850c7b",
+      "95ee4c80-cefe-45d7-a889-11ca5340d10b",
+      "3a28f023-e2e8-48f9-a772-fd0460f15673",
+      "81b5234d-f5fa-4c2e-9622-4afdfd813b5e",
+      "44da0f7e-12b7-479e-a125-8a908554170e",
+      "4c971319-4824-4e27-bb21-00cf8c7395c9"
+    ],
+    "licenses": []
+  },
+  {
+    "id": "bd9b1479-400a-4966-9865-63e189ec2e0a",
+    "name": "Michele Donati",
+    "email": "michele.donati@gruppohera.it",
+    "phone": "",
+    "active": true,
+    "group": "gruppo1",
+    "vehicle_skills": [
+      "9fef3d50-9b82-4bac-9561-0ae176659d11",
+      "a78e5539-c0b7-488d-8147-62459a52fa9c",
+      "d065cbbc-7e6d-4311-ac2d-523f202250f1",
+      "4f57e9d0-68a0-4d48-af8c-59407f3eff3d",
+      "e6c9e15d-50fb-423d-89c7-3ce36e18c1be",
+      "ed25c806-f660-4c69-9ff0-437f4219465d",
+      "bfae7452-1531-406e-bfe8-1f5328bc2f15",
+      "56ba1042-7478-4985-aca8-9f36683ce1e9"
+    ],
+    "route_skills": [
+      "8a2739c4-6416-426b-a160-f03cd99eb5b8",
+      "4e8804e6-e4f6-4248-bd18-cba940850c7b",
+      "95ee4c80-cefe-45d7-a889-11ca5340d10b",
+      "3a28f023-e2e8-48f9-a772-fd0460f15673",
+      "81b5234d-f5fa-4c2e-9622-4afdfd813b5e",
+      "4c971319-4824-4e27-bb21-00cf8c7395c9",
+      "44da0f7e-12b7-479e-a125-8a908554170e"
+    ]
+  },
+  {
+    "id": "7627f6d3-cc6a-4460-98e5-889162bf085e",
+    "name": "Luca Morselli",
+    "email": "luca.moreselli@gruppohera.it",
+    "phone": "",
+    "active": true,
+    "group": "gruppo1",
+    "vehicle_skills": [
+      "9fef3d50-9b82-4bac-9561-0ae176659d11",
+      "a78e5539-c0b7-488d-8147-62459a52fa9c",
+      "56ba1042-7478-4985-aca8-9f36683ce1e9",
+      "bfae7452-1531-406e-bfe8-1f5328bc2f15",
+      "ed25c806-f660-4c69-9ff0-437f4219465d",
+      "e6c9e15d-50fb-423d-89c7-3ce36e18c1be",
+      "4f57e9d0-68a0-4d48-af8c-59407f3eff3d",
+      "d065cbbc-7e6d-4311-ac2d-523f202250f1"
+    ],
+    "route_skills": [
+      "8a2739c4-6416-426b-a160-f03cd99eb5b8",
+      "4e8804e6-e4f6-4248-bd18-cba940850c7b",
+      "95ee4c80-cefe-45d7-a889-11ca5340d10b",
+      "3a28f023-e2e8-48f9-a772-fd0460f15673",
+      "44da0f7e-12b7-479e-a125-8a908554170e",
+      "81b5234d-f5fa-4c2e-9622-4afdfd813b5e",
+      "4c971319-4824-4e27-bb21-00cf8c7395c9"
+    ]
+  },
+  {
+    "id": "f312217b-efeb-44b8-9ec9-907cc363496d",
+    "name": "Nicola Vaccari",
+    "email": "nicola.vaccari@gruppohera.it",
+    "phone": "",
+    "active": true,
+    "group": "gruppo2",
+    "vehicle_skills": [
+      "9fef3d50-9b82-4bac-9561-0ae176659d11",
+      "a78e5539-c0b7-488d-8147-62459a52fa9c",
+      "56ba1042-7478-4985-aca8-9f36683ce1e9",
+      "bfae7452-1531-406e-bfe8-1f5328bc2f15",
+      "ed25c806-f660-4c69-9ff0-437f4219465d",
+      "e6c9e15d-50fb-423d-89c7-3ce36e18c1be",
+      "d065cbbc-7e6d-4311-ac2d-523f202250f1",
+      "4f57e9d0-68a0-4d48-af8c-59407f3eff3d"
+    ],
+    "route_skills": [
+      "8a2739c4-6416-426b-a160-f03cd99eb5b8",
+      "4e8804e6-e4f6-4248-bd18-cba940850c7b",
+      "95ee4c80-cefe-45d7-a889-11ca5340d10b",
+      "3a28f023-e2e8-48f9-a772-fd0460f15673",
+      "81b5234d-f5fa-4c2e-9622-4afdfd813b5e",
+      "44da0f7e-12b7-479e-a125-8a908554170e",
+      "4c971319-4824-4e27-bb21-00cf8c7395c9"
+    ]
+  },
+  {
+    "id": "6dc529d9-b6d8-4e21-8adb-828a850c4d34",
+    "name": "Margherita Cariani",
+    "email": "margherita.cariani@gruppohera.it",
+    "phone": "",
+    "active": true,
+    "group": "gruppo2",
+    "vehicle_skills": [
+      "56ba1042-7478-4985-aca8-9f36683ce1e9",
+      "bfae7452-1531-406e-bfe8-1f5328bc2f15",
+      "ed25c806-f660-4c69-9ff0-437f4219465d",
+      "e6c9e15d-50fb-423d-89c7-3ce36e18c1be",
+      "4f57e9d0-68a0-4d48-af8c-59407f3eff3d",
+      "d065cbbc-7e6d-4311-ac2d-523f202250f1",
+      "a78e5539-c0b7-488d-8147-62459a52fa9c",
+      "9fef3d50-9b82-4bac-9561-0ae176659d11"
+    ],
+    "route_skills": [
+      "8a2739c4-6416-426b-a160-f03cd99eb5b8",
+      "4e8804e6-e4f6-4248-bd18-cba940850c7b",
+      "95ee4c80-cefe-45d7-a889-11ca5340d10b",
+      "3a28f023-e2e8-48f9-a772-fd0460f15673",
+      "4c971319-4824-4e27-bb21-00cf8c7395c9",
+      "44da0f7e-12b7-479e-a125-8a908554170e",
+      "81b5234d-f5fa-4c2e-9622-4afdfd813b5e"
+    ]
+  },
+  {
+    "id": "19299382-445e-4cdf-a25a-037cc1aa276a",
+    "name": "Yari Tedesco",
+    "email": "yari.tedesco@gruppohera.it",
+    "phone": "",
+    "active": true,
+    "group": "gruppo1",
+    "vehicle_skills": [
+      "56ba1042-7478-4985-aca8-9f36683ce1e9",
+      "bfae7452-1531-406e-bfe8-1f5328bc2f15",
+      "ed25c806-f660-4c69-9ff0-437f4219465d",
+      "e6c9e15d-50fb-423d-89c7-3ce36e18c1be",
+      "9fef3d50-9b82-4bac-9561-0ae176659d11",
+      "a78e5539-c0b7-488d-8147-62459a52fa9c",
+      "d065cbbc-7e6d-4311-ac2d-523f202250f1",
+      "4f57e9d0-68a0-4d48-af8c-59407f3eff3d"
+    ],
+    "route_skills": [
+      "8a2739c4-6416-426b-a160-f03cd99eb5b8",
+      "4e8804e6-e4f6-4248-bd18-cba940850c7b",
+      "95ee4c80-cefe-45d7-a889-11ca5340d10b",
+      "3a28f023-e2e8-48f9-a772-fd0460f15673",
+      "81b5234d-f5fa-4c2e-9622-4afdfd813b5e",
+      "44da0f7e-12b7-479e-a125-8a908554170e",
+      "4c971319-4824-4e27-bb21-00cf8c7395c9"
+    ]
+  },
+  {
+    "id": "cc0a22d4-406a-43c2-a586-8dd6b66060a8",
+    "name": "Ettore Piccotti",
+    "email": "ettore.piccotti@gruppohera.it",
+    "phone": "",
+    "active": true,
+    "group": "gruppo2",
+    "vehicle_skills": [
+      "56ba1042-7478-4985-aca8-9f36683ce1e9",
+      "bfae7452-1531-406e-bfe8-1f5328bc2f15",
+      "ed25c806-f660-4c69-9ff0-437f4219465d",
+      "e6c9e15d-50fb-423d-89c7-3ce36e18c1be",
+      "4f57e9d0-68a0-4d48-af8c-59407f3eff3d",
+      "d065cbbc-7e6d-4311-ac2d-523f202250f1",
+      "a78e5539-c0b7-488d-8147-62459a52fa9c",
+      "9fef3d50-9b82-4bac-9561-0ae176659d11"
+    ],
+    "route_skills": [
+      "8a2739c4-6416-426b-a160-f03cd99eb5b8",
+      "4e8804e6-e4f6-4248-bd18-cba940850c7b",
+      "95ee4c80-cefe-45d7-a889-11ca5340d10b",
+      "4c971319-4824-4e27-bb21-00cf8c7395c9",
+      "44da0f7e-12b7-479e-a125-8a908554170e",
+      "81b5234d-f5fa-4c2e-9622-4afdfd813b5e",
+      "3a28f023-e2e8-48f9-a772-fd0460f15673"
+    ]
+  }
+]
