@@ -122,7 +122,7 @@
     "message": "Il presidio 'Disinfettante' del tuo kit medico è stato sostituito/reintegrato. Nuova scadenza: 2028-10-16",
     "category": "medical_kit",
     "created_at": "2026-10-16T10:01:04.454480+00:00",
-    "read": false
+    "read": true
   },
   {
     "id": "8a61ddf4-2901-4240-a156-916e1b2c168f",
@@ -139,7 +139,7 @@
     "kind": "shift",
     "message": "Sei stato rimosso dal turno: Plastica 5 · Lunedì · Mattino Presto",
     "shift_id": "2f26127f-e348-4ea5-b0c9-5811624cda8b",
-    "read": false,
+    "read": true,
     "created_at": "2026-10-16T22:40:43.863532+00:00"
   },
   {
@@ -166,7 +166,7 @@
     "kind": "shift",
     "message": "Ti è stato assegnato un nuovo turno: Plastica 10 · Martedì · Mattino Presto",
     "shift_id": "95b8b595-849e-49bc-8959-45372e8f7fd1",
-    "read": false,
+    "read": true,
     "created_at": "2026-10-16T22:52:41.025158+00:00"
   },
   {
@@ -175,7 +175,7 @@
     "kind": "shift",
     "message": "Sei stato rimosso dal turno: Plastica 10 · Martedì · Mattino Presto",
     "shift_id": "95b8b595-849e-49bc-8959-45372e8f7fd1",
-    "read": false,
+    "read": true,
     "created_at": "2026-10-16T22:53:36.914696+00:00"
   },
   {
@@ -202,7 +202,7 @@
     "kind": "shift",
     "message": "Ti è stato assegnato un nuovo turno: Plastica 10 · Martedì · Mattino Presto",
     "shift_id": "95b8b595-849e-49bc-8959-45372e8f7fd1",
-    "read": false,
+    "read": true,
     "created_at": "2026-10-16T22:55:57.747140+00:00"
   }
 ]
