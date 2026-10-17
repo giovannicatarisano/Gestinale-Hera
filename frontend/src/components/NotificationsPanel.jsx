@@ -17,7 +17,7 @@ export default function NotificationsPanel({ side = "top", align = "start" }) {
   const prevIdsRef = useRef(new Set());
   const initialLoadRef = useRef(true);
 
-  // Request permissions once on mount
+  // Richiede i permessi per le notifiche all'avvio
   useEffect(() => {
     requestNotificationPermission();
   }, []);
@@ -27,7 +27,7 @@ export default function NotificationsPanel({ side = "top", align = "start" }) {
       const r = await api.get("/notifications");
       const list = r.data || [];
       
-      // Trigger pop-up banner for any newly arrived unread notifications
+      // Mostra il banner di notifica per ogni nuovo messaggio non letto
       if (!initialLoadRef.current) {
         const newUnread = list.filter((n) => !n.read && !prevIdsRef.current.has(n.id));
         if (newUnread.length > 0) {
@@ -43,10 +43,10 @@ export default function NotificationsPanel({ side = "top", align = "start" }) {
 
       prevIdsRef.current = new Set(list.map((n) => n.id));
       setNotifs(list);
-    } catch { /* silently fail */ }
+    } catch { /* ignora errore in modo trasparente */ }
   }, []);
 
-  // Poll every 20 seconds
+  // Aggiornamento periodico ogni 20 secondi
   useEffect(() => {
     load();
     const timer = setInterval(load, 20000);
@@ -61,14 +61,14 @@ export default function NotificationsPanel({ side = "top", align = "start" }) {
     try {
       await api.post("/notifications/read", { ids: unreadIds });
       setNotifs((prev) => prev.map((n) => ({ ...n, read: true })));
-    } catch { /* silently fail */ }
+    } catch { /* ignora errore in modo trasparente */ }
   };
 
   const markOne = async (id) => {
     try {
       await api.post("/notifications/read", { ids: [id] });
       setNotifs((prev) => prev.map((n) => n.id === id ? { ...n, read: true } : n));
-    } catch { /* silently fail */ }
+    } catch { /* ignora errore in modo trasparente */ }
   };
 
   const handleNotifClick = async (n) => {
@@ -120,7 +120,7 @@ export default function NotificationsPanel({ side = "top", align = "start" }) {
         collisionPadding={12}
         className="w-[340px] max-w-[calc(100vw-1.5rem)] bg-card border border-border rounded-sm shadow-2xl p-0 overflow-hidden z-50"
       >
-        {/* Header */}
+        {/* Intestazione */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-secondary/40">
           <div className="flex items-center gap-2">
             <Bell size={15} className="text-primary" />
@@ -141,7 +141,7 @@ export default function NotificationsPanel({ side = "top", align = "start" }) {
           </div>
         </div>
 
-        {/* List */}
+        {/* Elenco notifiche */}
         <div className="max-h-[55vh] overflow-y-auto divide-y divide-border board-scroll">
           {notifs.length === 0 ? (
             <div className="py-10 text-center text-sm text-muted-foreground">

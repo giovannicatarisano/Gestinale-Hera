@@ -48,9 +48,9 @@ export default function Layout() {
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
-    // Trigger a full page data reload by dispatching a custom event that pages listen to
+    // Ricarica i dati della pagina inviando un evento personalizzato
     window.dispatchEvent(new CustomEvent("hera:refresh"));
-    // Also reload the page if there's no listener yet
+    // Ricarica la pagina se nessun listener è ancora attivo
     setTimeout(() => setRefreshing(false), 800);
   }, []);
 
@@ -60,14 +60,14 @@ export default function Layout() {
 
   return (
     <div className="min-h-screen flex flex-col lg:flex-row bg-background">
-      {/* ================= DESKTOP SIDEBAR (lg+) ================= */}
+      {/* ================= BARRA LATERALE DESKTOP ================= */}
       <aside className="hidden lg:flex w-64 shrink-0 border-r border-border bg-card flex-col fixed h-screen z-20">
-        {/* Logo brand */}
+        {/* Intestazione e Logo */}
         <div className="h-16 flex items-center px-6 border-b border-border">
           <Logo size={32} />
         </div>
 
-        {/* Nav Links */}
+        {/* Voci di navigazione */}
         <nav className="flex-1 py-4 flex flex-col gap-1 px-3 overflow-y-auto board-scroll">
           <div className="overline text-muted-foreground px-3 py-1 text-[10px]">Gestione Principale</div>
           {PRIMARY_NAV.map((n) => (
@@ -131,7 +131,7 @@ export default function Layout() {
           )}
         </nav>
 
-        {/* Footer actions */}
+        {/* Azioni a fondo pagina (Profilo / Logout) */}
         <div className="p-3 border-t border-border space-y-1.5 bg-card/50">
           <div className="flex items-center gap-2 mb-2">
             <button
@@ -167,7 +167,7 @@ export default function Layout() {
         </div>
       </aside>
 
-      {/* ================= MOBILE / TABLET TOP HEADER (<lg) ================= */}
+      {/* ================= INTESTAZIONE SUPERIORE SMARTPHONE E TABLET (<lg) ================= */}
       <header className="lg:hidden h-14 border-b border-border bg-card/90 backdrop-blur-md sticky top-0 z-30 flex items-center justify-between px-4">
         <div className="flex items-center gap-2">
           <Logo size={26} />
@@ -181,7 +181,7 @@ export default function Layout() {
             <Eye size={14} />
             <span>Tabellone</span>
           </button>
-          {/* Refresh button */}
+          {/* Pulsante aggiorna dati */}
           <button
             type="button"
             id="refresh-btn-mobile"
@@ -191,7 +191,7 @@ export default function Layout() {
           >
             <RefreshCw size={15} className={refreshing ? "animate-spin" : ""} />
           </button>
-          {/* Notifications */}
+          {/* Pannello notifiche */}
           <NotificationsPanel side="bottom" align="end" />
           <button
             type="button"
@@ -204,18 +204,18 @@ export default function Layout() {
         </div>
       </header>
 
-      {/* ================= MOBILE SLIDE-OVER DRAWER (<lg) ================= */}
+      {/* ================= MENU LATERALE A SCOMPARSA PER SMARTPHONE (<lg) ================= */}
       {drawerOpen && (
         <div className="lg:hidden fixed inset-0 z-50 flex">
-          {/* Backdrop */}
+          {/* Sfondo oscurato */}
           <div
             className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
             onClick={() => setDrawerOpen(false)}
           />
 
-          {/* Drawer Panel */}
+          {/* Pannello menu */}
           <div className="relative ml-auto w-4/5 max-w-xs bg-card h-full shadow-2xl flex flex-col z-10 border-l border-border animate-in slide-in-from-right duration-200">
-            {/* Header */}
+            {/* Intestazione menu */}
             <div className="h-14 flex items-center justify-between px-4 border-b border-border">
               <div className="flex items-center gap-2.5">
                 <div className={`h-8 w-8 rounded-sm ${user?.role === "assistant" ? "bg-teal-600 text-white" : "bg-primary text-primary-foreground"} flex items-center justify-center font-head font-bold text-xs`}>
@@ -235,7 +235,7 @@ export default function Layout() {
               </button>
             </div>
 
-            {/* Menu items */}
+            {/* Voci del menu */}
             <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto board-scroll">
               <div className="overline text-muted-foreground px-3 py-1 text-[10px]">Tutte le Sezioni</div>
               {drawerNavItems.map((n) => (
@@ -257,7 +257,7 @@ export default function Layout() {
               ))}
             </nav>
 
-            {/* Drawer footer */}
+            {/* Chiusura menu e azioni */}
             <div className="p-4 border-t border-border space-y-2 bg-secondary/30">
               <button
                 onClick={() => {
@@ -279,9 +279,9 @@ export default function Layout() {
         </div>
       )}
 
-      {/* ================= MAIN CONTENT AREA ================= */}
+      {/* ================= AREA CONTENUTI PRINCIPALI ================= */}
       <div className="flex-1 lg:ml-64 min-w-0 flex flex-col min-h-screen">
-        {/* Desktop Top Header (lg+) */}
+        {/* Barra superiore desktop */}
         <header className="hidden lg:flex h-16 border-b border-border bg-card/70 backdrop-blur-xl sticky top-0 z-10 items-center justify-end px-8">
           <div className="flex items-center gap-3">
             <div className="text-right leading-tight">
@@ -294,13 +294,13 @@ export default function Layout() {
           </div>
         </header>
 
-        {/* Page Content with safe padding for mobile bottom nav */}
+        {/* Contenuto della pagina con spaziatura per la barra inferiore mobile */}
         <main className="flex-1 p-3.5 sm:p-6 lg:p-8 pb-24 lg:pb-8 max-w-7xl w-full mx-auto">
           <Outlet />
         </main>
       </div>
 
-      {/* ================= MOBILE BOTTOM NAVIGATION BAR (<lg) ================= */}
+      {/* ================= BARRA DI NAVIGAZIONE INFERIORE PER SMARTPHONE (<lg) ================= */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-card/95 backdrop-blur-md border-t border-border flex items-center justify-around px-1 py-1.5 shadow-[0_-4px_16px_rgba(0,0,0,0.06)]" style={{ paddingBottom: "calc(0.4rem + var(--sab))" }}>
         {PRIMARY_NAV.map((n) => (
           <NavLink

@@ -4,7 +4,7 @@ import api from "../lib/api";
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null); // null = checking, false = anonymous
+  const [user, setUser] = useState(null); // null = verifica in corso, false = non autenticato
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

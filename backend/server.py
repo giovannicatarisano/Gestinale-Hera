@@ -41,7 +41,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("hera")
 
 # ---------------------------------------------------------------------------
-# Constants
+# Costanti di sistema
 # ---------------------------------------------------------------------------
 JWT_ALGORITHM = "HS256"
 JWT_SECRET = os.environ.get("JWT_SECRET", "hera_super_secret_jwt_key_2026_default")
@@ -56,7 +56,7 @@ DAYS = ["Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato", "
 
 
 # ---------------------------------------------------------------------------
-# Auth helpers
+# Funzioni di supporto per autenticazione e sicurezza
 # ---------------------------------------------------------------------------
 def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
@@ -111,7 +111,7 @@ async def require_staff(user: dict = Depends(get_current_user)) -> dict:
 
 
 # ---------------------------------------------------------------------------
-# Models
+# Modelli dati (Pydantic)
 # ---------------------------------------------------------------------------
 class LoginInput(BaseModel):
     email: str
@@ -293,7 +293,7 @@ class NotifRead(BaseModel):
 
 
 # ---------------------------------------------------------------------------
-# Auth routes
+# Endpoint di autenticazione
 # ---------------------------------------------------------------------------
 @api_router.post("/auth/login")
 async def login(data: LoginInput):
@@ -320,7 +320,7 @@ async def me(user: dict = Depends(get_current_user)):
 
 
 # ---------------------------------------------------------------------------
-# Assistants management (Admin only)
+# Gestione assistenti / coordinatori (solo Amministratore)
 # ---------------------------------------------------------------------------
 @api_router.get("/assistants")
 async def list_assistants(user: dict = Depends(require_admin)):
@@ -404,7 +404,7 @@ async def delete_assistant(aid: str, user: dict = Depends(require_admin)):
 
 
 # ---------------------------------------------------------------------------
-# Vehicles
+# Gestione Flotta e Mezzi
 # ---------------------------------------------------------------------------
 @api_router.get("/vehicles")
 async def list_vehicles(user: dict = Depends(get_current_user)):
@@ -431,7 +431,7 @@ async def delete_vehicle(vid: str, user: dict = Depends(require_staff)):
 
 
 # ---------------------------------------------------------------------------
-# Routes (Giri)
+# Gestione Rotte e Giri di raccolta
 # ---------------------------------------------------------------------------
 @api_router.get("/routes")
 async def list_routes(user: dict = Depends(get_current_user)):
@@ -458,7 +458,7 @@ async def delete_route(rid: str, user: dict = Depends(require_staff)):
 
 
 # ---------------------------------------------------------------------------
-# Drivers
+# Gestione Autisti
 # ---------------------------------------------------------------------------
 @api_router.get("/drivers")
 async def list_drivers(user: dict = Depends(get_current_user)):
@@ -507,7 +507,7 @@ async def update_driver(did: str, data: DriverInput, user: dict = Depends(requir
     if password:
         await _create_driver_account(driver, password)
     else:
-        # keep linked account name/email in sync
+        # Mantiene sincronizzati nome ed email dell'account collegato
         await db.users.update_one({"driver_id": did}, {"$set": {"name": driver["name"]}})
     return driver
 
@@ -673,7 +673,7 @@ async def update_skills(did: str, data: SkillsInput, user: dict = Depends(requir
 
 
 # ---------------------------------------------------------------------------
-# Absences (ferie / malattia)
+# Gestione Assenze (ferie, malattia, permessi)
 # ---------------------------------------------------------------------------
 @api_router.get("/absences")
 async def list_absences(user: dict = Depends(get_current_user)):
@@ -708,7 +708,7 @@ def _absent_ids_on(absences: list, date_iso: str) -> set:
 
 
 # ---------------------------------------------------------------------------
-# Shifts + Engine
+# Gestione Turni e Algoritmo di Assegnazione
 # ---------------------------------------------------------------------------
 @api_router.get("/shifts")
 async def list_shifts(week_start: str, user: dict = Depends(get_current_user)):
@@ -734,7 +734,7 @@ def _driver_can_sync(driver: dict, route: dict, available_vehicles: list = None)
     mode = route.get("vehicle_assignment_mode", "fixed")
     fixed_vid = route.get("vehicle_id")
 
-    # If available_vehicles list is passed, we check against non-faulty vehicles
+    # Se viene fornito l'elenco dei mezzi disponibili, esclude i mezzi guasti
     if available_vehicles is not None:
         avail_map = {v["id"]: v for v in available_vehicles if v.get("status", "available") == "available"}
     else:
@@ -742,7 +742,7 @@ def _driver_can_sync(driver: dict, route: dict, available_vehicles: list = None)
 
     if mode == "auto":
         allowed = set(route.get("allowed_vehicle_ids") or [])
-        # Find first matching vehicle trained on driver and available
+        # Trova il primo mezzo compatibile con l'autista e attualmente disponibile
         if avail_map is not None:
             for vid in vehicle_skills:
                 if vid in avail_map and (not allowed or vid in allowed):
@@ -754,13 +754,13 @@ def _driver_can_sync(driver: dict, route: dict, available_vehicles: list = None)
                     return True, vid
             return False, None
 
-    # Fixed mode
+    # Modalità veicolo fisso
     if fixed_vid in vehicle_skills:
-        # Check if fixed vehicle is available
+        # Verifica disponibilità del mezzo fisso assegnato
         if avail_map is not None:
             if fixed_vid in avail_map:
                 return True, fixed_vid
-            # Fixed vehicle is in fault! Try to fallback to another compatible vehicle
+            # Mezzo fisso non disponibile (guasto): ricerca mezzo compatibile di riserva
             for vid in vehicle_skills:
                 if vid in avail_map:
                     return True, vid
@@ -841,9 +841,9 @@ def route_days_for_week(route: dict, week_start: str) -> list:
 
 
 ROTATION_SLOTS = ["presto", "standard", "pomeriggio"]
-ROTATION_EPOCH = date(2026, 1, 5)  # a Monday
+ROTATION_EPOCH = date(2026, 1, 5)  # Lunedì di riferimento iniziale
 
-# Slots considered "morning" (assigned to the morning group that week)
+# Fasce orarie considerate mattina (assegnate al gruppo del mattino nella settimana)
 MATTINA_SLOTS = {"presto", "standard"}
 POMERIGGIO_SLOTS = {"pomeriggio"}
 
@@ -883,10 +883,10 @@ def weekly_slot_map(week_start: str, drivers: list) -> dict:
         grp = d.get("group", "")
         if grp:
             cat = group_slot_for_week(grp, week_start)
-            # Map category to concrete slot (presto drivers are handled separately in generator)
+            # Mappa la categoria alla fascia oraria effettiva (il turno presto è gestito a parte nel generatore)
             result[d["id"]] = "standard" if cat == "mattina" else "pomeriggio"
         else:
-            # Legacy round-robin for ungrouped drivers
+            # Rotazione sequenziale per autisti senza gruppo assegnato
             idx = ungrouped.index(d)
             result[d["id"]] = ROTATION_SLOTS[(idx + wi) % len(ROTATION_SLOTS)]
     return result
@@ -897,7 +897,7 @@ async def get_rotation(week_start: str, user: dict = Depends(get_current_user)):
     drivers = [d for d in await db.drivers.find({}, {"_id": 0}).to_list(1000) if d.get("active", True)]
     smap = weekly_slot_map(week_start, drivers)
     wi = week_index(week_start)
-    # Determine which category each group gets this week
+    # Determina l'assegnazione mattina/pomeriggio dei gruppi per la settimana
     g1_cat = "mattina" if wi % 2 == 0 else "pomeriggio"
     g2_cat = "pomeriggio" if wi % 2 == 0 else "mattina"
     return {
@@ -930,18 +930,18 @@ async def generate_shifts(data: GenerateInput, user: dict = Depends(require_staf
     absences = await db.absences.find({}, {"_id": 0}).to_list(2000)
     monday = datetime.strptime(week_start, "%Y-%m-%d").date()
 
-    # Weekly slot rotation: each driver is bound to one slot for the whole week.
+    # Rotazione settimanale: ciascun autista mantiene la stessa fascia oraria per tutta la settimana
     wslot = weekly_slot_map(week_start, drivers)
 
     week_load = {d["id"]: 0 for d in drivers}
     day_taken = {}            # (day, driver_id) -> True
     day_vehicle_taken = {}    # (day, slot, vehicle_id) -> True (evita doppio uso dello stesso mezzo nello stesso slot)
-    cap_count = {}            # (day, slot) -> int   (for capped slots)
-    pom_days = {}             # driver_id -> set(days worked pomeriggio) for rest constraint
+    cap_count = {}            # (day, slot) -> int   (conteggio autisti per slot con limite capienza)
+    pom_days = {}             # giorni con turno pomeridiano per la verifica del riposo minimo obbligatorio
     shifts = []
 
-    # Order: pomeriggio FIRST (so the rest-constraint before presto/domenica of next day is known),
-    # then presto, standard, rotazione, and domenica LAST. Pinned first within each phase.
+    # Ordine di assegnazione: prima pomeriggio (per calcolare il riposo del giorno seguente),
+    # poi presto, standard, rotazione e infine domenica. I turni bloccati hanno priorità.
     phase = {"pomeriggio": 0, "presto": 1, "standard": 2, "rotazione": 3, "domenica": 4}
 
     def sort_key(r):
@@ -956,7 +956,7 @@ async def generate_shifts(data: GenerateInput, user: dict = Depends(require_staf
             final_slot = route_slot
             final_vehicle_id = route.get("vehicle_id") or ""
 
-            # If route is in free rotation mode, evaluate both standard and pomeriggio
+            # Se il giro è a rotazione libera, valuta sia lo slot standard che il pomeriggio
             slots_to_try = ["standard", "pomeriggio"] if route_slot == "rotazione" else [route_slot]
 
             best_candidate = None
@@ -972,7 +972,7 @@ async def generate_shifts(data: GenerateInput, user: dict = Depends(require_staf
 
                 early = slot in ("presto", "domenica")
                 candidates = []
-                # Available vehicles for this day/slot
+                # Mezzi disponibili per questo giorno e orario
                 available_for_slot = [
                     v for v in vehicles
                     if v.get("status", "available") == "available" and not day_vehicle_taken.get((day, slot, v["id"]))
@@ -985,7 +985,7 @@ async def generate_shifts(data: GenerateInput, user: dict = Depends(require_staf
                         continue
                     if day_taken.get((day, did)) or did in absent:
                         continue
-                    # GROUP-BASED slot constraint
+                    # Vincolo di fascia oraria legato al gruppo di appartenenza
                     grp = d.get("group", "")
                     if slot != "domenica":
                         if grp:
@@ -997,7 +997,7 @@ async def generate_shifts(data: GenerateInput, user: dict = Depends(require_staf
                         else:
                             if wslot.get(did) != slot:
                                 continue
-                    # rest constraint
+                    # Verifica rispetto vincolo riposo 11 ore
                     if early and (day - 1) in pom_days.get(did, set()):
                         continue
                     candidates.append((d, chosen_vid))
@@ -1158,7 +1158,7 @@ async def substitutes(sid: str, user: dict = Depends(require_staff)):
     route = await db.routes.find_one({"id": shift["route_id"]}, {"_id": 0})
     drivers = [d for d in await db.drivers.find({}, {"_id": 0}).to_list(1000) if d.get("active", True)]
 
-    # who is busy this day
+    # Autisti già impegnati nella giornata
     day_shifts = await db.shifts.find(
         {"week_start": shift["week_start"], "day": shift["day"]}, {"_id": 0}
     ).to_list(5000)
@@ -1191,7 +1191,7 @@ async def substitutes(sid: str, user: dict = Depends(require_staff)):
             "vehicle_ok": route and route["vehicle_id"] in d.get("vehicle_skills", []),
             "route_ok": route and route["id"] in d.get("route_skills", []),
         })
-    # best first: qualified & available, then qualified, then rest; tie-break by load
+    # Criterio di scelta: prima abilitati e disponibili, poi abilitati, infine per carico di turni
     results.sort(key=lambda r: (not (r["qualified"] and r["available"]), not r["qualified"], r["week_load"]))
     return {"shift": shift, "route": route, "candidates": results}
 
@@ -1251,7 +1251,7 @@ async def patch_shift(sid: str, data: ShiftPatch, user: dict = Depends(require_s
     )
     updated = await db.shifts.find_one({"id": sid}, {"_id": 0})
 
-    # notifications on change
+    # Invio notifiche automatiche per variazioni di turno
     if new_driver != prev_driver:
         label = await _shift_label(updated)
         if prev_driver:
@@ -1267,12 +1267,12 @@ async def meta_slots(user: dict = Depends(get_current_user)):
 
 
 # ---------------------------------------------------------------------------
-# Notifications (driver + admin)
+# Gestione Notifiche (autisti e staff)
 # ---------------------------------------------------------------------------
 @api_router.get("/notifications")
 async def list_notifications(user: dict = Depends(get_current_user)):
     if user.get("role") in ("admin", "assistant"):
-        # Staff see their notifications targeted by user_id
+        # Gli utenti staff visualizzano le notifiche indirizzate al loro profilo
         return await db.notifications.find(
             {"user_id": user["id"]}, {"_id": 0}
         ).sort("created_at", -1).to_list(100)
@@ -1301,7 +1301,7 @@ async def mark_notifications_read(data: NotifRead, user: dict = Depends(get_curr
 
 
 # ---------------------------------------------------------------------------
-# Shift swap requests (driver requests, admin/assistant approves)
+# Richieste di scambio turno (richiesta autista, approvazione staff)
 # ---------------------------------------------------------------------------
 async def _enrich_swap(sw: dict) -> dict:
     frm = await db.drivers.find_one({"id": sw["from_driver_id"]}, {"_id": 0})
@@ -1424,7 +1424,7 @@ async def create_swap(data: SwapRequestInput, user: dict = Depends(get_current_u
     await db.swap_requests.insert_one(dict(sw))
     sw.pop("_id", None)
 
-    # Notify target driver & admin
+    # Invia notifica all'autista destinatario e agli amministratori
     await notify(data.to_driver_id, f"{from_name} ti propone uno scambio turno: {label}. Apri l'app per rispondere.", "swap", sw.get("shift_id"))
     await notify_admins(f"Nuova richiesta cambio ({from_name} → {to_name}): {label}. In attesa della risposta del collega.", "swap", sw.get("shift_id"))
     return sw
@@ -1432,7 +1432,7 @@ async def create_swap(data: SwapRequestInput, user: dict = Depends(get_current_u
 
 @api_router.patch("/swap-requests/{swid}/driver-respond")
 async def driver_respond_swap(swid: str, data: DriverSwapResponse, user: dict = Depends(get_current_user)):
-    """Target driver (autista B) accepts or refuses the swap request."""
+    """L'autista destinatario (autista B) accetta o rifiuta la richiesta di cambio turno."""
     did = user.get("driver_id")
     if not did:
         raise HTTPException(status_code=403, detail="Solo gli autisti possono rispondere")
@@ -1506,13 +1506,13 @@ async def decide_swap(swid: str, data: SwapDecision, user: dict = Depends(requir
             from_did = sw["from_driver_id"]
             to_did = sw["to_driver_id"]
             
-            # Temporary placeholder tag
+            # Segnaposto temporaneo
             temp_tag = f"__swap_temp_{uuid.uuid4()}__"
             await db.shifts.update_many({"week_start": wk, "driver_id": from_did}, {"$set": {"driver_id": temp_tag}})
             await db.shifts.update_many({"week_start": wk, "driver_id": to_did}, {"$set": {"driver_id": from_did}})
             await db.shifts.update_many({"week_start": wk, "driver_id": temp_tag}, {"$set": {"driver_id": to_did}})
             
-            # Audit history entry on all week shifts
+            # Registrazione nello storico delle modifiche per tutti i turni della settimana
             audit_msg = f"Scambio settimanale approvato da {user_name} ({role_label})"
             await db.shifts.update_many(
                 {"week_start": wk, "driver_id": {"$in": [from_did, to_did]}},
@@ -1574,7 +1574,7 @@ async def decide_swap(swid: str, data: SwapDecision, user: dict = Depends(requir
 
 
 # ---------------------------------------------------------------------------
-# Seeding (admin only) + one-time demo cleanup
+# Inizializzazione dati e popolamento iniziale
 # ---------------------------------------------------------------------------
 DEMO_DRIVER_EMAILS = [
     "mario.rossi@hera.it", "luca.bianchi@hera.it", "giulia.verdi@hera.it",

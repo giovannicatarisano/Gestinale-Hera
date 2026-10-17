@@ -26,15 +26,15 @@ api.interceptors.request.use((config) => {
   config.baseURL = `${base}/api`;
   const token = localStorage.getItem("hera_token");
   if (token) config.headers.Authorization = `Bearer ${token}`;
-  // Bypass localtunnel (loca.lt) interstitial page
+  // Bypassa la schermata di cortesia di localtunnel
   if (base.includes("loca.lt") || base.includes("localtunnel")) {
     config.headers["bypass-tunnel-reminder"] = "true";
   }
-  // Bypass ngrok interstitial page
+  // Bypassa la schermata di cortesia di ngrok
   if (base.includes("ngrok")) {
     config.headers["ngrok-skip-browser-warning"] = "true";
   }
-  // Cloudflare tunnels (trycloudflare.com) have no interstitial — no header needed
+  // I tunnel Cloudflare non richiedono intestazioni supplementari
   return config;
 });
 

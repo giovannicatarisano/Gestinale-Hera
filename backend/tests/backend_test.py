@@ -9,7 +9,7 @@ BASE_URL = (os.environ.get("REACT_APP_BACKEND_URL")
             or "https://hera-gestionale-backend.onrender.com").rstrip("/")
 
 ADMIN = {"email": "admin@hera.it", "password": "admin123"}
-EXISTING_DRIVER = {"email": "a1@hera.it", "password": "pass123"}  # created in prev iter
+EXISTING_DRIVER = {"email": "a1@hera.it", "password": "pass123"}  # account autista di test
 
 
 def H(token):
@@ -21,7 +21,7 @@ def monday_of_this_week():
     return (today - timedelta(days=today.weekday())).isoformat()
 
 
-# ---- fixtures --------------------------------------------------------------
+# ---- Fixture di test --------------------------------------------------------
 @pytest.fixture(scope="session")
 def admin_token():
     r = requests.post(f"{BASE_URL}/api/auth/login", json=ADMIN, timeout=30)
@@ -40,7 +40,7 @@ def existing_driver_token():
 
 
 # ============================================================================
-# 1) Auth + demo removal
+# 1) Autenticazione e verifica pulizia dati demo
 # ============================================================================
 class TestAuthAndDemoRemoval:
     def test_login_admin(self, admin_token):
@@ -56,7 +56,7 @@ class TestAuthAndDemoRemoval:
         assert r.status_code == 401
 
     def test_demo_drivers_removed(self, admin_token):
-        """After iteration 5 demo-cleanup, none of the old demo emails may remain."""
+        """Verifica che nessun dato o email di esempio sia presente nel database."""
         drivers = requests.get(f"{BASE_URL}/api/drivers", headers=H(admin_token)).json()
         emails = {(d.get("email") or "").lower() for d in drivers}
         demo = {"mario.rossi@hera.it", "luca.bianchi@hera.it", "giulia.verdi@hera.it",
@@ -72,7 +72,7 @@ class TestAuthAndDemoRemoval:
 
 
 # ============================================================================
-# 2) Admin creates driver accounts
+# 2) Creazione account autisti da parte di Admin
 # ============================================================================
 class TestDriverAccounts:
     def test_create_driver_with_password_grants_login(self, admin_token):
@@ -86,7 +86,7 @@ class TestDriverAccounts:
         assert r.status_code == 200, r.text
         did = r.json()["id"]
         try:
-            # Login as the new driver
+            # Login con le credenziali del nuovo autista
             lr = requests.post(f"{BASE_URL}/api/auth/login",
                                json={"email": email, "password": "test1234"})
             assert lr.status_code == 200, lr.text
@@ -94,12 +94,12 @@ class TestDriverAccounts:
             assert udata["user"]["role"] == "driver"
             assert udata["user"].get("driver_id") == did
 
-            # Listing shows has_account=True
+            # L'elenco autisti riporta has_account=True
             lst = requests.get(f"{BASE_URL}/api/drivers", headers=H(admin_token)).json()
             d = next(x for x in lst if x["id"] == did)
             assert d["has_account"] is True
 
-            # Reset via credentials endpoint
+            # Reimpostazione credenziali di accesso
             cr = requests.post(f"{BASE_URL}/api/drivers/{did}/credentials",
                                json={"password": "newpass9"}, headers=H(admin_token))
             assert cr.status_code == 200
@@ -133,7 +133,7 @@ class TestDriverAccounts:
 
 
 # ============================================================================
-# 3) Weekly rotation
+# 3) Rotazione settimanale dei turni
 # ============================================================================
 class TestRotation:
     W1 = "2026-06-01"   # Monday
@@ -156,7 +156,7 @@ class TestRotation:
                          headers=H(admin_token)).json()["rotation"]
         if len(a) < 2:
             pytest.skip("Not enough drivers to verify rotation shift")
-        # At least one driver's slot must differ between the two weeks.
+        # Almeno uno slot deve differire tra le due settimane consecutive.
         by_id_a = {r["driver_id"]: r["slot"] for r in a}
         by_id_b = {r["driver_id"]: r["slot"] for r in b}
         changed = [d for d in by_id_a if d in by_id_b and by_id_a[d] != by_id_b[d]]
@@ -185,7 +185,7 @@ class TestRotation:
             by_driver.setdefault(s["driver_id"], set()).add(s["slot"])
         for did, slots in by_driver.items():
             assert len(slots) == 1, f"Driver {did} got multiple weekday slots {slots}"
-            # And that slot matches the rotation map
+            # Verifica corrispondenza con la tabella di rotazione
             assert next(iter(slots)) == expected.get(did), (
                 f"Driver {did} assigned {slots} but rotation says {expected.get(did)}"
             )
@@ -220,7 +220,7 @@ class TestRotation:
 
 
 # ============================================================================
-# 4) Driver notifications
+# 4) Sistema Notifiche per autisti e amministratori
 # ============================================================================
 class TestNotifications:
     WK = "2026-06-15"
@@ -259,13 +259,13 @@ class TestNotifications:
                      headers=H(admin_token))
         tok = requests.post(f"{BASE_URL}/api/auth/login",
                             json={"email": email, "password": "test1234"}).json()["token"]
-        # Regenerate week
+        # Rigenerazione turni settimanali
         requests.post(f"{BASE_URL}/api/shifts/generate",
                       json={"week_start": self.WK}, headers=H(admin_token))
         shifts = requests.get(f"{BASE_URL}/api/shifts?week_start={self.WK}",
                               headers=H(admin_token)).json()
         mine = next((s for s in shifts if s.get("driver_id") == did), None)
-        # If rotation left this driver unassigned, force-assign one via PATCH
+        # Se l'autista non è assegnato, forza l'assegnazione tramite PATCH
         if not mine and shifts:
             free = next((s for s in shifts if not s.get("driver_id") and s.get("slot") != "domenica"), None)
             if not free:
@@ -279,17 +279,17 @@ class TestNotifications:
     def test_notify_on_reassign_and_mark_read(self, admin_token):
         did, tok, shift = self._make_driver_with_shift(admin_token)
         try:
-            # Baseline
+            # Stato iniziale di riferimento
             n0 = requests.get(f"{BASE_URL}/api/notifications", headers=H(tok)).json()
             base = len(n0)
-            # Mark absence -> should notify prev driver ("removed")
+            # Segna assenza -> invio notifica di rimozione al precedente autista
             r = requests.patch(f"{BASE_URL}/api/shifts/{shift['id']}",
                                json={"status": "absence"}, headers=H(admin_token))
             assert r.status_code == 200
             n1 = requests.get(f"{BASE_URL}/api/notifications", headers=H(tok)).json()
             assert len(n1) >= base + 1, "No notification created on absence"
             assert any(not n["read"] for n in n1), "Expected at least one unread"
-            # Mark read
+            # Segna notifica come letta
             mr = requests.post(f"{BASE_URL}/api/notifications/read",
                                json={"ids": [n1[0]["id"]]}, headers=H(tok))
             assert mr.status_code == 200
@@ -307,7 +307,7 @@ class TestNotifications:
 
 
 # ============================================================================
-# 5) Shift swap requests
+# 5) Gestione richieste di cambio turno
 # ============================================================================
 class TestSwapRequests:
     WK = "2026-06-22"
@@ -350,7 +350,7 @@ class TestSwapRequests:
                          headers=H(admin_token))
             toks[tag] = requests.post(f"{BASE_URL}/api/auth/login",
                                       json={"email": email, "password": "test1234"}).json()["token"]
-        # Generate + assign one shift explicitly to A
+        # Genera e assegna esplicitamente un turno ad A
         requests.post(f"{BASE_URL}/api/shifts/generate",
                       json={"week_start": self.WK}, headers=H(admin_token))
         shifts = requests.get(f"{BASE_URL}/api/shifts?week_start={self.WK}",
@@ -364,35 +364,35 @@ class TestSwapRequests:
     def test_swap_approve_reassigns_and_notifies(self, admin_token):
         a_id, a_tok, b_id, b_tok, shift = self._bootstrap_two_drivers(admin_token)
         try:
-            # A requests swap to B
+            # A richiede lo scambio del turno a B
             cr = requests.post(f"{BASE_URL}/api/swap-requests",
                                json={"shift_id": shift["id"], "to_driver_id": b_id,
                                      "note": "TEST swap"}, headers=H(a_tok))
             assert cr.status_code == 200, cr.text
             swid = cr.json()["id"]
 
-            # Admin sees it
+            # Amministratore visualizza la richiesta
             lst = requests.get(f"{BASE_URL}/api/swap-requests", headers=H(admin_token)).json()
             assert any(x["id"] == swid and x["status"] == "pending" for x in lst)
 
-            # Driver B sees it too (his own inbox)
+            # Autista B visualizza la richiesta nella propria bacheca
             lst_b = requests.get(f"{BASE_URL}/api/swap-requests", headers=H(b_tok)).json()
             assert any(x["id"] == swid for x in lst_b)
 
-            # Approve
+            # Approvazione della richiesta
             ap = requests.patch(f"{BASE_URL}/api/swap-requests/{swid}",
                                 json={"status": "approved"}, headers=H(admin_token))
             assert ap.status_code == 200
             assert ap.json()["status"] == "approved"
 
-            # Shift reassigned to B
+            # Turno riassegnato con successo ad B
             sh = requests.get(f"{BASE_URL}/api/shifts?week_start={self.WK}",
                               headers=H(admin_token)).json()
             reassigned = next(s for s in sh if s["id"] == shift["id"])
             assert reassigned["driver_id"] == b_id
             assert reassigned["status"] == "assigned"
 
-            # Both drivers received a "swap" notification
+            # Entrambi gli autisti ricevono notifica di scambio turno
             na = requests.get(f"{BASE_URL}/api/notifications", headers=H(a_tok)).json()
             nb = requests.get(f"{BASE_URL}/api/notifications", headers=H(b_tok)).json()
             assert any(n["kind"] == "swap" for n in na), "A missing swap notification"
@@ -423,14 +423,14 @@ class TestSwapRequests:
     def test_swap_validation(self, admin_token):
         a_id, a_tok, b_id, _b_tok, shift = self._bootstrap_two_drivers(admin_token)
         try:
-            # Cannot swap someone else's shift → change shift to B first
+            # Impossibile scambiare il turno di un collega: cambia prima assegnazione ad B
             requests.patch(f"{BASE_URL}/api/shifts/{shift['id']}",
                            json={"driver_id": b_id}, headers=H(admin_token))
             r = requests.post(f"{BASE_URL}/api/swap-requests",
                               json={"shift_id": shift["id"], "to_driver_id": b_id, "note": ""},
                               headers=H(a_tok))
             assert r.status_code == 400
-            # Admin cannot create a swap (no driver_id)
+            # Lo staff non può creare direttamente uno scambio (riservato agli autisti)
             r2 = requests.post(f"{BASE_URL}/api/swap-requests",
                                json={"shift_id": shift["id"], "to_driver_id": b_id, "note": ""},
                                headers=H(admin_token))
@@ -440,14 +440,14 @@ class TestSwapRequests:
                 requests.delete(f"{BASE_URL}/api/drivers/{did}", headers=H(admin_token))
 
     def test_only_admin_decides(self, admin_token, existing_driver_token):
-        # driver cannot PATCH swap-requests
+        # Gli autisti non possono modificare arbitrariamente lo stato della richiesta
         r = requests.patch(f"{BASE_URL}/api/swap-requests/does-not-exist",
                            json={"status": "approved"}, headers=H(existing_driver_token))
         assert r.status_code == 403
 
 
 # ============================================================================
-# 6) Regression — role guards, CRUD, substitution, absences
+# 6) Test di regressione — permessi di ruolo, CRUD, sostituzioni e assenze
 # ============================================================================
 class TestRegression:
     def test_driver_cannot_create_vehicle(self, existing_driver_token):
