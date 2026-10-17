@@ -115,7 +115,7 @@ export default function Fleet() {
         }
       />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
         {vehicles.map((v) => {
           const stKey = v.status || "available";
           const cfg = STATUS_CONFIG[stKey] || STATUS_CONFIG.available;
@@ -125,14 +125,14 @@ export default function Fleet() {
           return (
             <div
               key={v.id}
-              className={`border rounded-sm p-4 transition-all ${
-                isFaulty ? "border-destructive/40 bg-card shadow-xs" : "border-border bg-card shadow-xs"
+              className={`group relative bg-card border rounded-2xl p-4 sm:p-5 shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-[0_12px_28px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 transition-all duration-200 ${
+                isFaulty ? "border-destructive/40 bg-card" : "border-border/80 hover:border-border"
               }`}
               data-testid={`vehicle-card-${v.id}`}
             >
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-3">
-                  <div className={`h-11 w-11 rounded-sm flex items-center justify-center ${
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className={`h-12 w-12 rounded-2xl flex items-center justify-center shadow-sm ring-2 ring-background shrink-0 ${
                     stKey === "faulty"
                       ? "bg-destructive/15 text-destructive"
                       : stKey === "maintenance"
@@ -141,18 +141,18 @@ export default function Fleet() {
                   }`}>
                     <Truck size={22} />
                   </div>
-                  <div>
-                    <div className="font-semibold leading-tight">{v.name}</div>
-                    <div className="overline text-muted-foreground">{v.type}</div>
+                  <div className="min-w-0">
+                    <div className="font-bold text-base leading-tight text-foreground truncate group-hover:text-primary transition-colors">{v.name}</div>
+                    <div className="overline text-muted-foreground text-[10px] truncate mt-0.5">{v.type}</div>
                   </div>
                 </div>
-                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-sm border text-[11px] font-semibold ${cfg.color}`}>
+                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full border text-[10px] font-bold tracking-wider shrink-0 ${cfg.color}`}>
                   <StIcon size={12} /> {cfg.label}
                 </span>
               </div>
 
-              <div className="flex items-center justify-between mt-3">
-                <div className="font-mono text-sm inline-block px-2 py-1 bg-secondary rounded-sm font-bold tracking-wide">
+              <div className="flex items-center justify-between mt-3.5 pt-2.5 border-t border-border/40">
+                <div className="font-mono text-xs inline-block px-2.5 py-1 bg-secondary rounded-lg font-bold tracking-wide border border-border/70 shadow-2xs">
                   {v.plate}
                 </div>
                 <div className="flex items-center gap-1">
@@ -162,7 +162,7 @@ export default function Fleet() {
                       variant="outline"
                       size="sm"
                       onClick={() => toggleStatusQuick(v, "available")}
-                      className="h-7 text-[10px] px-2 text-emerald-700 border-emerald-500/40 hover:bg-emerald-500/10 rounded-sm"
+                      className="h-7 text-[10px] px-2.5 text-emerald-700 border-emerald-500/40 hover:bg-emerald-500/10 rounded-lg font-semibold shadow-2xs"
                       title="Segna come disponibile"
                     >
                       <CheckCircle2 size={11} className="mr-1" /> Ripristina
@@ -173,7 +173,7 @@ export default function Fleet() {
                       variant="outline"
                       size="sm"
                       onClick={() => toggleStatusQuick(v, "faulty")}
-                      className="h-7 text-[10px] px-2 text-destructive border-destructive/40 hover:bg-destructive/10 rounded-sm"
+                      className="h-7 text-[10px] px-2.5 text-destructive border-destructive/40 hover:bg-destructive/10 rounded-lg font-semibold shadow-2xs"
                       title="Segna mezzo come guasto"
                     >
                       <AlertTriangle size={11} className="mr-1" /> Segna Guasto
@@ -183,17 +183,17 @@ export default function Fleet() {
               </div>
 
               {v.fault_note && (
-                <div className="mt-2.5 p-2 bg-destructive/10 border border-destructive/20 rounded-sm text-xs text-destructive flex items-start gap-1.5">
+                <div className="mt-2.5 p-2.5 bg-destructive/10 border border-destructive/20 rounded-xl text-xs text-destructive flex items-start gap-1.5">
                   <AlertTriangle size={13} className="shrink-0 mt-0.5" />
                   <span className="leading-tight">{v.fault_note}</span>
                 </div>
               )}
 
               <div className="flex gap-2 mt-4 pt-2 border-t border-border/60">
-                <Button variant="outline" size="sm" className="rounded-sm flex-1" data-testid={`edit-vehicle-${v.id}`} onClick={() => openEdit(v)}>
+                <Button variant="outline" size="sm" className="rounded-xl flex-1 font-semibold border-border/80 hover:bg-secondary shadow-2xs h-9" data-testid={`edit-vehicle-${v.id}`} onClick={() => openEdit(v)}>
                   <Pencil size={14} className="mr-1.5" /> Modifica
                 </Button>
-                <Button variant="outline" size="sm" className="rounded-sm text-destructive hover:bg-destructive/10" data-testid={`delete-vehicle-${v.id}`} onClick={() => remove(v)}>
+                <Button variant="outline" size="sm" className="rounded-xl text-destructive hover:bg-destructive/10 border-border/80 hover:border-destructive/30 shadow-2xs h-9 px-3" data-testid={`delete-vehicle-${v.id}`} onClick={() => remove(v)}>
                   <Trash2 size={14} />
                 </Button>
               </div>
@@ -203,7 +203,7 @@ export default function Fleet() {
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="w-[94vw] sm:max-w-md rounded-sm max-h-[85vh] overflow-y-auto p-4 sm:p-6" data-testid="vehicle-modal">
+        <DialogContent className="w-[94vw] sm:max-w-md rounded-2xl max-h-[85vh] overflow-y-auto p-4 sm:p-6 shadow-2xl border border-border/80" data-testid="vehicle-modal">
           <DialogHeader>
             <DialogTitle className="font-head tracking-tight text-lg sm:text-xl">
               {editing ? "Modifica mezzo" : "Nuovo mezzo"}

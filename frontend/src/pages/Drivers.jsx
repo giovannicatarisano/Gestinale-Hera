@@ -432,46 +432,54 @@ export default function Drivers() {
         addTid="add-driver-btn"
         extra={
           <div className="flex items-center gap-2 flex-wrap">
-            <span className={`inline-flex items-center gap-1 overline text-[10px] px-2 py-0.5 rounded-sm font-semibold ${GROUP_CLS.gruppo1}`}>
-              <UsersRound size={11} /> G1: {drivers.filter(d => d.group === "gruppo1").length}
+            <span className={`inline-flex items-center gap-1.5 text-[11px] px-3 py-1 rounded-full font-bold border shadow-2xs ${GROUP_CLS.gruppo1}`}>
+              <UsersRound size={12} /> G1: {drivers.filter(d => d.group === "gruppo1").length}
             </span>
-            <span className={`inline-flex items-center gap-1 overline text-[10px] px-2 py-0.5 rounded-sm font-semibold ${GROUP_CLS.gruppo2}`}>
-              <UsersRound size={11} /> G2: {drivers.filter(d => d.group === "gruppo2").length}
+            <span className={`inline-flex items-center gap-1.5 text-[11px] px-3 py-1 rounded-full font-bold border shadow-2xs ${GROUP_CLS.gruppo2}`}>
+              <UsersRound size={12} /> G2: {drivers.filter(d => d.group === "gruppo2").length}
             </span>
           </div>
         }
       />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
         {drivers.map((d) => (
-          <div key={d.id} className="border border-border bg-card rounded-sm p-4" data-testid={`driver-card-${d.id}`}>
-            <div className="flex items-start justify-between">
-              <div className="flex items-center gap-3">
-                <div className={`h-11 w-11 rounded-sm flex items-center justify-center font-head font-bold text-sm ${
-                  d.group === "gruppo1" ? "bg-blue-500 text-white" :
+          <div
+            key={d.id}
+            className="group relative bg-card border border-border/80 hover:border-border rounded-2xl p-4 sm:p-5 shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-[0_12px_28px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 transition-all duration-200"
+            data-testid={`driver-card-${d.id}`}
+          >
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className={`h-12 w-12 rounded-2xl flex items-center justify-center font-head font-bold text-sm shadow-sm ring-2 ring-background shrink-0 ${
+                  d.group === "gruppo1" ? "bg-blue-600 text-white" :
                   d.group === "gruppo2" ? "bg-orange-500 text-white" :
                   "bg-primary text-primary-foreground"
                 }`}>
                   {initials(d.name)}
                 </div>
-                <div>
-                  <div className="font-semibold leading-tight">{d.name}</div>
-                  <div className="font-mono text-xs text-muted-foreground">{d.email || "—"}</div>
+                <div className="min-w-0">
+                  <div className="font-bold text-base leading-tight text-foreground truncate group-hover:text-primary transition-colors">{d.name}</div>
+                  <div className="font-mono text-xs text-muted-foreground truncate mt-0.5">{d.email || "—"}</div>
                 </div>
               </div>
-              <div className="flex flex-col items-end gap-1">
-                <span className={`overline px-1.5 py-0.5 rounded-sm text-[10px] ${d.active ? "bg-primary/15 text-primary" : "bg-secondary text-muted-foreground"}`}>
-                  {d.active ? "Attivo" : "Inattivo"}
+              <div className="flex flex-col items-end gap-1.5 shrink-0">
+                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wider border ${
+                  d.active ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30" : "bg-secondary text-muted-foreground border-border"
+                }`}>
+                  <span className={`h-1.5 w-1.5 rounded-full ${d.active ? "bg-emerald-500" : "bg-muted-foreground"}`} />
+                  {d.active ? "ATTIVO" : "INATTIVO"}
                 </span>
                 {d.group && (
-                  <span className={`overline px-1.5 py-0.5 rounded-sm text-[10px] font-bold ${GROUP_CLS[d.group]}`}>
-                    {d.group === "gruppo1" ? "G1" : "G2"}
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider border ${GROUP_CLS[d.group]}`}>
+                    {d.group === "gruppo1" ? "GRUPPO 1" : "GRUPPO 2"}
                   </span>
                 )}
               </div>
             </div>
+
             {/* Sezione Sintetica Salvaspazio: Patenti e Kit Medico raggruppati */}
-            <div className="mt-3 pt-3 border-t border-border/70 grid grid-cols-2 gap-2">
+            <div className="mt-3.5 pt-3.5 border-t border-border/60 grid grid-cols-2 gap-2">
               {/* Patenti compatto */}
               {(() => {
                 const licSummary = getLicensesSummary(d.licenses);
@@ -479,16 +487,16 @@ export default function Drivers() {
                   <button
                     type="button"
                     onClick={() => setLicenseModalDriver(d)}
-                    className="p-2 rounded-sm border border-border/80 bg-secondary/20 hover:bg-secondary/40 transition-all text-left flex flex-col justify-between cursor-pointer group shadow-2xs"
+                    className="p-2.5 rounded-xl border border-border/70 bg-secondary/30 hover:bg-secondary/60 hover:border-border transition-all text-left flex flex-col justify-between cursor-pointer group/btn shadow-[0_1px_2px_rgba(0,0,0,0.03)] hover:shadow-xs"
                     title="Clicca per visualizzare l'elenco e le scadenze di tutte le patenti"
                   >
-                    <div className="flex items-center justify-between gap-1 mb-1">
+                    <div className="flex items-center justify-between gap-1 mb-1.5">
                       <span className="text-[11px] font-semibold flex items-center gap-1 text-muted-foreground">
                         <Award size={13} className={licSummary.iconColor} /> Patenti
                       </span>
-                      <ChevronRight size={11} className="text-muted-foreground group-hover:translate-x-0.5 transition-transform shrink-0" />
+                      <ChevronRight size={11} className="text-muted-foreground group-hover/btn:translate-x-0.5 transition-transform shrink-0" />
                     </div>
-                    <span className={`inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-xs border truncate ${licSummary.color}`}>
+                    <span className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-md border truncate shadow-2xs ${licSummary.color}`}>
                       {licSummary.status === "expired" && <AlertTriangle size={10} className="shrink-0 text-destructive" />}
                       {licSummary.status === "expiring" && <AlertTriangle size={10} className="shrink-0 text-amber-600 dark:text-amber-400" />}
                       {licSummary.status === "valid" && <CheckCircle2 size={10} className="shrink-0 text-emerald-600 dark:text-emerald-400" />}
@@ -505,16 +513,16 @@ export default function Drivers() {
                   <button
                     type="button"
                     onClick={() => openMedicalKit(d)}
-                    className="p-2 rounded-sm border border-border/80 bg-secondary/20 hover:bg-secondary/40 transition-all text-left flex flex-col justify-between cursor-pointer group shadow-2xs"
+                    className="p-2.5 rounded-xl border border-border/70 bg-secondary/30 hover:bg-secondary/60 hover:border-border transition-all text-left flex flex-col justify-between cursor-pointer group/btn shadow-[0_1px_2px_rgba(0,0,0,0.03)] hover:shadow-xs"
                     title="Clicca per aprire la finestra di gestione del Kit Medico"
                   >
-                    <div className="flex items-center justify-between gap-1 mb-1">
+                    <div className="flex items-center justify-between gap-1 mb-1.5">
                       <span className="text-[11px] font-semibold flex items-center gap-1 text-muted-foreground">
                         <BriefcaseMedical size={13} className={medSummary.iconColor} /> Kit Medico
                       </span>
-                      <ChevronRight size={11} className="text-muted-foreground group-hover:translate-x-0.5 transition-transform shrink-0" />
+                      <ChevronRight size={11} className="text-muted-foreground group-hover/btn:translate-x-0.5 transition-transform shrink-0" />
                     </div>
-                    <span className={`inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-xs border truncate ${medSummary.color}`}>
+                    <span className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-md border truncate shadow-2xs ${medSummary.color}`}>
                       {medSummary.replacementNeeded > 0 && <RotateCw size={10} className="shrink-0 animate-spin text-purple-600" />}
                       {medSummary.status === "expired" && <AlertTriangle size={10} className="shrink-0 text-destructive" />}
                       {medSummary.status === "expiring" && <AlertTriangle size={10} className="shrink-0 text-amber-600 dark:text-amber-400" />}
@@ -526,23 +534,23 @@ export default function Drivers() {
               })()}
             </div>
 
-            <div className="flex items-center justify-between mt-3">
-              <div className="font-mono text-xs text-muted-foreground">{d.phone || ""}</div>
+            <div className="flex items-center justify-between mt-3.5 pt-2.5 border-t border-border/40">
+              <div className="font-mono text-xs text-muted-foreground">{d.phone || "Nessun telefono"}</div>
               {d.has_account ? (
-                <span className="inline-flex items-center gap-1 overline text-primary" data-testid={`account-badge-${d.id}`}>
+                <span className="inline-flex items-center gap-1 text-[10px] font-bold overline text-primary" data-testid={`account-badge-${d.id}`}>
                   <ShieldCheck size={12} /> Accesso attivo
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1 overline text-muted-foreground">
-                  <KeyRound size={12} /> Nessun accesso
+                <span className="inline-flex items-center gap-1 text-[10px] font-medium text-muted-foreground" data-testid={`account-badge-${d.id}`}>
+                  <KeyRound size={12} /> Nessun account
                 </span>
               )}
             </div>
             <div className="flex gap-2 mt-4">
-              <Button variant="outline" size="sm" className="rounded-sm flex-1" data-testid={`edit-driver-${d.id}`} onClick={() => openEdit(d)}>
+              <Button variant="outline" size="sm" className="rounded-xl flex-1 font-semibold border-border/80 hover:bg-secondary hover:border-border shadow-2xs h-9" data-testid={`edit-driver-${d.id}`} onClick={() => openEdit(d)}>
                 <Pencil size={14} className="mr-1.5" /> Modifica
               </Button>
-              <Button variant="outline" size="sm" className="rounded-sm text-destructive hover:bg-destructive/10" data-testid={`delete-driver-${d.id}`} onClick={() => remove(d)}>
+              <Button variant="outline" size="sm" className="rounded-xl text-destructive hover:bg-destructive/10 border-border/80 hover:border-destructive/30 shadow-2xs h-9 px-3" data-testid={`delete-driver-${d.id}`} onClick={() => remove(d)}>
                 <Trash2 size={14} />
               </Button>
             </div>
@@ -551,7 +559,7 @@ export default function Drivers() {
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="w-[94vw] sm:max-w-md rounded-sm max-h-[85vh] overflow-y-auto p-4 sm:p-6" data-testid="driver-modal">
+        <DialogContent className="w-[94vw] sm:max-w-md rounded-2xl max-h-[85vh] overflow-y-auto p-4 sm:p-6 shadow-2xl border border-border/80" data-testid="driver-modal">
           <DialogHeader>
             <DialogTitle className="font-head tracking-tight text-lg sm:text-xl">
               {editing ? "Modifica autista" : "Nuovo autista"}
@@ -787,10 +795,10 @@ export default function Drivers() {
 
       {/* Finestra Supplementare: Modale Gestione Kit Medico */}
       <Dialog open={medOpen} onOpenChange={setMedOpen}>
-        <DialogContent className="w-[94vw] sm:max-w-xl rounded-sm max-h-[88vh] overflow-y-auto p-4 sm:p-6" data-testid="medical-kit-modal">
+        <DialogContent className="w-[94vw] sm:max-w-xl rounded-2xl max-h-[88vh] overflow-y-auto p-4 sm:p-6 shadow-2xl border border-border/80" data-testid="medical-kit-modal">
           <DialogHeader>
             <div className="flex items-center gap-2.5">
-              <div className="p-2 rounded-sm bg-primary/10 text-primary border border-primary/20 shrink-0">
+              <div className="p-2.5 rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0 shadow-2xs">
                 <BriefcaseMedical size={22} />
               </div>
               <div>
@@ -1030,7 +1038,7 @@ export default function Drivers() {
 
       {/* MODALE DETTAGLIO PATENTI AUTISTA */}
       <Dialog open={!!licenseModalDriver} onOpenChange={(o) => !o && setLicenseModalDriver(null)}>
-        <DialogContent className="w-[94vw] sm:max-w-md rounded-sm p-4 sm:p-6 max-h-[85vh] overflow-y-auto">
+        <DialogContent className="w-[94vw] sm:max-w-md rounded-2xl p-4 sm:p-6 max-h-[85vh] overflow-y-auto shadow-2xl border border-border/80">
           <DialogHeader>
             <DialogTitle className="font-head tracking-tight text-lg sm:text-xl flex items-center gap-2">
               <Award size={20} className="text-primary" />
