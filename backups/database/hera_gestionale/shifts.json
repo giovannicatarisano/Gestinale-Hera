@@ -936,7 +936,7 @@
     "recovery": false
   },
   {
-    "id": "f8a3984f-1283-49c0-9155-3315e09535a9",
+    "id": "b27b14a5-884e-4e33-ade4-31c59beb9bfe",
     "week_start": "2026-10-12",
     "day": 0,
     "slot": "pomeriggio",
@@ -945,10 +945,22 @@
     "driver_id": "52729506-03db-4078-aa37-6e0a3b329c6d",
     "status": "assigned",
     "pinned": true,
-    "recovery": false
+    "recovery": false,
+    "created_by": "Amministratore",
+    "created_by_role": "admin",
+    "created_at": "2026-10-17T20:03:48.238776+00:00",
+    "history": [
+      {
+        "action": "generated",
+        "by": "Amministratore",
+        "role": "admin",
+        "at": "2026-10-17T20:03:48.238776+00:00",
+        "detail": "Assegnazione iniziale (Coperto: Giacomo Tassi)"
+      }
+    ]
   },
   {
-    "id": "9f53524e-ac2c-453a-93f8-359510f8a74c",
+    "id": "7987d1f7-9e7a-472e-b58b-283b5ed11292",
     "week_start": "2026-10-12",
     "day": 1,
     "slot": "pomeriggio",
@@ -957,10 +969,22 @@
     "driver_id": "1927d8f7-a996-4411-a0e3-8429c4253b31",
     "status": "assigned",
     "pinned": true,
-    "recovery": false
+    "recovery": false,
+    "created_by": "Amministratore",
+    "created_by_role": "admin",
+    "created_at": "2026-10-17T20:03:48.238962+00:00",
+    "history": [
+      {
+        "action": "generated",
+        "by": "Amministratore",
+        "role": "admin",
+        "at": "2026-10-17T20:03:48.238962+00:00",
+        "detail": "Assegnazione iniziale (Coperto: Francesco Soffritti)"
+      }
+    ]
   },
   {
-    "id": "d1804493-d4fc-443f-aeaf-0bb88d52ce50",
+    "id": "d6cc4552-74e6-47df-9a22-0e0db843e5bb",
     "week_start": "2026-10-12",
     "day": 2,
     "slot": "pomeriggio",
@@ -969,10 +993,22 @@
     "driver_id": "f312217b-efeb-44b8-9ec9-907cc363496d",
     "status": "assigned",
     "pinned": true,
-    "recovery": false
+    "recovery": false,
+    "created_by": "Amministratore",
+    "created_by_role": "admin",
+    "created_at": "2026-10-17T20:03:48.239097+00:00",
+    "history": [
+      {
+        "action": "generated",
+        "by": "Amministratore",
+        "role": "admin",
+        "at": "2026-10-17T20:03:48.239097+00:00",
+        "detail": "Assegnazione iniziale (Coperto: Nicola Vaccari)"
+      }
+    ]
   },
   {
-    "id": "baecf286-bc41-477a-8b52-8adc74a86fe7",
+    "id": "46c0e6ac-fea0-4677-905c-79841ab67f02",
     "week_start": "2026-10-12",
     "day": 3,
     "slot": "pomeriggio",
@@ -981,10 +1017,22 @@
     "driver_id": "6dc529d9-b6d8-4e21-8adb-828a850c4d34",
     "status": "assigned",
     "pinned": true,
-    "recovery": false
+    "recovery": false,
+    "created_by": "Amministratore",
+    "created_by_role": "admin",
+    "created_at": "2026-10-17T20:03:48.239238+00:00",
+    "history": [
+      {
+        "action": "generated",
+        "by": "Amministratore",
+        "role": "admin",
+        "at": "2026-10-17T20:03:48.239238+00:00",
+        "detail": "Assegnazione iniziale (Coperto: Margherita Cariani)"
+      }
+    ]
   },
   {
-    "id": "d48a8bba-a430-4966-872c-e4fb881f0c46",
+    "id": "e2f3c2f7-48e6-4643-babf-137d1dee4d72",
     "week_start": "2026-10-12",
     "day": 4,
     "slot": "pomeriggio",
@@ -993,286 +1041,550 @@
     "driver_id": "cc0a22d4-406a-43c2-a586-8dd6b66060a8",
     "status": "assigned",
     "pinned": true,
-    "recovery": false
+    "recovery": false,
+    "created_by": "Amministratore",
+    "created_by_role": "admin",
+    "created_at": "2026-10-17T20:03:48.239366+00:00",
+    "history": [
+      {
+        "action": "generated",
+        "by": "Amministratore",
+        "role": "admin",
+        "at": "2026-10-17T20:03:48.239366+00:00",
+        "detail": "Assegnazione iniziale (Coperto: Ettore Piccotti)"
+      }
+    ]
   },
   {
-    "id": "bc1a255a-c782-4d4b-b13c-4979d6d9efc4",
+    "id": "5b2a52d3-a022-4e05-9a07-8843de1c673d",
     "week_start": "2026-10-12",
     "day": 5,
     "slot": "pomeriggio",
     "route_id": "4c971319-4824-4e27-bb21-00cf8c7395c9",
     "vehicle_id": "56ba1042-7478-4985-aca8-9f36683ce1e9",
-    "driver_id": "52729506-03db-4078-aa37-6e0a3b329c6d",
+    "driver_id": "0dad181b-1a55-43ec-9076-1d63305168e9",
     "status": "assigned",
     "pinned": true,
-    "recovery": false
+    "recovery": false,
+    "created_by": "Amministratore",
+    "created_by_role": "admin",
+    "created_at": "2026-10-17T20:03:48.239483+00:00",
+    "history": [
+      {
+        "action": "generated",
+        "by": "Amministratore",
+        "role": "admin",
+        "at": "2026-10-17T20:03:48.239483+00:00",
+        "detail": "Assegnazione iniziale (Coperto: Diego Tuffanelli)"
+      }
+    ]
   },
   {
-    "id": "2f26127f-e348-4ea5-b0c9-5811624cda8b",
+    "id": "4f38a208-eb5b-48f4-9304-6e3115c1313f",
     "week_start": "2026-10-12",
     "day": 0,
     "slot": "presto",
     "route_id": "fc9993ce-efd6-4b5c-9fba-16f105505c98",
-    "vehicle_id": "9fef3d50-9b82-4bac-9561-0ae176659d11",
-    "driver_id": "6dc529d9-b6d8-4e21-8adb-828a850c4d34",
-    "status": "assigned",
-    "pinned": true,
-    "recovery": false
-  },
-  {
-    "id": "35adb9eb-d96b-4dd2-8d1a-9d696b276b95",
-    "week_start": "2026-10-12",
-    "day": 2,
-    "slot": "presto",
-    "route_id": "fc9993ce-efd6-4b5c-9fba-16f105505c98",
-    "vehicle_id": "9fef3d50-9b82-4bac-9561-0ae176659d11",
-    "driver_id": "5ddad5dd-94b0-4e5f-80a7-6447df52b2e7",
-    "status": "assigned",
-    "pinned": true,
-    "recovery": false
-  },
-  {
-    "id": "2ecc629c-131d-4161-baea-45c913727c90",
-    "week_start": "2026-10-12",
-    "day": 4,
-    "slot": "presto",
-    "route_id": "fc9993ce-efd6-4b5c-9fba-16f105505c98",
-    "vehicle_id": "9fef3d50-9b82-4bac-9561-0ae176659d11",
-    "driver_id": "5ddad5dd-94b0-4e5f-80a7-6447df52b2e7",
-    "status": "assigned",
-    "pinned": true,
-    "recovery": false
-  },
-  {
-    "id": "95b8b595-849e-49bc-8959-45372e8f7fd1",
-    "week_start": "2026-10-12",
-    "day": 1,
-    "slot": "presto",
-    "route_id": "094f76ef-2c81-4a30-9a3e-444d7f761bc8",
     "vehicle_id": "9fef3d50-9b82-4bac-9561-0ae176659d11",
     "driver_id": "5ddad5dd-94b0-4e5f-80a7-6447df52b2e7",
     "status": "assigned",
     "pinned": true,
     "recovery": false,
+    "created_by": "Amministratore",
+    "created_by_role": "admin",
+    "created_at": "2026-10-17T20:03:48.239608+00:00",
     "history": [
       {
-        "action": "manual_update",
-        "by": "Lara Accorsi",
-        "role": "assistant",
-        "at": "2026-10-16T22:55:57.733427+00:00",
-        "detail": "Nuovo autista: Giovanni Catarisano"
+        "action": "generated",
+        "by": "Amministratore",
+        "role": "admin",
+        "at": "2026-10-17T20:03:48.239608+00:00",
+        "detail": "Assegnazione iniziale (Coperto: Giovanni Catarisano)"
       }
-    ],
-    "last_modified_at": "2026-10-16T22:55:57.733427+00:00",
-    "last_modified_by": "Lara Accorsi",
-    "last_modified_role": "assistant"
+    ]
   },
   {
-    "id": "2ced5f69-6cf2-4c84-9681-dc993084c70e",
+    "id": "437a9b57-8e4c-4918-be84-99b36e28ab3e",
+    "week_start": "2026-10-12",
+    "day": 2,
+    "slot": "presto",
+    "route_id": "fc9993ce-efd6-4b5c-9fba-16f105505c98",
+    "vehicle_id": "9fef3d50-9b82-4bac-9561-0ae176659d11",
+    "driver_id": "418dd457-1a23-4989-8730-c947ef7cbb0b",
+    "status": "assigned",
+    "pinned": true,
+    "recovery": false,
+    "created_by": "Amministratore",
+    "created_by_role": "admin",
+    "created_at": "2026-10-17T20:03:48.239723+00:00",
+    "history": [
+      {
+        "action": "generated",
+        "by": "Amministratore",
+        "role": "admin",
+        "at": "2026-10-17T20:03:48.239723+00:00",
+        "detail": "Assegnazione iniziale (Coperto: Gianni Bonifazzi)"
+      }
+    ]
+  },
+  {
+    "id": "686beafc-8fc7-4d56-8076-4403a6aa332c",
+    "week_start": "2026-10-12",
+    "day": 4,
+    "slot": "presto",
+    "route_id": "fc9993ce-efd6-4b5c-9fba-16f105505c98",
+    "vehicle_id": "9fef3d50-9b82-4bac-9561-0ae176659d11",
+    "driver_id": "bd9b1479-400a-4966-9865-63e189ec2e0a",
+    "status": "assigned",
+    "pinned": true,
+    "recovery": false,
+    "created_by": "Amministratore",
+    "created_by_role": "admin",
+    "created_at": "2026-10-17T20:03:48.239837+00:00",
+    "history": [
+      {
+        "action": "generated",
+        "by": "Amministratore",
+        "role": "admin",
+        "at": "2026-10-17T20:03:48.239837+00:00",
+        "detail": "Assegnazione iniziale (Coperto: Michele Donati)"
+      }
+    ]
+  },
+  {
+    "id": "63c2de2a-6ef2-4ec8-8f3b-be27762131a6",
+    "week_start": "2026-10-12",
+    "day": 1,
+    "slot": "presto",
+    "route_id": "094f76ef-2c81-4a30-9a3e-444d7f761bc8",
+    "vehicle_id": "9fef3d50-9b82-4bac-9561-0ae176659d11",
+    "driver_id": "7627f6d3-cc6a-4460-98e5-889162bf085e",
+    "status": "assigned",
+    "pinned": true,
+    "recovery": false,
+    "created_by": "Amministratore",
+    "created_by_role": "admin",
+    "created_at": "2026-10-17T20:03:48.239952+00:00",
+    "history": [
+      {
+        "action": "generated",
+        "by": "Amministratore",
+        "role": "admin",
+        "at": "2026-10-17T20:03:48.239952+00:00",
+        "detail": "Assegnazione iniziale (Coperto: Luca Morselli)"
+      }
+    ]
+  },
+  {
+    "id": "df66e48a-b57e-4472-a715-a1347f697e43",
     "week_start": "2026-10-12",
     "day": 3,
     "slot": "presto",
     "route_id": "094f76ef-2c81-4a30-9a3e-444d7f761bc8",
     "vehicle_id": "9fef3d50-9b82-4bac-9561-0ae176659d11",
-    "driver_id": null,
-    "status": "uncovered",
+    "driver_id": "19299382-445e-4cdf-a25a-037cc1aa276a",
+    "status": "assigned",
     "pinned": true,
-    "recovery": false
+    "recovery": false,
+    "created_by": "Amministratore",
+    "created_by_role": "admin",
+    "created_at": "2026-10-17T20:03:48.240064+00:00",
+    "history": [
+      {
+        "action": "generated",
+        "by": "Amministratore",
+        "role": "admin",
+        "at": "2026-10-17T20:03:48.240064+00:00",
+        "detail": "Assegnazione iniziale (Coperto: Yari Tedesco)"
+      }
+    ]
   },
   {
-    "id": "1a603ca5-aac3-4da7-aa7d-0b44c8474e11",
+    "id": "9dcfc555-e7bd-4b93-b299-6611df93b1b4",
     "week_start": "2026-10-12",
     "day": 5,
     "slot": "presto",
     "route_id": "094f76ef-2c81-4a30-9a3e-444d7f761bc8",
     "vehicle_id": "9fef3d50-9b82-4bac-9561-0ae176659d11",
-    "driver_id": null,
-    "status": "uncovered",
+    "driver_id": "3b42e2c5-b05b-4ddf-8e24-cebc17bf82bb",
+    "status": "assigned",
     "pinned": true,
-    "recovery": false
+    "recovery": false,
+    "created_by": "Amministratore",
+    "created_by_role": "admin",
+    "created_at": "2026-10-17T20:03:48.240423+00:00",
+    "history": [
+      {
+        "action": "generated",
+        "by": "Amministratore",
+        "role": "admin",
+        "at": "2026-10-17T20:03:48.240423+00:00",
+        "detail": "Assegnazione iniziale (Coperto: Andres Caicedo)"
+      }
+    ]
   },
   {
-    "id": "f960c8d2-c4a7-4fac-8300-822d6f7689fb",
+    "id": "c986b83c-ccc7-4824-99ed-e5d845b1411d",
     "week_start": "2026-10-12",
     "day": 0,
     "slot": "standard",
     "route_id": "3a28f023-e2e8-48f9-a772-fd0460f15673",
     "vehicle_id": "e6c9e15d-50fb-423d-89c7-3ce36e18c1be",
-    "driver_id": "bd9b1479-400a-4966-9865-63e189ec2e0a",
+    "driver_id": "418dd457-1a23-4989-8730-c947ef7cbb0b",
     "status": "assigned",
     "pinned": true,
-    "recovery": false
+    "recovery": false,
+    "created_by": "Amministratore",
+    "created_by_role": "admin",
+    "created_at": "2026-10-17T20:03:48.240691+00:00",
+    "history": [
+      {
+        "action": "generated",
+        "by": "Amministratore",
+        "role": "admin",
+        "at": "2026-10-17T20:03:48.240691+00:00",
+        "detail": "Assegnazione iniziale (Coperto: Gianni Bonifazzi)"
+      }
+    ]
   },
   {
-    "id": "c0152b40-311b-4fb0-85e4-9eba485b718c",
+    "id": "d60c458b-13a1-42b5-acae-0e84baf016a7",
     "week_start": "2026-10-12",
     "day": 1,
     "slot": "standard",
     "route_id": "3a28f023-e2e8-48f9-a772-fd0460f15673",
     "vehicle_id": "e6c9e15d-50fb-423d-89c7-3ce36e18c1be",
-    "driver_id": "7627f6d3-cc6a-4460-98e5-889162bf085e",
-    "status": "assigned",
-    "pinned": true,
-    "recovery": false
-  },
-  {
-    "id": "6a3fd2c8-381e-4d00-9df3-65030072da54",
-    "week_start": "2026-10-12",
-    "day": 2,
-    "slot": "standard",
-    "route_id": "3a28f023-e2e8-48f9-a772-fd0460f15673",
-    "vehicle_id": "e6c9e15d-50fb-423d-89c7-3ce36e18c1be",
-    "driver_id": "19299382-445e-4cdf-a25a-037cc1aa276a",
-    "status": "assigned",
-    "pinned": true,
-    "recovery": false
-  },
-  {
-    "id": "13418df9-8fa9-4090-a961-1ee5692d2819",
-    "week_start": "2026-10-12",
-    "day": 3,
-    "slot": "standard",
-    "route_id": "3a28f023-e2e8-48f9-a772-fd0460f15673",
-    "vehicle_id": "e6c9e15d-50fb-423d-89c7-3ce36e18c1be",
-    "driver_id": "bd9b1479-400a-4966-9865-63e189ec2e0a",
-    "status": "assigned",
-    "pinned": true,
-    "recovery": false
-  },
-  {
-    "id": "2d8913e4-0704-4bbf-bebe-f95ffed16dc3",
-    "week_start": "2026-10-12",
-    "day": 4,
-    "slot": "standard",
-    "route_id": "3a28f023-e2e8-48f9-a772-fd0460f15673",
-    "vehicle_id": "e6c9e15d-50fb-423d-89c7-3ce36e18c1be",
-    "driver_id": "7627f6d3-cc6a-4460-98e5-889162bf085e",
-    "status": "assigned",
-    "pinned": true,
-    "recovery": false
-  },
-  {
-    "id": "8e71ab33-b517-44e8-8bec-dc3e9727430e",
-    "week_start": "2026-10-12",
-    "day": 5,
-    "slot": "standard",
-    "route_id": "3a28f023-e2e8-48f9-a772-fd0460f15673",
-    "vehicle_id": "e6c9e15d-50fb-423d-89c7-3ce36e18c1be",
-    "driver_id": "19299382-445e-4cdf-a25a-037cc1aa276a",
-    "status": "assigned",
-    "pinned": true,
-    "recovery": false
-  },
-  {
-    "id": "8de7fe83-0685-40b9-80ce-3b8e5d1c1d79",
-    "week_start": "2026-10-12",
-    "day": 0,
-    "slot": "standard",
-    "route_id": "81b5234d-f5fa-4c2e-9622-4afdfd813b5e",
-    "vehicle_id": "4f57e9d0-68a0-4d48-af8c-59407f3eff3d",
-    "driver_id": "418dd457-1a23-4989-8730-c947ef7cbb0b",
-    "status": "assigned",
-    "pinned": true,
-    "recovery": false
-  },
-  {
-    "id": "eb7adf95-f7c9-448f-b32b-9d3e6193ea4d",
-    "week_start": "2026-10-12",
-    "day": 1,
-    "slot": "standard",
-    "route_id": "81b5234d-f5fa-4c2e-9622-4afdfd813b5e",
-    "vehicle_id": "4f57e9d0-68a0-4d48-af8c-59407f3eff3d",
-    "driver_id": "418dd457-1a23-4989-8730-c947ef7cbb0b",
-    "status": "assigned",
-    "pinned": true,
-    "recovery": false
-  },
-  {
-    "id": "e8ded616-c2a0-46b5-98a8-bfc0ef6a63e4",
-    "week_start": "2026-10-12",
-    "day": 2,
-    "slot": "standard",
-    "route_id": "81b5234d-f5fa-4c2e-9622-4afdfd813b5e",
-    "vehicle_id": "4f57e9d0-68a0-4d48-af8c-59407f3eff3d",
-    "driver_id": "418dd457-1a23-4989-8730-c947ef7cbb0b",
-    "status": "assigned",
-    "pinned": true,
-    "recovery": false
-  },
-  {
-    "id": "b5d97206-56ca-45c1-829f-a1dd221777a9",
-    "week_start": "2026-10-12",
-    "day": 3,
-    "slot": "standard",
-    "route_id": "81b5234d-f5fa-4c2e-9622-4afdfd813b5e",
-    "vehicle_id": "4f57e9d0-68a0-4d48-af8c-59407f3eff3d",
-    "driver_id": "7627f6d3-cc6a-4460-98e5-889162bf085e",
-    "status": "assigned",
-    "pinned": true,
-    "recovery": false
-  },
-  {
-    "id": "c37b4cc8-bf5f-4fed-a9ee-1909a034d8c6",
-    "week_start": "2026-10-12",
-    "day": 4,
-    "slot": "standard",
-    "route_id": "81b5234d-f5fa-4c2e-9622-4afdfd813b5e",
-    "vehicle_id": "4f57e9d0-68a0-4d48-af8c-59407f3eff3d",
-    "driver_id": "bd9b1479-400a-4966-9865-63e189ec2e0a",
-    "status": "assigned",
-    "pinned": true,
-    "recovery": false
-  },
-  {
-    "id": "14da6db0-3dd7-45af-9d28-2f25e929ecce",
-    "week_start": "2026-10-12",
-    "day": 5,
-    "slot": "standard",
-    "route_id": "81b5234d-f5fa-4c2e-9622-4afdfd813b5e",
-    "vehicle_id": "4f57e9d0-68a0-4d48-af8c-59407f3eff3d",
     "driver_id": "5ddad5dd-94b0-4e5f-80a7-6447df52b2e7",
     "status": "assigned",
     "pinned": true,
-    "recovery": false
+    "recovery": false,
+    "created_by": "Amministratore",
+    "created_by_role": "admin",
+    "created_at": "2026-10-17T20:03:48.240877+00:00",
+    "history": [
+      {
+        "action": "generated",
+        "by": "Amministratore",
+        "role": "admin",
+        "at": "2026-10-17T20:03:48.240877+00:00",
+        "detail": "Assegnazione iniziale (Coperto: Giovanni Catarisano)"
+      }
+    ]
   },
   {
-    "id": "91135a2e-521a-480d-a626-6416dc706ec9",
+    "id": "286a25b5-99a0-4360-a5b6-01f63fdaf20f",
     "week_start": "2026-10-12",
-    "day": 0,
+    "day": 2,
     "slot": "standard",
-    "route_id": "44da0f7e-12b7-479e-a125-8a908554170e",
-    "vehicle_id": "56ba1042-7478-4985-aca8-9f36683ce1e9",
+    "route_id": "3a28f023-e2e8-48f9-a772-fd0460f15673",
+    "vehicle_id": "e6c9e15d-50fb-423d-89c7-3ce36e18c1be",
+    "driver_id": "bd9b1479-400a-4966-9865-63e189ec2e0a",
+    "status": "assigned",
+    "pinned": true,
+    "recovery": false,
+    "created_by": "Amministratore",
+    "created_by_role": "admin",
+    "created_at": "2026-10-17T20:03:48.241080+00:00",
+    "history": [
+      {
+        "action": "generated",
+        "by": "Amministratore",
+        "role": "admin",
+        "at": "2026-10-17T20:03:48.241080+00:00",
+        "detail": "Assegnazione iniziale (Coperto: Michele Donati)"
+      }
+    ]
+  },
+  {
+    "id": "ed48c280-91a3-4b87-9858-ba11a23bcecd",
+    "week_start": "2026-10-12",
+    "day": 3,
+    "slot": "standard",
+    "route_id": "3a28f023-e2e8-48f9-a772-fd0460f15673",
+    "vehicle_id": "e6c9e15d-50fb-423d-89c7-3ce36e18c1be",
+    "driver_id": "7627f6d3-cc6a-4460-98e5-889162bf085e",
+    "status": "assigned",
+    "pinned": true,
+    "recovery": false,
+    "created_by": "Amministratore",
+    "created_by_role": "admin",
+    "created_at": "2026-10-17T20:03:48.241271+00:00",
+    "history": [
+      {
+        "action": "generated",
+        "by": "Amministratore",
+        "role": "admin",
+        "at": "2026-10-17T20:03:48.241271+00:00",
+        "detail": "Assegnazione iniziale (Coperto: Luca Morselli)"
+      }
+    ]
+  },
+  {
+    "id": "f10ad591-83b4-4790-a0ba-260d2db5e66d",
+    "week_start": "2026-10-12",
+    "day": 4,
+    "slot": "standard",
+    "route_id": "3a28f023-e2e8-48f9-a772-fd0460f15673",
+    "vehicle_id": "e6c9e15d-50fb-423d-89c7-3ce36e18c1be",
     "driver_id": "19299382-445e-4cdf-a25a-037cc1aa276a",
     "status": "assigned",
     "pinned": true,
-    "recovery": false
+    "recovery": false,
+    "created_by": "Amministratore",
+    "created_by_role": "admin",
+    "created_at": "2026-10-17T20:03:48.241404+00:00",
+    "history": [
+      {
+        "action": "generated",
+        "by": "Amministratore",
+        "role": "admin",
+        "at": "2026-10-17T20:03:48.241404+00:00",
+        "detail": "Assegnazione iniziale (Coperto: Yari Tedesco)"
+      }
+    ]
   },
   {
-    "id": "d677ad87-5b51-423e-8b38-4b58effc507d",
+    "id": "fb0aebd2-d5ec-468d-ae42-11f5b83eb3c4",
+    "week_start": "2026-10-12",
+    "day": 5,
+    "slot": "standard",
+    "route_id": "3a28f023-e2e8-48f9-a772-fd0460f15673",
+    "vehicle_id": "e6c9e15d-50fb-423d-89c7-3ce36e18c1be",
+    "driver_id": "5ddad5dd-94b0-4e5f-80a7-6447df52b2e7",
+    "status": "assigned",
+    "pinned": true,
+    "recovery": false,
+    "created_by": "Amministratore",
+    "created_by_role": "admin",
+    "created_at": "2026-10-17T20:03:48.241613+00:00",
+    "history": [
+      {
+        "action": "generated",
+        "by": "Amministratore",
+        "role": "admin",
+        "at": "2026-10-17T20:03:48.241613+00:00",
+        "detail": "Assegnazione iniziale (Coperto: Giovanni Catarisano)"
+      }
+    ]
+  },
+  {
+    "id": "a3f431f4-6589-434f-8ef0-3f7453ea3cb0",
+    "week_start": "2026-10-12",
+    "day": 0,
+    "slot": "standard",
+    "route_id": "81b5234d-f5fa-4c2e-9622-4afdfd813b5e",
+    "vehicle_id": "4f57e9d0-68a0-4d48-af8c-59407f3eff3d",
+    "driver_id": "3b42e2c5-b05b-4ddf-8e24-cebc17bf82bb",
+    "status": "assigned",
+    "pinned": true,
+    "recovery": false,
+    "created_by": "Amministratore",
+    "created_by_role": "admin",
+    "created_at": "2026-10-17T20:03:48.241828+00:00",
+    "history": [
+      {
+        "action": "generated",
+        "by": "Amministratore",
+        "role": "admin",
+        "at": "2026-10-17T20:03:48.241828+00:00",
+        "detail": "Assegnazione iniziale (Coperto: Andres Caicedo)"
+      }
+    ]
+  },
+  {
+    "id": "72f69eb3-bd62-4817-91af-97ded29ddf15",
     "week_start": "2026-10-12",
     "day": 1,
+    "slot": "standard",
+    "route_id": "81b5234d-f5fa-4c2e-9622-4afdfd813b5e",
+    "vehicle_id": "4f57e9d0-68a0-4d48-af8c-59407f3eff3d",
+    "driver_id": "418dd457-1a23-4989-8730-c947ef7cbb0b",
+    "status": "assigned",
+    "pinned": true,
+    "recovery": false,
+    "created_by": "Amministratore",
+    "created_by_role": "admin",
+    "created_at": "2026-10-17T20:03:48.241993+00:00",
+    "history": [
+      {
+        "action": "generated",
+        "by": "Amministratore",
+        "role": "admin",
+        "at": "2026-10-17T20:03:48.241993+00:00",
+        "detail": "Assegnazione iniziale (Coperto: Gianni Bonifazzi)"
+      }
+    ]
+  },
+  {
+    "id": "986f8605-6782-4625-a98a-beee2f8e675e",
+    "week_start": "2026-10-12",
+    "day": 2,
+    "slot": "standard",
+    "route_id": "81b5234d-f5fa-4c2e-9622-4afdfd813b5e",
+    "vehicle_id": "4f57e9d0-68a0-4d48-af8c-59407f3eff3d",
+    "driver_id": "7627f6d3-cc6a-4460-98e5-889162bf085e",
+    "status": "assigned",
+    "pinned": true,
+    "recovery": false,
+    "created_by": "Amministratore",
+    "created_by_role": "admin",
+    "created_at": "2026-10-17T20:03:48.242205+00:00",
+    "history": [
+      {
+        "action": "generated",
+        "by": "Amministratore",
+        "role": "admin",
+        "at": "2026-10-17T20:03:48.242205+00:00",
+        "detail": "Assegnazione iniziale (Coperto: Luca Morselli)"
+      }
+    ]
+  },
+  {
+    "id": "ee8a5959-5a46-4c9f-b8f1-c85358570b99",
+    "week_start": "2026-10-12",
+    "day": 3,
+    "slot": "standard",
+    "route_id": "81b5234d-f5fa-4c2e-9622-4afdfd813b5e",
+    "vehicle_id": "4f57e9d0-68a0-4d48-af8c-59407f3eff3d",
+    "driver_id": "bd9b1479-400a-4966-9865-63e189ec2e0a",
+    "status": "assigned",
+    "pinned": true,
+    "recovery": false,
+    "created_by": "Amministratore",
+    "created_by_role": "admin",
+    "created_at": "2026-10-17T20:03:48.242352+00:00",
+    "history": [
+      {
+        "action": "generated",
+        "by": "Amministratore",
+        "role": "admin",
+        "at": "2026-10-17T20:03:48.242352+00:00",
+        "detail": "Assegnazione iniziale (Coperto: Michele Donati)"
+      }
+    ]
+  },
+  {
+    "id": "ef9d0d84-894d-4fe2-b302-551731d2ea3d",
+    "week_start": "2026-10-12",
+    "day": 4,
+    "slot": "standard",
+    "route_id": "81b5234d-f5fa-4c2e-9622-4afdfd813b5e",
+    "vehicle_id": "4f57e9d0-68a0-4d48-af8c-59407f3eff3d",
+    "driver_id": "3b42e2c5-b05b-4ddf-8e24-cebc17bf82bb",
+    "status": "assigned",
+    "pinned": true,
+    "recovery": false,
+    "created_by": "Amministratore",
+    "created_by_role": "admin",
+    "created_at": "2026-10-17T20:03:48.242462+00:00",
+    "history": [
+      {
+        "action": "generated",
+        "by": "Amministratore",
+        "role": "admin",
+        "at": "2026-10-17T20:03:48.242462+00:00",
+        "detail": "Assegnazione iniziale (Coperto: Andres Caicedo)"
+      }
+    ]
+  },
+  {
+    "id": "f0929c09-b9ad-4195-afac-327191cd6d32",
+    "week_start": "2026-10-12",
+    "day": 5,
+    "slot": "standard",
+    "route_id": "81b5234d-f5fa-4c2e-9622-4afdfd813b5e",
+    "vehicle_id": "4f57e9d0-68a0-4d48-af8c-59407f3eff3d",
+    "driver_id": "19299382-445e-4cdf-a25a-037cc1aa276a",
+    "status": "assigned",
+    "pinned": true,
+    "recovery": false,
+    "created_by": "Amministratore",
+    "created_by_role": "admin",
+    "created_at": "2026-10-17T20:03:48.242567+00:00",
+    "history": [
+      {
+        "action": "generated",
+        "by": "Amministratore",
+        "role": "admin",
+        "at": "2026-10-17T20:03:48.242567+00:00",
+        "detail": "Assegnazione iniziale (Coperto: Yari Tedesco)"
+      }
+    ]
+  },
+  {
+    "id": "d39e2544-6107-4cad-afc1-f08531b8db2f",
+    "week_start": "2026-10-12",
+    "day": 0,
     "slot": "standard",
     "route_id": "44da0f7e-12b7-479e-a125-8a908554170e",
     "vehicle_id": "56ba1042-7478-4985-aca8-9f36683ce1e9",
     "driver_id": "bd9b1479-400a-4966-9865-63e189ec2e0a",
     "status": "assigned",
     "pinned": true,
-    "recovery": false
+    "recovery": false,
+    "created_by": "Amministratore",
+    "created_by_role": "admin",
+    "created_at": "2026-10-17T20:03:48.242675+00:00",
+    "history": [
+      {
+        "action": "generated",
+        "by": "Amministratore",
+        "role": "admin",
+        "at": "2026-10-17T20:03:48.242675+00:00",
+        "detail": "Assegnazione iniziale (Coperto: Michele Donati)"
+      }
+    ]
   },
   {
-    "id": "4ba4cef3-d929-4547-99c5-95a5d3ff5b1d",
+    "id": "1dd69369-152b-40fe-9b1d-01a4d4aa8363",
+    "week_start": "2026-10-12",
+    "day": 1,
+    "slot": "standard",
+    "route_id": "44da0f7e-12b7-479e-a125-8a908554170e",
+    "vehicle_id": "56ba1042-7478-4985-aca8-9f36683ce1e9",
+    "driver_id": "19299382-445e-4cdf-a25a-037cc1aa276a",
+    "status": "assigned",
+    "pinned": true,
+    "recovery": false,
+    "created_by": "Amministratore",
+    "created_by_role": "admin",
+    "created_at": "2026-10-17T20:03:48.242778+00:00",
+    "history": [
+      {
+        "action": "generated",
+        "by": "Amministratore",
+        "role": "admin",
+        "at": "2026-10-17T20:03:48.242778+00:00",
+        "detail": "Assegnazione iniziale (Coperto: Yari Tedesco)"
+      }
+    ]
+  },
+  {
+    "id": "9db53afd-8e04-4dfe-b475-e4e98346ed88",
     "week_start": "2026-10-12",
     "day": 2,
     "slot": "standard",
     "route_id": "44da0f7e-12b7-479e-a125-8a908554170e",
     "vehicle_id": "56ba1042-7478-4985-aca8-9f36683ce1e9",
-    "driver_id": "7627f6d3-cc6a-4460-98e5-889162bf085e",
+    "driver_id": "5ddad5dd-94b0-4e5f-80a7-6447df52b2e7",
     "status": "assigned",
     "pinned": true,
-    "recovery": false
+    "recovery": false,
+    "created_by": "Amministratore",
+    "created_by_role": "admin",
+    "created_at": "2026-10-17T20:03:48.242887+00:00",
+    "history": [
+      {
+        "action": "generated",
+        "by": "Amministratore",
+        "role": "admin",
+        "at": "2026-10-17T20:03:48.242887+00:00",
+        "detail": "Assegnazione iniziale (Coperto: Giovanni Catarisano)"
+      }
+    ]
   },
   {
-    "id": "bc980618-ba04-474e-b4d8-61c656b78ceb",
+    "id": "42a97ef7-8988-4d7e-95a4-c96a8b13972d",
     "week_start": "2026-10-12",
     "day": 3,
     "slot": "standard",
@@ -1281,22 +1593,46 @@
     "driver_id": "418dd457-1a23-4989-8730-c947ef7cbb0b",
     "status": "assigned",
     "pinned": true,
-    "recovery": false
+    "recovery": false,
+    "created_by": "Amministratore",
+    "created_by_role": "admin",
+    "created_at": "2026-10-17T20:03:48.243001+00:00",
+    "history": [
+      {
+        "action": "generated",
+        "by": "Amministratore",
+        "role": "admin",
+        "at": "2026-10-17T20:03:48.243001+00:00",
+        "detail": "Assegnazione iniziale (Coperto: Gianni Bonifazzi)"
+      }
+    ]
   },
   {
-    "id": "38ef2e11-b924-462a-8a93-3e7a5746b73a",
+    "id": "3a978579-d0b9-4320-b2a5-f310f23e4bcf",
     "week_start": "2026-10-12",
     "day": 4,
     "slot": "standard",
     "route_id": "44da0f7e-12b7-479e-a125-8a908554170e",
     "vehicle_id": "56ba1042-7478-4985-aca8-9f36683ce1e9",
-    "driver_id": "19299382-445e-4cdf-a25a-037cc1aa276a",
+    "driver_id": "7627f6d3-cc6a-4460-98e5-889162bf085e",
     "status": "assigned",
     "pinned": true,
-    "recovery": false
+    "recovery": false,
+    "created_by": "Amministratore",
+    "created_by_role": "admin",
+    "created_at": "2026-10-17T20:03:48.243103+00:00",
+    "history": [
+      {
+        "action": "generated",
+        "by": "Amministratore",
+        "role": "admin",
+        "at": "2026-10-17T20:03:48.243103+00:00",
+        "detail": "Assegnazione iniziale (Coperto: Luca Morselli)"
+      }
+    ]
   },
   {
-    "id": "29532ccc-484e-4717-a86d-a409c4932ac9",
+    "id": "b6dd600c-068d-4e79-8dbd-cb19c7b613aa",
     "week_start": "2026-10-12",
     "day": 5,
     "slot": "standard",
@@ -1305,10 +1641,22 @@
     "driver_id": "418dd457-1a23-4989-8730-c947ef7cbb0b",
     "status": "assigned",
     "pinned": true,
-    "recovery": false
+    "recovery": false,
+    "created_by": "Amministratore",
+    "created_by_role": "admin",
+    "created_at": "2026-10-17T20:03:48.243205+00:00",
+    "history": [
+      {
+        "action": "generated",
+        "by": "Amministratore",
+        "role": "admin",
+        "at": "2026-10-17T20:03:48.243205+00:00",
+        "detail": "Assegnazione iniziale (Coperto: Gianni Bonifazzi)"
+      }
+    ]
   },
   {
-    "id": "c2264abb-d9bb-4f61-bf3c-2a133580b44c",
+    "id": "20ec2c34-3632-460e-8c5d-c263b0b39b74",
     "week_start": "2026-10-12",
     "day": 0,
     "slot": "pomeriggio",
@@ -1317,70 +1665,142 @@
     "driver_id": "1927d8f7-a996-4411-a0e3-8429c4253b31",
     "status": "assigned",
     "pinned": false,
-    "recovery": false
+    "recovery": false,
+    "created_by": "Amministratore",
+    "created_by_role": "admin",
+    "created_at": "2026-10-17T20:03:48.243454+00:00",
+    "history": [
+      {
+        "action": "generated",
+        "by": "Amministratore",
+        "role": "admin",
+        "at": "2026-10-17T20:03:48.243454+00:00",
+        "detail": "Assegnazione iniziale (Coperto: Francesco Soffritti)"
+      }
+    ]
   },
   {
-    "id": "aaa02e87-a672-409d-bba7-3fab6e4ce824",
+    "id": "8ee91c36-9dee-4e61-b129-00d2d1d76d9b",
     "week_start": "2026-10-12",
     "day": 2,
-    "slot": "pomeriggio",
-    "route_id": "8a2739c4-6416-426b-a160-f03cd99eb5b8",
-    "vehicle_id": "bfae7452-1531-406e-bfe8-1f5328bc2f15",
-    "driver_id": "6dc529d9-b6d8-4e21-8adb-828a850c4d34",
-    "status": "assigned",
-    "pinned": false,
-    "recovery": false
-  },
-  {
-    "id": "1181f0f9-2d11-46d2-a532-2987eb1ef258",
-    "week_start": "2026-10-12",
-    "day": 4,
     "slot": "pomeriggio",
     "route_id": "8a2739c4-6416-426b-a160-f03cd99eb5b8",
     "vehicle_id": "9fef3d50-9b82-4bac-9561-0ae176659d11",
-    "driver_id": "f312217b-efeb-44b8-9ec9-907cc363496d",
-    "status": "assigned",
-    "pinned": false,
-    "recovery": false
-  },
-  {
-    "id": "447cd6c3-8ee4-4605-8408-a6f0ce730717",
-    "week_start": "2026-10-12",
-    "day": 0,
-    "slot": "pomeriggio",
-    "route_id": "4e8804e6-e4f6-4248-bd18-cba940850c7b",
-    "vehicle_id": "a78e5539-c0b7-488d-8147-62459a52fa9c",
-    "driver_id": "cc0a22d4-406a-43c2-a586-8dd6b66060a8",
-    "status": "assigned",
-    "pinned": false,
-    "recovery": false
-  },
-  {
-    "id": "55a822ae-227c-4d88-b839-627bcfa18bc9",
-    "week_start": "2026-10-12",
-    "day": 2,
-    "slot": "pomeriggio",
-    "route_id": "4e8804e6-e4f6-4248-bd18-cba940850c7b",
-    "vehicle_id": "a78e5539-c0b7-488d-8147-62459a52fa9c",
     "driver_id": "52729506-03db-4078-aa37-6e0a3b329c6d",
     "status": "assigned",
     "pinned": false,
-    "recovery": false
+    "recovery": false,
+    "created_by": "Amministratore",
+    "created_by_role": "admin",
+    "created_at": "2026-10-17T20:03:48.243648+00:00",
+    "history": [
+      {
+        "action": "generated",
+        "by": "Amministratore",
+        "role": "admin",
+        "at": "2026-10-17T20:03:48.243648+00:00",
+        "detail": "Assegnazione iniziale (Coperto: Giacomo Tassi)"
+      }
+    ]
   },
   {
-    "id": "f8e14890-0093-43d6-89bc-e817c9f6a955",
+    "id": "7bdeb1cc-977a-4a3f-bc02-1ca87891d88c",
+    "week_start": "2026-10-12",
+    "day": 4,
+    "slot": "pomeriggio",
+    "route_id": "8a2739c4-6416-426b-a160-f03cd99eb5b8",
+    "vehicle_id": "9fef3d50-9b82-4bac-9561-0ae176659d11",
+    "driver_id": "f312217b-efeb-44b8-9ec9-907cc363496d",
+    "status": "assigned",
+    "pinned": false,
+    "recovery": false,
+    "created_by": "Amministratore",
+    "created_by_role": "admin",
+    "created_at": "2026-10-17T20:03:48.243835+00:00",
+    "history": [
+      {
+        "action": "generated",
+        "by": "Amministratore",
+        "role": "admin",
+        "at": "2026-10-17T20:03:48.243835+00:00",
+        "detail": "Assegnazione iniziale (Coperto: Nicola Vaccari)"
+      }
+    ]
+  },
+  {
+    "id": "e250c563-bceb-4c04-b836-18619fee4f4c",
+    "week_start": "2026-10-12",
+    "day": 0,
+    "slot": "pomeriggio",
+    "route_id": "4e8804e6-e4f6-4248-bd18-cba940850c7b",
+    "vehicle_id": "a78e5539-c0b7-488d-8147-62459a52fa9c",
+    "driver_id": "6dc529d9-b6d8-4e21-8adb-828a850c4d34",
+    "status": "assigned",
+    "pinned": false,
+    "recovery": false,
+    "created_by": "Amministratore",
+    "created_by_role": "admin",
+    "created_at": "2026-10-17T20:03:48.244013+00:00",
+    "history": [
+      {
+        "action": "generated",
+        "by": "Amministratore",
+        "role": "admin",
+        "at": "2026-10-17T20:03:48.244013+00:00",
+        "detail": "Assegnazione iniziale (Coperto: Margherita Cariani)"
+      }
+    ]
+  },
+  {
+    "id": "5c0813ee-f06e-45ab-9fe1-bb4a46ddfe32",
+    "week_start": "2026-10-12",
+    "day": 2,
+    "slot": "pomeriggio",
+    "route_id": "4e8804e6-e4f6-4248-bd18-cba940850c7b",
+    "vehicle_id": "a78e5539-c0b7-488d-8147-62459a52fa9c",
+    "driver_id": "cc0a22d4-406a-43c2-a586-8dd6b66060a8",
+    "status": "assigned",
+    "pinned": false,
+    "recovery": false,
+    "created_by": "Amministratore",
+    "created_by_role": "admin",
+    "created_at": "2026-10-17T20:03:48.244168+00:00",
+    "history": [
+      {
+        "action": "generated",
+        "by": "Amministratore",
+        "role": "admin",
+        "at": "2026-10-17T20:03:48.244168+00:00",
+        "detail": "Assegnazione iniziale (Coperto: Ettore Piccotti)"
+      }
+    ]
+  },
+  {
+    "id": "99950df7-54cd-41fa-96e5-1e53f3b605b0",
     "week_start": "2026-10-12",
     "day": 4,
     "slot": "pomeriggio",
     "route_id": "4e8804e6-e4f6-4248-bd18-cba940850c7b",
     "vehicle_id": "a78e5539-c0b7-488d-8147-62459a52fa9c",
-    "driver_id": "1927d8f7-a996-4411-a0e3-8429c4253b31",
+    "driver_id": "0dad181b-1a55-43ec-9076-1d63305168e9",
     "status": "assigned",
     "pinned": false,
-    "recovery": false
+    "recovery": false,
+    "created_by": "Amministratore",
+    "created_by_role": "admin",
+    "created_at": "2026-10-17T20:03:48.244363+00:00",
+    "history": [
+      {
+        "action": "generated",
+        "by": "Amministratore",
+        "role": "admin",
+        "at": "2026-10-17T20:03:48.244363+00:00",
+        "detail": "Assegnazione iniziale (Coperto: Diego Tuffanelli)"
+      }
+    ]
   },
   {
-    "id": "248c155c-e649-42c3-9e24-dd32a902ae1f",
+    "id": "cb8fc2c4-1c21-4190-b5bb-ec9d4fb1d629",
     "week_start": "2026-10-12",
     "day": 0,
     "slot": "pomeriggio",
@@ -1389,30 +1809,66 @@
     "driver_id": "f312217b-efeb-44b8-9ec9-907cc363496d",
     "status": "assigned",
     "pinned": false,
-    "recovery": false
+    "recovery": false,
+    "created_by": "Amministratore",
+    "created_by_role": "admin",
+    "created_at": "2026-10-17T20:03:48.244534+00:00",
+    "history": [
+      {
+        "action": "generated",
+        "by": "Amministratore",
+        "role": "admin",
+        "at": "2026-10-17T20:03:48.244534+00:00",
+        "detail": "Assegnazione iniziale (Coperto: Nicola Vaccari)"
+      }
+    ]
   },
   {
-    "id": "f5da6686-9acf-4252-b6d6-252f868d0fc9",
+    "id": "3f9e1cfa-c3a3-489c-9807-b643f94ecdde",
     "week_start": "2026-10-12",
     "day": 2,
     "slot": "pomeriggio",
     "route_id": "95ee4c80-cefe-45d7-a889-11ca5340d10b",
-    "vehicle_id": "ed25c806-f660-4c69-9ff0-437f4219465d",
-    "driver_id": "cc0a22d4-406a-43c2-a586-8dd6b66060a8",
+    "vehicle_id": "d065cbbc-7e6d-4311-ac2d-523f202250f1",
+    "driver_id": "1927d8f7-a996-4411-a0e3-8429c4253b31",
     "status": "assigned",
     "pinned": false,
-    "recovery": false
+    "recovery": false,
+    "created_by": "Amministratore",
+    "created_by_role": "admin",
+    "created_at": "2026-10-17T20:03:48.244683+00:00",
+    "history": [
+      {
+        "action": "generated",
+        "by": "Amministratore",
+        "role": "admin",
+        "at": "2026-10-17T20:03:48.244683+00:00",
+        "detail": "Assegnazione iniziale (Coperto: Francesco Soffritti)"
+      }
+    ]
   },
   {
-    "id": "108054f4-0f05-4705-8e29-066b987768e5",
+    "id": "ba8ba695-1c56-4e86-a3ec-abc2e9963f3f",
     "week_start": "2026-10-12",
     "day": 4,
     "slot": "pomeriggio",
     "route_id": "95ee4c80-cefe-45d7-a889-11ca5340d10b",
-    "vehicle_id": "bfae7452-1531-406e-bfe8-1f5328bc2f15",
-    "driver_id": "6dc529d9-b6d8-4e21-8adb-828a850c4d34",
+    "vehicle_id": "4f57e9d0-68a0-4d48-af8c-59407f3eff3d",
+    "driver_id": "52729506-03db-4078-aa37-6e0a3b329c6d",
     "status": "assigned",
     "pinned": false,
-    "recovery": false
+    "recovery": false,
+    "created_by": "Amministratore",
+    "created_by_role": "admin",
+    "created_at": "2026-10-17T20:03:48.244818+00:00",
+    "history": [
+      {
+        "action": "generated",
+        "by": "Amministratore",
+        "role": "admin",
+        "at": "2026-10-17T20:03:48.244818+00:00",
+        "detail": "Assegnazione iniziale (Coperto: Giacomo Tassi)"
+      }
+    ]
   }
 ]
