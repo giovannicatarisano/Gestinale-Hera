@@ -126,7 +126,7 @@ export default function Fleet() {
             <div
               key={v.id}
               className={`group relative bg-card border rounded-2xl p-4 sm:p-5 shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-[0_12px_28px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 transition-all duration-200 ${
-                isFaulty ? "border-destructive/40 bg-card" : "border-border/80 hover:border-border"
+                isFaulty ? "border-destructive/50 bg-card" : "border-border hover:border-foreground/40"
               }`}
               data-testid={`vehicle-card-${v.id}`}
             >
@@ -151,8 +151,8 @@ export default function Fleet() {
                 </span>
               </div>
 
-              <div className="flex items-center justify-between mt-3.5 pt-2.5 border-t border-border/40">
-                <div className="font-mono text-xs inline-block px-2.5 py-1 bg-secondary rounded-lg font-bold tracking-wide border border-border/70 shadow-2xs">
+              <div className="flex items-center justify-between mt-3.5 pt-2.5 border-t border-border">
+                <div className="font-mono text-xs inline-block px-2.5 py-1 bg-secondary rounded-lg font-bold tracking-wide border border-border shadow-2xs">
                   {v.plate}
                 </div>
                 <div className="flex items-center gap-1">
@@ -183,17 +183,17 @@ export default function Fleet() {
               </div>
 
               {v.fault_note && (
-                <div className="mt-2.5 p-2.5 bg-destructive/10 border border-destructive/20 rounded-xl text-xs text-destructive flex items-start gap-1.5">
+                <div className="mt-2.5 p-2.5 bg-destructive/10 border border-destructive/30 rounded-xl text-xs text-destructive flex items-start gap-1.5">
                   <AlertTriangle size={13} className="shrink-0 mt-0.5" />
                   <span className="leading-tight">{v.fault_note}</span>
                 </div>
               )}
 
-              <div className="flex gap-2 mt-4 pt-2 border-t border-border/60">
-                <Button variant="outline" size="sm" className="rounded-xl flex-1 font-semibold border-border/80 hover:bg-secondary shadow-2xs h-9" data-testid={`edit-vehicle-${v.id}`} onClick={() => openEdit(v)}>
+              <div className="flex gap-2 mt-4 pt-2 border-t border-border">
+                <Button variant="outline" size="sm" className="rounded-xl flex-1 font-semibold border-border hover:bg-secondary hover:border-foreground/40 shadow-2xs h-9" data-testid={`edit-vehicle-${v.id}`} onClick={() => openEdit(v)}>
                   <Pencil size={14} className="mr-1.5" /> Modifica
                 </Button>
-                <Button variant="outline" size="sm" className="rounded-xl text-destructive hover:bg-destructive/10 border-border/80 hover:border-destructive/30 shadow-2xs h-9 px-3" data-testid={`delete-vehicle-${v.id}`} onClick={() => remove(v)}>
+                <Button variant="outline" size="sm" className="rounded-xl text-destructive hover:bg-destructive/10 border-border hover:border-destructive/40 shadow-2xs h-9 px-3" data-testid={`delete-vehicle-${v.id}`} onClick={() => remove(v)}>
                   <Trash2 size={14} />
                 </Button>
               </div>

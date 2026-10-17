@@ -89,7 +89,7 @@ export default function RoutesPage() {
         {routes.map((r) => (
           <div
             key={r.id}
-            className="group relative bg-card border border-border/80 hover:border-border rounded-2xl p-4 sm:p-5 shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-[0_12px_28px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 transition-all duration-200"
+            className="group relative bg-card border border-border hover:border-foreground/40 rounded-2xl p-4 sm:p-5 shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-[0_12px_28px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 transition-all duration-200"
             data-testid={`route-card-${r.id}`}
           >
             <div className="flex items-start justify-between gap-2">
@@ -106,19 +106,19 @@ export default function RoutesPage() {
                 </div>
               </div>
             </div>
-            <div className="flex flex-wrap gap-1.5 mt-3.5 pt-2.5 border-t border-border/40">
+            <div className="flex flex-wrap gap-1.5 mt-3.5 pt-2.5 border-t border-border">
               <span className={`inline-flex items-center gap-1 font-mono text-[10px] px-2.5 py-0.5 rounded-full border shadow-2xs ${
                 r.slot === "rotazione"
-                  ? "bg-indigo-500/15 text-indigo-700 dark:text-indigo-400 font-bold border-indigo-500/30"
-                  : "bg-primary/15 text-primary font-bold border-primary/20"
+                  ? "bg-indigo-500/15 text-indigo-700 dark:text-indigo-400 font-bold border-indigo-500/40"
+                  : "bg-primary/15 text-primary font-bold border-primary/30"
               }`}>
                 {r.slot === "rotazione" ? <Repeat size={10} /> : <Clock size={10} />}
                 {SLOT_SHORT[r.slot]}
               </span>
               <span className={`inline-flex items-center gap-1 font-mono text-[10px] px-2.5 py-0.5 rounded-full border shadow-2xs ${
                 r.vehicle_assignment_mode === "auto"
-                  ? "bg-purple-500/15 text-purple-700 dark:text-purple-400 font-bold border-purple-500/30"
-                  : "bg-secondary text-foreground font-semibold border-border/70"
+                  ? "bg-purple-500/15 text-purple-700 dark:text-purple-400 font-bold border-purple-500/40"
+                  : "bg-secondary text-foreground font-semibold border-border"
               }`}>
                 {r.vehicle_assignment_mode === "auto" ? (
                   <>
@@ -142,13 +142,13 @@ export default function RoutesPage() {
             {r.schedule_mode !== "frequency" && (
               <div className="flex gap-1.5 mt-3">
                 {DAY_LABELS.map((lbl, i) => (
-                  <span key={i} className={`text-[10px] font-mono w-6 h-6 flex items-center justify-center rounded-lg shadow-2xs ${r.days?.includes(i) ? "bg-foreground text-background font-bold" : "bg-secondary text-muted-foreground"}`}>{lbl[0]}</span>
+                  <span key={i} className={`text-[10px] font-mono w-6 h-6 flex items-center justify-center rounded-lg shadow-2xs border ${r.days?.includes(i) ? "bg-foreground text-background font-bold border-foreground" : "bg-secondary text-muted-foreground border-border"}`}>{lbl[0]}</span>
                 ))}
               </div>
             )}
-            <div className="flex gap-2 mt-4 pt-2 border-t border-border/60">
-              <Button variant="outline" size="sm" className="rounded-xl flex-1 font-semibold border-border/80 hover:bg-secondary shadow-2xs h-9" data-testid={`edit-route-${r.id}`} onClick={() => openEdit(r)}><Pencil size={14} className="mr-1.5" /> Modifica</Button>
-              <Button variant="outline" size="sm" className="rounded-xl text-destructive hover:bg-destructive/10 border-border/80 hover:border-destructive/30 shadow-2xs h-9 px-3" data-testid={`delete-route-${r.id}`} onClick={() => remove(r)}><Trash2 size={14} /></Button>
+            <div className="flex gap-2 mt-4 pt-2 border-t border-border">
+              <Button variant="outline" size="sm" className="rounded-xl flex-1 font-semibold border-border hover:bg-secondary hover:border-foreground/40 shadow-2xs h-9" data-testid={`edit-route-${r.id}`} onClick={() => openEdit(r)}><Pencil size={14} className="mr-1.5" /> Modifica</Button>
+              <Button variant="outline" size="sm" className="rounded-xl text-destructive hover:bg-destructive/10 border-border hover:border-destructive/40 shadow-2xs h-9 px-3" data-testid={`delete-route-${r.id}`} onClick={() => remove(r)}><Trash2 size={14} /></Button>
             </div>
           </div>
         ))}

@@ -446,7 +446,7 @@ export default function Drivers() {
         {drivers.map((d) => (
           <div
             key={d.id}
-            className="group relative bg-card border border-border/80 hover:border-border rounded-2xl p-4 sm:p-5 shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-[0_12px_28px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 transition-all duration-200"
+            className="group relative bg-card border border-border hover:border-foreground/40 rounded-2xl p-4 sm:p-5 shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-[0_12px_28px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 transition-all duration-200"
             data-testid={`driver-card-${d.id}`}
           >
             <div className="flex items-start justify-between gap-2">
@@ -465,7 +465,7 @@ export default function Drivers() {
               </div>
               <div className="flex flex-col items-end gap-1.5 shrink-0">
                 <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wider border ${
-                  d.active ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30" : "bg-secondary text-muted-foreground border-border"
+                  d.active ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/40" : "bg-secondary text-muted-foreground border-border"
                 }`}>
                   <span className={`h-1.5 w-1.5 rounded-full ${d.active ? "bg-emerald-500" : "bg-muted-foreground"}`} />
                   {d.active ? "ATTIVO" : "INATTIVO"}
@@ -479,7 +479,7 @@ export default function Drivers() {
             </div>
 
             {/* Sezione Sintetica Salvaspazio: Patenti e Kit Medico raggruppati */}
-            <div className="mt-3.5 pt-3.5 border-t border-border/60 grid grid-cols-2 gap-2">
+            <div className="mt-3.5 pt-3.5 border-t border-border grid grid-cols-2 gap-2">
               {/* Patenti compatto */}
               {(() => {
                 const licSummary = getLicensesSummary(d.licenses);
@@ -487,7 +487,7 @@ export default function Drivers() {
                   <button
                     type="button"
                     onClick={() => setLicenseModalDriver(d)}
-                    className="p-2.5 rounded-xl border border-border/70 bg-secondary/30 hover:bg-secondary/60 hover:border-border transition-all text-left flex flex-col justify-between cursor-pointer group/btn shadow-[0_1px_2px_rgba(0,0,0,0.03)] hover:shadow-xs"
+                    className="p-2.5 rounded-xl border border-border bg-secondary/40 hover:bg-secondary/80 hover:border-foreground/30 transition-all text-left flex flex-col justify-between cursor-pointer group/btn shadow-[0_1px_2px_rgba(0,0,0,0.03)] hover:shadow-xs"
                     title="Clicca per visualizzare l'elenco e le scadenze di tutte le patenti"
                   >
                     <div className="flex items-center justify-between gap-1 mb-1.5">
@@ -513,7 +513,7 @@ export default function Drivers() {
                   <button
                     type="button"
                     onClick={() => openMedicalKit(d)}
-                    className="p-2.5 rounded-xl border border-border/70 bg-secondary/30 hover:bg-secondary/60 hover:border-border transition-all text-left flex flex-col justify-between cursor-pointer group/btn shadow-[0_1px_2px_rgba(0,0,0,0.03)] hover:shadow-xs"
+                    className="p-2.5 rounded-xl border border-border bg-secondary/40 hover:bg-secondary/80 hover:border-foreground/30 transition-all text-left flex flex-col justify-between cursor-pointer group/btn shadow-[0_1px_2px_rgba(0,0,0,0.03)] hover:shadow-xs"
                     title="Clicca per aprire la finestra di gestione del Kit Medico"
                   >
                     <div className="flex items-center justify-between gap-1 mb-1.5">
@@ -534,7 +534,7 @@ export default function Drivers() {
               })()}
             </div>
 
-            <div className="flex items-center justify-between mt-3.5 pt-2.5 border-t border-border/40">
+            <div className="flex items-center justify-between mt-3.5 pt-2.5 border-t border-border">
               <div className="font-mono text-xs text-muted-foreground">{d.phone || "Nessun telefono"}</div>
               {d.has_account ? (
                 <span className="inline-flex items-center gap-1 text-[10px] font-bold overline text-primary" data-testid={`account-badge-${d.id}`}>
@@ -547,10 +547,10 @@ export default function Drivers() {
               )}
             </div>
             <div className="flex gap-2 mt-4">
-              <Button variant="outline" size="sm" className="rounded-xl flex-1 font-semibold border-border/80 hover:bg-secondary hover:border-border shadow-2xs h-9" data-testid={`edit-driver-${d.id}`} onClick={() => openEdit(d)}>
+              <Button variant="outline" size="sm" className="rounded-xl flex-1 font-semibold border-border hover:bg-secondary hover:border-foreground/40 shadow-2xs h-9" data-testid={`edit-driver-${d.id}`} onClick={() => openEdit(d)}>
                 <Pencil size={14} className="mr-1.5" /> Modifica
               </Button>
-              <Button variant="outline" size="sm" className="rounded-xl text-destructive hover:bg-destructive/10 border-border/80 hover:border-destructive/30 shadow-2xs h-9 px-3" data-testid={`delete-driver-${d.id}`} onClick={() => remove(d)}>
+              <Button variant="outline" size="sm" className="rounded-xl text-destructive hover:bg-destructive/10 border-border hover:border-destructive/40 shadow-2xs h-9 px-3" data-testid={`delete-driver-${d.id}`} onClick={() => remove(d)}>
                 <Trash2 size={14} />
               </Button>
             </div>

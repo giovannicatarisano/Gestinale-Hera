@@ -37,7 +37,7 @@ export default function ScheduleBoard({
   return (
     <div className="space-y-4">
       {/* View Switcher Header (Compact & Responsive) */}
-      <div className="flex items-center justify-between gap-2 flex-wrap bg-card border border-border/80 rounded-2xl p-2.5 shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
+      <div className="flex items-center justify-between gap-2 flex-wrap bg-card border border-border rounded-2xl p-2.5 shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
         {/* Day Selector Pills for Mobile / Tablet */}
         <div className="flex items-center gap-1.5 overflow-x-auto board-scroll py-0.5 max-w-full">
           {days.map((d) => {
@@ -67,7 +67,7 @@ export default function ScheduleBoard({
         </div>
 
         {/* Grid vs Day View Toggle */}
-        <div className="flex items-center gap-1 bg-secondary/50 p-1 rounded-xl border border-border/70 shrink-0 ml-auto shadow-2xs">
+        <div className="flex items-center gap-1 bg-secondary/50 p-1 rounded-xl border border-border shrink-0 ml-auto shadow-2xs">
           <button
             type="button"
             onClick={() => setViewMode("day")}
@@ -99,7 +99,7 @@ export default function ScheduleBoard({
 
       {/* ================= 1. DAY CARDS VIEW (Mobile-friendly vertical cards) ================= */}
       <div className={`${viewMode === "grid" ? "hidden" : viewMode === "day" ? "block" : "block md:hidden"} space-y-4`}>
-        <div className="bg-card border border-border/80 rounded-2xl p-4 flex items-center justify-between shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
+        <div className="bg-card border border-border rounded-2xl p-4 flex items-center justify-between shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
           <div>
             <div className="overline text-primary">{DAY_LABELS[activeTab]}</div>
             <h3 className="font-head font-bold text-lg sm:text-xl text-foreground">{DAY_FULL[activeTab]}</h3>
@@ -120,9 +120,9 @@ export default function ScheduleBoard({
           const overCap = meta.max && driversInSlot > meta.max;
 
           return (
-            <div key={slot} className="bg-card border border-border/80 rounded-2xl overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-md transition-all">
+            <div key={slot} className="bg-card border border-border rounded-2xl overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-md transition-all">
               {/* Slot Header */}
-              <div className="bg-secondary/40 border-b border-border/80 px-4 py-3 flex items-center justify-between">
+              <div className="bg-secondary/40 border-b border-border px-4 py-3 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span className="font-head font-bold text-sm text-foreground">{meta.label}</span>
                   <span className="font-mono text-xs text-muted-foreground flex items-center gap-1">
@@ -154,18 +154,18 @@ export default function ScheduleBoard({
                       onClick={() => editable && onCellClick?.(s)}
                       className={`w-full text-left p-3.5 rounded-xl border transition-all duration-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 shadow-2xs hover:shadow-xs hover:-translate-y-0.5 ${
                         uncovered
-                          ? "bg-destructive/5 hover:bg-destructive/10 border-destructive/40 border-l-4 border-l-destructive"
+                          ? "bg-destructive/5 hover:bg-destructive/10 border-destructive/50 border-l-4 border-l-destructive"
                           : mine
-                          ? "bg-primary/10 hover:bg-primary/15 border-primary/40 border-l-4 border-l-primary"
+                          ? "bg-primary/10 hover:bg-primary/15 border-primary/50 border-l-4 border-l-primary"
                           : recovered
-                          ? "bg-secondary/30 opacity-70 border-border/60 border-l-4 border-l-muted-foreground"
-                          : "bg-card hover:bg-secondary/40 border-border/80 hover:border-border border-l-4 border-l-emerald-600"
+                          ? "bg-secondary/30 opacity-70 border-border border-l-4 border-l-muted-foreground"
+                          : "bg-card hover:bg-secondary/40 border-border hover:border-foreground/40 border-l-4 border-l-emerald-600"
                       }`}
                     >
                       {/* Left info: Route + Vehicle */}
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
-                          <span className="font-mono text-xs font-bold px-2 py-0.5 bg-secondary border border-border/70 rounded-lg shadow-2xs">
+                          <span className="font-mono text-xs font-bold px-2 py-0.5 bg-secondary border border-border rounded-lg shadow-2xs">
                             {route?.code || "—"}
                           </span>
                           <span className="font-semibold text-sm text-foreground">
@@ -280,15 +280,15 @@ export default function ScheduleBoard({
       </div>
 
       {/* ================= 2. FULL MATRIX GRID VIEW (Desktop & scrollable) ================= */}
-      <div className={`${viewMode === "day" ? "hidden" : viewMode === "grid" ? "block" : "hidden md:block"} board-scroll overflow-x-auto border border-border/80 bg-card rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04)]`}>
+      <div className={`${viewMode === "day" ? "hidden" : viewMode === "grid" ? "block" : "hidden md:block"} board-scroll overflow-x-auto border border-border bg-card rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04)]`}>
         <div className="min-w-[900px]">
           {/* Header row */}
           <div className="grid" style={{ gridTemplateColumns: `160px repeat(${days.length}, minmax(0,1fr))` }}>
-            <div className="border-b border-r border-border/70 p-3 bg-secondary/70">
+            <div className="border-b border-r border-border p-3 bg-secondary/70">
               <span className="overline text-muted-foreground">Turno / Giorno</span>
             </div>
             {days.map((d) => (
-              <div key={d} className="border-b border-r border-border/70 p-3 bg-secondary/70 text-center">
+              <div key={d} className="border-b border-r border-border p-3 bg-secondary/70 text-center">
                 <div className="font-head font-bold text-sm text-foreground">{DAY_FULL[d]}</div>
                 <div className="overline text-muted-foreground">{DAY_LABELS[d]}</div>
               </div>
@@ -306,7 +306,7 @@ export default function ScheduleBoard({
                 className="grid"
                 style={{ gridTemplateColumns: `160px repeat(${days.length}, minmax(0,1fr))` }}
               >
-                <div className="border-b border-r border-border/70 p-3 bg-card/90">
+                <div className="border-b border-r border-border p-3 bg-card/90">
                   <div className="font-head font-bold text-sm leading-tight text-foreground">{meta.label}</div>
                   <div className="font-mono text-xs text-muted-foreground flex items-center gap-1 mt-1">
                     <Clock size={11} /> {meta.time}
@@ -323,7 +323,7 @@ export default function ScheduleBoard({
                   return (
                     <div
                       key={d}
-                      className={`border-b border-r border-border/70 p-2 space-y-1.5 align-top min-h-[76px] ${
+                      className={`border-b border-r border-border p-2 space-y-1.5 align-top min-h-[76px] ${
                         overCap ? "bg-destructive/10" : ""
                       }`}
                     >
@@ -344,12 +344,12 @@ export default function ScheduleBoard({
                             onClick={() => editable && onCellClick?.(s)}
                             className={`w-full text-left rounded-xl border p-2.5 transition-all duration-150 ${
                               recovered
-                                ? "border-border/60 bg-secondary/30 opacity-60"
+                                ? "border-border bg-secondary/30 opacity-60"
                                 : uncovered
                                 ? "border-dashed border-destructive/80 bg-destructive/5 hover:bg-destructive/10 shadow-2xs"
                                 : mine
                                 ? "border-primary/80 bg-primary/10 shadow-2xs hover:shadow-xs"
-                                : "border-border/80 bg-card hover:border-primary/50 shadow-2xs hover:shadow-xs hover:-translate-y-0.5"
+                                : "border-border bg-card hover:border-foreground/40 shadow-2xs hover:shadow-xs hover:-translate-y-0.5"
                             }`}
                           >
                             <div className="flex items-center justify-between gap-1">
