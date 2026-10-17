@@ -119,7 +119,7 @@ function SwapCard({ r, onDecide }) {
   const canAdminAct = r.status === "pending_admin";
 
   return (
-    <div className="group relative bg-card border border-border/80 hover:border-border rounded-2xl p-4 sm:p-5 shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-md transition-all duration-200" data-testid={`swap-row-${r.id}`}>
+    <div className="group relative bg-card border border-border hover:border-foreground/40 rounded-2xl p-4 sm:p-5 shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-md transition-all duration-200" data-testid={`swap-row-${r.id}`}>
       {/* Status row */}
       <div className="flex items-center justify-between gap-2 flex-wrap mb-3.5">
         <div className="flex items-center gap-1.5 flex-wrap">
@@ -138,7 +138,7 @@ function SwapCard({ r, onDecide }) {
       {/* Driver row */}
       <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 py-1.5">
         <div className="flex items-center gap-2.5">
-          <div className="h-9 w-9 rounded-xl bg-secondary flex items-center justify-center font-head font-bold text-xs shrink-0 shadow-2xs border border-border/60">{initials(r.from_name)}</div>
+          <div className="h-9 w-9 rounded-xl bg-secondary flex items-center justify-center font-head font-bold text-xs shrink-0 shadow-2xs border border-border">{initials(r.from_name)}</div>
           <div>
             <div className="text-sm font-bold leading-none text-foreground">{r.from_name}</div>
             <div className="text-[10px] text-muted-foreground mt-0.5 font-medium">cedente</div>

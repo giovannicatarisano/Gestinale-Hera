@@ -112,11 +112,11 @@ export default function Dashboard() {
 
       {/* controls + stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-3.5 no-print">
-        <div className="sm:col-span-2 border border-border/80 bg-card rounded-2xl p-3.5 sm:p-4 flex items-center justify-between shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-md transition-all">
+        <div className="sm:col-span-2 border border-border bg-card rounded-2xl p-3.5 sm:p-4 flex items-center justify-between shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-md transition-all">
           <button
             data-testid="prev-week-btn"
             onClick={() => setRef(shiftWeek(ref, -1))}
-            className="h-10 w-10 flex items-center justify-center border border-border/80 rounded-xl hover:bg-secondary hover:border-border transition-colors duration-150 shadow-2xs"
+            className="h-10 w-10 flex items-center justify-center border border-border rounded-xl hover:bg-secondary hover:border-foreground/40 transition-colors duration-150 shadow-2xs"
             title="Settimana precedente"
           >
             <ChevronLeft size={18} />
@@ -130,7 +130,7 @@ export default function Dashboard() {
           <button
             data-testid="next-week-btn"
             onClick={() => setRef(shiftWeek(ref, 1))}
-            className="h-10 w-10 flex items-center justify-center border border-border/80 rounded-xl hover:bg-secondary hover:border-border transition-colors duration-150 shadow-2xs"
+            className="h-10 w-10 flex items-center justify-center border border-border rounded-xl hover:bg-secondary hover:border-foreground/40 transition-colors duration-150 shadow-2xs"
             title="Settimana successiva"
           >
             <ChevronRight size={18} />
@@ -209,7 +209,7 @@ export default function Dashboard() {
 
 function Stat({ icon: Icon, label, value, total, tone, tid }) {
   return (
-    <div className="border border-border/80 bg-card rounded-2xl p-4 shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-md transition-all" data-testid={tid}>
+    <div className="border border-border bg-card rounded-2xl p-4 shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-md hover:border-foreground/30 transition-all" data-testid={tid}>
       <div className="flex items-center gap-2 overline text-muted-foreground text-[10px]">
         <div className={`p-1.5 rounded-lg shrink-0 ${tone === "bad" ? "bg-destructive/10 text-destructive" : "bg-primary/10 text-primary"}`}>
           <Icon size={14} />

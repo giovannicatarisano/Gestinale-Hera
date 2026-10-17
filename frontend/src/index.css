@@ -22,8 +22,8 @@
         --accent-foreground: 0 0% 100%;
         --destructive: 4 100% 59%;
         --destructive-foreground: 0 0% 100%;
-        --border: 215 16% 90%;
-        --input: 215 16% 88%;
+        --border: 215 22% 78%;
+        --input: 215 22% 76%;
         --ring: 152 100% 33%;
         --radius: 0.75rem;
     }
@@ -32,20 +32,20 @@
 @layer utilities {
     .card-tactile {
         background-color: hsl(var(--card));
-        border: 1px solid hsl(var(--border) / 0.85);
+        border: 1px solid hsl(var(--border));
         border-radius: 1rem;
         box-shadow: 0 2px 8px -1px rgba(0, 0, 0, 0.05), 0 1px 3px 0 rgba(0, 0, 0, 0.04);
         transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     }
     .card-interactive {
         background-color: hsl(var(--card));
-        border: 1px solid hsl(var(--border) / 0.85);
+        border: 1px solid hsl(var(--border));
         border-radius: 1rem;
         box-shadow: 0 2px 8px -1px rgba(0, 0, 0, 0.05), 0 1px 3px 0 rgba(0, 0, 0, 0.04);
         transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     }
     .card-interactive:hover {
-        border-color: hsl(var(--border));
+        border-color: hsl(var(--foreground) / 0.4);
         box-shadow: 0 12px 28px -4px rgba(0, 0, 0, 0.08), 0 6px 14px -2px rgba(0, 0, 0, 0.03);
         transform: translateY(-2px);
     }
