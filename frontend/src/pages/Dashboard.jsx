@@ -94,7 +94,7 @@ export default function Dashboard() {
             onClick={() => window.print()}
             variant="outline"
             disabled={total === 0}
-            className="rounded-sm font-semibold h-10 px-3.5 text-xs sm:text-sm flex-1 sm:flex-initial"
+            className="rounded-xl font-semibold h-10 px-3.5 text-xs sm:text-sm flex-1 sm:flex-initial border-border/80 shadow-2xs hover:bg-secondary"
           >
             <Printer size={16} className="mr-1.5" /> Stampa / PDF
           </Button>
@@ -102,7 +102,7 @@ export default function Dashboard() {
             data-testid="generate-shifts-btn"
             onClick={generate}
             disabled={generating}
-            className="rounded-sm bg-primary hover:bg-primary/90 font-semibold h-10 px-4 text-xs sm:text-sm shadow-sm flex-1 sm:flex-initial"
+            className="rounded-xl bg-primary hover:bg-primary/90 font-semibold h-10 px-4 text-xs sm:text-sm shadow-sm flex-1 sm:flex-initial"
           >
             <Sparkles size={16} className={`mr-1.5 ${generating ? "animate-pulse" : ""}`} />
             {generating ? "Generazione…" : "Genera Turni"}
@@ -111,12 +111,12 @@ export default function Dashboard() {
       </div>
 
       {/* controls + stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3 no-print">
-        <div className="sm:col-span-2 border border-border bg-card rounded-sm p-3 flex items-center justify-between shadow-xs">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-3.5 no-print">
+        <div className="sm:col-span-2 border border-border/80 bg-card rounded-2xl p-3.5 sm:p-4 flex items-center justify-between shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-md transition-all">
           <button
             data-testid="prev-week-btn"
             onClick={() => setRef(shiftWeek(ref, -1))}
-            className="h-9 w-9 flex items-center justify-center border border-border rounded-sm hover:bg-secondary transition-colors duration-150"
+            className="h-10 w-10 flex items-center justify-center border border-border/80 rounded-xl hover:bg-secondary hover:border-border transition-colors duration-150 shadow-2xs"
             title="Settimana precedente"
           >
             <ChevronLeft size={18} />
@@ -130,7 +130,7 @@ export default function Dashboard() {
           <button
             data-testid="next-week-btn"
             onClick={() => setRef(shiftWeek(ref, 1))}
-            className="h-9 w-9 flex items-center justify-center border border-border rounded-sm hover:bg-secondary transition-colors duration-150"
+            className="h-10 w-10 flex items-center justify-center border border-border/80 rounded-xl hover:bg-secondary hover:border-border transition-colors duration-150 shadow-2xs"
             title="Settimana successiva"
           >
             <ChevronRight size={18} />
@@ -144,7 +144,7 @@ export default function Dashboard() {
       {rotation && (rotation.gruppo1_turno || rotation.gruppo2_turno) && (
         <div className="flex flex-wrap gap-2 items-center no-print">
           <span className="overline text-[10px] text-muted-foreground">Rotazione questa settimana:</span>
-          <span className={`inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-sm border ${
+          <span className={`inline-flex items-center gap-1.5 text-[11px] font-semibold px-3 py-1 rounded-full border shadow-2xs ${
             rotation.gruppo1_turno === "mattina"
               ? "bg-blue-500/10 border-blue-500/20 text-blue-700 dark:text-blue-400"
               : "bg-orange-500/10 border-orange-500/20 text-orange-700 dark:text-orange-400"
@@ -152,7 +152,7 @@ export default function Dashboard() {
             <UsersRound size={12} />
             G1 · {rotation.gruppo1_turno === "mattina" ? "☀️ Mattina" : "🌆 Pomeriggio"}
           </span>
-          <span className={`inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-sm border ${
+          <span className={`inline-flex items-center gap-1.5 text-[11px] font-semibold px-3 py-1 rounded-full border shadow-2xs ${
             rotation.gruppo2_turno === "mattina"
               ? "bg-blue-500/10 border-blue-500/20 text-blue-700 dark:text-blue-400"
               : "bg-orange-500/10 border-orange-500/20 text-orange-700 dark:text-orange-400"
@@ -209,11 +209,14 @@ export default function Dashboard() {
 
 function Stat({ icon: Icon, label, value, total, tone, tid }) {
   return (
-    <div className="border border-border bg-card rounded-sm p-3" data-testid={tid}>
-      <div className="flex items-center gap-1.5 overline text-muted-foreground">
-        <Icon size={13} className={tone === "bad" ? "text-destructive" : "text-primary"} /> {label}
+    <div className="border border-border/80 bg-card rounded-2xl p-4 shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-md transition-all" data-testid={tid}>
+      <div className="flex items-center gap-2 overline text-muted-foreground text-[10px]">
+        <div className={`p-1.5 rounded-lg shrink-0 ${tone === "bad" ? "bg-destructive/10 text-destructive" : "bg-primary/10 text-primary"}`}>
+          <Icon size={14} />
+        </div>
+        <span>{label}</span>
       </div>
-      <div className="mt-1 flex items-baseline gap-1.5">
+      <div className="mt-2 flex items-baseline gap-2">
         <span className={`font-head font-black text-3xl tracking-tighter ${tone === "bad" ? "text-destructive" : "text-foreground"}`}>
           {value}
         </span>

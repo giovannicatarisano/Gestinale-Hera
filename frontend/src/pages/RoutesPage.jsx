@@ -85,34 +85,40 @@ export default function RoutesPage() {
     <div className="space-y-6">
       <Header title="Giri" subtitle="Percorsi di raccolta" count={routes.length} onAdd={openNew} addLabel="Nuovo giro" addTid="add-route-btn" />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
         {routes.map((r) => (
-          <div key={r.id} className="border border-border bg-card rounded-sm p-4" data-testid={`route-card-${r.id}`}>
+          <div
+            key={r.id}
+            className="group relative bg-card border border-border/80 hover:border-border rounded-2xl p-4 sm:p-5 shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-[0_12px_28px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 transition-all duration-200"
+            data-testid={`route-card-${r.id}`}
+          >
             <div className="flex items-start justify-between gap-2">
               <div className="flex items-center gap-3 min-w-0">
-                <div className="h-11 w-11 rounded-sm bg-secondary flex items-center justify-center text-primary shrink-0"><RouteIcon size={20} /></div>
+                <div className="h-12 w-12 rounded-2xl bg-secondary flex items-center justify-center text-primary shrink-0 shadow-sm ring-2 ring-background">
+                  <RouteIcon size={22} />
+                </div>
                 <div className="min-w-0">
-                  <div className="font-semibold truncate flex items-center gap-1.5">
+                  <div className="font-bold text-base leading-tight text-foreground truncate flex items-center gap-1.5 group-hover:text-primary transition-colors">
                     {r.pinned && <Lock size={13} className="text-primary shrink-0" />}
-                    {r.name}
+                    <span>{r.name}</span>
                   </div>
-                  <div className="font-mono text-xs text-muted-foreground">{r.code} · {r.zone}</div>
+                  <div className="font-mono text-xs text-muted-foreground truncate mt-0.5">{r.code} · {r.zone || "Nessuna zona"}</div>
                 </div>
               </div>
             </div>
-            <div className="flex flex-wrap gap-1.5 mt-3">
-              <span className={`inline-flex items-center gap-1 font-mono text-[10px] px-1.5 py-0.5 rounded-sm ${
+            <div className="flex flex-wrap gap-1.5 mt-3.5 pt-2.5 border-t border-border/40">
+              <span className={`inline-flex items-center gap-1 font-mono text-[10px] px-2.5 py-0.5 rounded-full border shadow-2xs ${
                 r.slot === "rotazione"
-                  ? "bg-indigo-500/15 text-indigo-700 dark:text-indigo-400 font-semibold"
-                  : "bg-primary/15 text-primary"
+                  ? "bg-indigo-500/15 text-indigo-700 dark:text-indigo-400 font-bold border-indigo-500/30"
+                  : "bg-primary/15 text-primary font-bold border-primary/20"
               }`}>
                 {r.slot === "rotazione" ? <Repeat size={10} /> : <Clock size={10} />}
                 {SLOT_SHORT[r.slot]}
               </span>
-              <span className={`inline-flex items-center gap-1 font-mono text-[10px] px-1.5 py-0.5 rounded-sm ${
+              <span className={`inline-flex items-center gap-1 font-mono text-[10px] px-2.5 py-0.5 rounded-full border shadow-2xs ${
                 r.vehicle_assignment_mode === "auto"
-                  ? "bg-purple-500/15 text-purple-700 dark:text-purple-400 font-semibold border border-purple-500/20"
-                  : "bg-secondary text-foreground"
+                  ? "bg-purple-500/15 text-purple-700 dark:text-purple-400 font-bold border-purple-500/30"
+                  : "bg-secondary text-foreground font-semibold border-border/70"
               }`}>
                 {r.vehicle_assignment_mode === "auto" ? (
                   <>
@@ -127,29 +133,29 @@ export default function RoutesPage() {
                 )}
               </span>
               {r.schedule_mode === "frequency" && (
-                <span className="inline-flex items-center gap-1 font-mono text-[10px] px-1.5 py-0.5 bg-foreground text-background rounded-sm"><Repeat size={10} /> ogni {r.interval_days} gg</span>
+                <span className="inline-flex items-center gap-1 font-mono text-[10px] px-2.5 py-0.5 bg-foreground text-background rounded-full font-bold shadow-2xs"><Repeat size={10} /> ogni {r.interval_days} gg</span>
               )}
               {r.pinned && (
-                <span className="inline-flex items-center gap-1 font-mono text-[10px] px-1.5 py-0.5 bg-primary text-primary-foreground rounded-sm"><Lock size={10} /> Fissato</span>
+                <span className="inline-flex items-center gap-1 font-mono text-[10px] px-2.5 py-0.5 bg-primary text-primary-foreground rounded-full font-bold shadow-2xs"><Lock size={10} /> Fissato</span>
               )}
             </div>
             {r.schedule_mode !== "frequency" && (
-              <div className="flex gap-1 mt-2">
+              <div className="flex gap-1.5 mt-3">
                 {DAY_LABELS.map((lbl, i) => (
-                  <span key={i} className={`text-[10px] font-mono w-6 h-6 flex items-center justify-center rounded-sm ${r.days?.includes(i) ? "bg-foreground text-background" : "bg-secondary text-muted-foreground"}`}>{lbl[0]}</span>
+                  <span key={i} className={`text-[10px] font-mono w-6 h-6 flex items-center justify-center rounded-lg shadow-2xs ${r.days?.includes(i) ? "bg-foreground text-background font-bold" : "bg-secondary text-muted-foreground"}`}>{lbl[0]}</span>
                 ))}
               </div>
             )}
-            <div className="flex gap-2 mt-4">
-              <Button variant="outline" size="sm" className="rounded-sm flex-1" data-testid={`edit-route-${r.id}`} onClick={() => openEdit(r)}><Pencil size={14} className="mr-1.5" /> Modifica</Button>
-              <Button variant="outline" size="sm" className="rounded-sm text-destructive hover:bg-destructive/10" data-testid={`delete-route-${r.id}`} onClick={() => remove(r)}><Trash2 size={14} /></Button>
+            <div className="flex gap-2 mt-4 pt-2 border-t border-border/60">
+              <Button variant="outline" size="sm" className="rounded-xl flex-1 font-semibold border-border/80 hover:bg-secondary shadow-2xs h-9" data-testid={`edit-route-${r.id}`} onClick={() => openEdit(r)}><Pencil size={14} className="mr-1.5" /> Modifica</Button>
+              <Button variant="outline" size="sm" className="rounded-xl text-destructive hover:bg-destructive/10 border-border/80 hover:border-destructive/30 shadow-2xs h-9 px-3" data-testid={`delete-route-${r.id}`} onClick={() => remove(r)}><Trash2 size={14} /></Button>
             </div>
           </div>
         ))}
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="w-[94vw] sm:max-w-lg rounded-sm max-h-[85vh] overflow-y-auto p-4 sm:p-6" data-testid="route-modal">
+        <DialogContent className="w-[94vw] sm:max-w-lg rounded-2xl max-h-[85vh] overflow-y-auto p-4 sm:p-6 shadow-2xl border border-border/80" data-testid="route-modal">
           <DialogHeader>
             <DialogTitle className="font-head tracking-tight text-lg sm:text-xl">{editing ? "Modifica giro" : "Nuovo giro"}</DialogTitle>
             <DialogDescription className="sr-only">Configura percorso, mezzo richiesto, fascia oraria, frequenza e giorni operativi del giro.</DialogDescription>

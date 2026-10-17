@@ -76,9 +76,9 @@ export default function Layout() {
               to={n.to}
               data-testid={n.tid}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2.5 rounded-sm text-sm font-medium transition-colors duration-150 ${
+                `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 ${
                   isActive
-                    ? "bg-primary text-primary-foreground shadow-sm"
+                    ? "bg-primary text-primary-foreground shadow-sm font-semibold"
                     : "text-muted-foreground hover:bg-secondary hover:text-foreground"
                 }`
               }
@@ -95,9 +95,9 @@ export default function Layout() {
               to={n.to}
               data-testid={n.tid}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2.5 rounded-sm text-sm font-medium transition-colors duration-150 ${
+                `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 ${
                   isActive
-                    ? "bg-primary text-primary-foreground shadow-sm"
+                    ? "bg-primary text-primary-foreground shadow-sm font-semibold"
                     : "text-muted-foreground hover:bg-secondary hover:text-foreground"
                 }`
               }
@@ -116,9 +116,9 @@ export default function Layout() {
                   to={n.to}
                   data-testid={n.tid}
                   className={({ isActive }) =>
-                    `flex items-center gap-3 px-3 py-2.5 rounded-sm text-sm font-medium transition-colors duration-150 ${
+                    `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 ${
                       isActive
-                        ? "bg-primary text-primary-foreground shadow-sm"
+                        ? "bg-primary text-primary-foreground shadow-sm font-semibold"
                         : "text-muted-foreground hover:bg-secondary hover:text-foreground"
                     }`
                   }
@@ -137,7 +137,7 @@ export default function Layout() {
             <button
               id="refresh-btn-desktop"
               onClick={handleRefresh}
-              className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-sm text-xs font-medium text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors border border-border/50"
+              className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors border border-border/60 shadow-2xs"
               title="Aggiorna i dati"
             >
               <RefreshCw size={14} className={refreshing ? "animate-spin" : ""} />
@@ -148,7 +148,7 @@ export default function Layout() {
           <button
             data-testid="view-board-btn"
             onClick={() => navigate("/tabellone")}
-            className="w-full flex items-center justify-between px-3 py-2.5 rounded-sm text-sm font-medium text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors duration-150 border border-border/50"
+            className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors duration-150 border border-border/60 shadow-2xs"
           >
             <div className="flex items-center gap-2.5">
               <Eye size={17} className="text-primary shrink-0" />
@@ -159,7 +159,7 @@ export default function Layout() {
           <button
             data-testid="logout-btn"
             onClick={logout}
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-sm text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors duration-150"
+            className="w-full flex items-center gap-2.5 px-3.5 py-2 rounded-xl text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors duration-150"
           >
             <LogOut size={16} className="shrink-0" />
             <span>Esci dall'account</span>
@@ -288,7 +288,7 @@ export default function Layout() {
               <div className="text-sm font-semibold">{user?.name}</div>
               <div className="overline text-primary">{userRoleLabel}</div>
             </div>
-            <div className={`h-9 w-9 rounded-sm ${user?.role === "assistant" ? "bg-teal-600 text-white" : "bg-primary text-primary-foreground"} flex items-center justify-center font-head font-bold text-sm shadow-sm`}>
+            <div className={`h-9 w-9 rounded-xl ${user?.role === "assistant" ? "bg-teal-600 text-white" : "bg-primary text-primary-foreground"} flex items-center justify-center font-head font-bold text-sm shadow-sm ring-2 ring-primary/20`}>
               {initials(user?.name || "A")}
             </div>
           </div>
@@ -301,13 +301,13 @@ export default function Layout() {
       </div>
 
       {/* ================= MOBILE BOTTOM NAVIGATION BAR (<lg) ================= */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-card/95 backdrop-blur-md border-t border-border flex items-center justify-around px-1 py-1.5 shadow-lg" style={{ paddingBottom: "calc(0.4rem + var(--sab))" }}>
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-card/95 backdrop-blur-md border-t border-border flex items-center justify-around px-1 py-1.5 shadow-[0_-4px_16px_rgba(0,0,0,0.06)]" style={{ paddingBottom: "calc(0.4rem + var(--sab))" }}>
         {PRIMARY_NAV.map((n) => (
           <NavLink
             key={n.to}
             to={n.to}
             className={({ isActive }) =>
-              `flex flex-col items-center justify-center flex-1 py-1 px-1 rounded-sm text-[11px] font-medium transition-colors ${
+              `flex flex-col items-center justify-center flex-1 py-1 px-1 rounded-xl text-[11px] font-medium transition-colors ${
                 isActive
                   ? "text-primary font-bold"
                   : "text-muted-foreground hover:text-foreground"
@@ -321,7 +321,7 @@ export default function Layout() {
         <button
           type="button"
           onClick={() => setDrawerOpen(true)}
-          className={`flex flex-col items-center justify-center flex-1 py-1 px-1 rounded-sm text-[11px] font-medium transition-colors ${
+          className={`flex flex-col items-center justify-center flex-1 py-1 px-1 rounded-xl text-[11px] font-medium transition-colors ${
             isSecondaryActive ? "text-primary font-bold" : "text-muted-foreground hover:text-foreground"
           }`}
         >

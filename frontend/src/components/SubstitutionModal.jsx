@@ -61,8 +61,8 @@ export default function SubstitutionModal({ shift, open, onClose, onChanged, veh
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="w-[94vw] sm:max-w-lg rounded-sm p-0 gap-0 bg-card/95 backdrop-blur-xl max-h-[88vh] flex flex-col" data-testid="substitution-modal">
-        <DialogHeader className="p-4 sm:p-5 border-b border-border shrink-0">
+      <DialogContent className="w-[94vw] sm:max-w-lg rounded-2xl p-0 gap-0 bg-card max-h-[88vh] flex flex-col shadow-2xl border border-border/80 overflow-hidden" data-testid="substitution-modal">
+        <DialogHeader className="p-4 sm:p-5 border-b border-border/80 shrink-0">
           <DialogTitle className="font-head font-black tracking-tight text-lg sm:text-xl">
             Sostituzione turno
           </DialogTitle>
@@ -134,7 +134,7 @@ export default function SubstitutionModal({ shift, open, onClose, onChanged, veh
               variant="outline"
               data-testid="mark-absence-btn"
               onClick={markAbsence}
-              className="w-full mb-4 rounded-sm border-destructive/50 text-destructive hover:bg-destructive/10"
+              className="w-full mb-4 rounded-xl border-destructive/40 text-destructive hover:bg-destructive/10 shadow-2xs font-semibold h-10"
             >
               <UserX size={16} className="mr-2" /> Segna assenza / Libera turno
             </Button>
@@ -145,43 +145,43 @@ export default function SubstitutionModal({ shift, open, onClose, onChanged, veh
               variant="outline"
               data-testid="recover-btn"
               onClick={recover}
-              className="w-full mb-4 rounded-sm border-primary/50 text-primary hover:bg-primary/10"
+              className="w-full mb-4 rounded-xl border-primary/40 text-primary hover:bg-primary/10 shadow-2xs font-semibold h-10"
             >
               <RotateCcw size={16} className="mr-2" /> Recupera al giorno successivo
             </Button>
           )}
 
-          <div className="overline text-muted-foreground mb-3">Sostituti suggeriti</div>
+          <div className="overline text-muted-foreground mb-3 text-[10px]">Sostituti suggeriti</div>
 
           {loading && <div className="text-sm text-muted-foreground py-6 text-center">Caricamento…</div>}
 
-          <div className="space-y-2">
+          <div className="space-y-2.5">
             {data?.candidates.map((c) => {
               const best = c.qualified && c.available;
               return (
                 <div
                   key={c.id}
                   data-testid={`substitute-${c.id}`}
-                  className={`flex items-center gap-3 border rounded-sm p-3 ${
-                    best ? "border-primary/40 bg-primary/5" : "border-border"
+                  className={`flex items-center gap-3 border rounded-xl p-3 shadow-2xs transition-all ${
+                    best ? "border-primary/40 bg-primary/5" : "border-border/80 bg-card hover:border-border"
                   }`}
                 >
-                  <div className="h-9 w-9 rounded-sm bg-primary text-primary-foreground flex items-center justify-center font-head font-bold text-xs shrink-0">
+                  <div className="h-10 w-10 rounded-xl bg-primary text-primary-foreground flex items-center justify-center font-head font-bold text-xs shrink-0 shadow-2xs">
                     {initials(c.name)}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="text-sm font-semibold truncate">{c.name}</div>
+                    <div className="text-sm font-bold truncate text-foreground">{c.name}</div>
                     <div className="flex flex-wrap gap-1.5 mt-1">
                       <Tag ok={c.vehicle_ok} label="Mezzo" icon={Truck} />
                       <Tag ok={c.route_ok} label="Giro" icon={RouteIcon} />
                       <span
-                        className={`inline-flex items-center gap-1 text-[10px] font-mono px-1.5 py-0.5 rounded-sm ${
-                          c.available ? "bg-secondary text-muted-foreground" : "bg-destructive/10 text-destructive"
+                        className={`inline-flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded-full border ${
+                          c.available ? "bg-secondary text-muted-foreground border-border/60" : "bg-destructive/10 text-destructive border-destructive/20 font-bold"
                         }`}
                       >
                         {c.absent ? "Assente" : c.available ? "Disponibile" : "Occupato"}
                       </span>
-                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-sm bg-secondary text-muted-foreground">
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-secondary text-muted-foreground border border-border/60">
                         {c.week_load} turni/sett.
                       </span>
                     </div>
@@ -191,7 +191,7 @@ export default function SubstitutionModal({ shift, open, onClose, onChanged, veh
                     data-testid={`assign-${c.id}`}
                     disabled={!c.available}
                     onClick={() => assign(c.id)}
-                    className="rounded-sm shrink-0 bg-primary hover:bg-primary/90 disabled:opacity-40"
+                    className="rounded-xl shrink-0 bg-primary hover:bg-primary/90 disabled:opacity-40 font-semibold shadow-2xs h-9"
                   >
                     <Check size={14} className="mr-1" /> Assegna
                   </Button>
