@@ -12,7 +12,7 @@ import {
   DropdownMenuSeparator,
 } from "../components/ui/dropdown-menu";
 import { toast } from "sonner";
-import { ChevronLeft, ChevronRight, Sparkles, CheckCircle2, AlertTriangle, CalendarDays, Printer, UsersRound, Sun, Sunset, ChevronDown, FileText, Maximize2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Sparkles, CheckCircle2, AlertTriangle, CalendarDays, Printer, UsersRound, Sun, Sunset, ChevronDown, FileText } from "lucide-react";
 
 export default function Dashboard() {
   const [ref, setRef] = useState(new Date());
@@ -82,27 +82,27 @@ export default function Dashboard() {
     setModalOpen(true);
   };
 
-  const handlePrint = (format = "A4") => {
+  const handlePrint = (orientation = "landscape") => {
     // Rimuove eventuali stili dinamici di stampa precedenti
     const existingStyle = document.getElementById("hera-print-page-style");
     if (existingStyle) existingStyle.remove();
 
-    // Inietta dinamicamente la regola @page per il formato scelto
+    // Imposta lo standard predefinito in A4 (per esportazione PDF diretta)
+    // consentendo al contempo a chi stampa di selezionare un formato diverso (A3, A2, ecc.) dal driver di stampa.
     const style = document.createElement("style");
     style.id = "hera-print-page-style";
-    const margin = format === "A2" ? "14mm" : "6mm";
-    style.textContent = `@media print { @page { size: ${format} landscape; margin: ${margin}; } }`;
+    style.textContent = `@media print { @page { size: A4 ${orientation}; margin: 6mm; } }`;
     document.head.appendChild(style);
 
     // Imposta l'attributo per applicare le classi CSS corrispondenti
-    document.body.setAttribute("data-print-size", format);
+    document.body.setAttribute("data-print-orientation", orientation);
 
-    // Avvia la finestra di stampa
+    // Avvia la finestra di stampa di sistema
     window.print();
 
     // Pulizia post-stampa
     const cleanup = () => {
-      document.body.removeAttribute("data-print-size");
+      document.body.removeAttribute("data-print-orientation");
       const s = document.getElementById("hera-print-page-style");
       if (s) s.remove();
       window.removeEventListener("afterprint", cleanup);
@@ -139,40 +139,40 @@ export default function Dashboard() {
                 <ChevronDown size={13} className="opacity-60 ml-0.5" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-64 p-1.5 rounded-2xl border-border bg-card shadow-lg z-50">
+            <DropdownMenuContent align="end" className="w-72 p-1.5 rounded-2xl border-border bg-card shadow-lg z-50">
               <DropdownMenuItem
-                data-testid="print-a4-btn"
-                onClick={() => handlePrint("A4")}
+                data-testid="print-landscape-btn"
+                onClick={() => handlePrint("landscape")}
                 className="flex flex-col items-start gap-1 p-2.5 rounded-xl cursor-pointer hover:bg-secondary focus:bg-secondary transition-colors"
               >
                 <div className="flex items-center justify-between w-full">
                   <div className="flex items-center gap-2 font-semibold text-xs sm:text-sm text-foreground">
                     <FileText size={15} className="text-primary" />
-                    <span>Formato A4 Orizzontale</span>
+                    <span>Orizzontale (Landscape)</span>
                   </div>
-                  <span className="text-[10px] bg-primary/15 text-primary px-1.5 py-0.2 rounded font-mono font-bold">Standard</span>
+                  <span className="text-[10px] bg-primary/15 text-primary px-1.5 py-0.5 rounded font-mono font-bold">Standard A4</span>
                 </div>
                 <p className="text-[11px] text-muted-foreground pl-6 leading-tight">
-                  Ottimizzato per foglio singolo da ufficio, bacheca e PDF
+                  Consigliato per visualizzare chiaramente tutti i giorni della settimana (PDF o stampante)
                 </p>
               </DropdownMenuItem>
 
               <DropdownMenuSeparator className="my-1" />
 
               <DropdownMenuItem
-                data-testid="print-a2-btn"
-                onClick={() => handlePrint("A2")}
+                data-testid="print-portrait-btn"
+                onClick={() => handlePrint("portrait")}
                 className="flex flex-col items-start gap-1 p-2.5 rounded-xl cursor-pointer hover:bg-secondary focus:bg-secondary transition-colors"
               >
                 <div className="flex items-center justify-between w-full">
                   <div className="flex items-center gap-2 font-semibold text-xs sm:text-sm text-foreground">
-                    <Maximize2 size={15} className="text-blue-600" />
-                    <span>Formato A2 / Poster</span>
+                    <FileText size={15} className="text-blue-600" />
+                    <span>Verticale (Portrait)</span>
                   </div>
-                  <span className="text-[10px] bg-blue-500/15 text-blue-700 dark:text-blue-400 px-1.5 py-0.2 rounded font-mono font-bold">Murale</span>
+                  <span className="text-[10px] bg-blue-500/15 text-blue-700 dark:text-blue-400 px-1.5 py-0.5 rounded font-mono font-bold">Standard A4</span>
                 </div>
                 <p className="text-[11px] text-muted-foreground pl-6 leading-tight">
-                  Ingrandito per tabelloni grandi da officina e plotter
+                  Formato compatto verticale per cartellette e raccoglitori (PDF o stampante)
                 </p>
               </DropdownMenuItem>
             </DropdownMenuContent>

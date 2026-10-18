@@ -209,10 +209,9 @@ h1, h2, h3, .font-head {
   }
 
   /* --------------------------------------------------------------------------
-     1. FORMATO A4 ORIZZONTALE (Default e data-print-size="A4")
-     Ottimizzato per foglio singolo 297mm x 210mm
+     1. FORMATO ORIZZONTALE / LANDSCAPE (Standard A4 per bacheca e tabellone)
      -------------------------------------------------------------------------- */
-  body:not([data-print-size="A2"]) {
+  body:not([data-print-orientation="portrait"]) {
     .print-header-title { font-size: 13pt !important; }
     .print-header-sub { font-size: 8.5pt !important; }
     
@@ -257,50 +256,50 @@ h1, h2, h3, .font-head {
   }
 
   /* --------------------------------------------------------------------------
-     2. FORMATO A2 / POSTER ORIZZONTALE (data-print-size="A2")
-     Ottimizzato per plotter e tabelloni murali 594mm x 420mm
+     2. FORMATO VERTICALE / PORTRAIT (Standard A4 compatto per cartellette e raccoglitori)
      -------------------------------------------------------------------------- */
-  body[data-print-size="A2"] {
-    .print-header-title { font-size: 26pt !important; }
-    .print-header-sub { font-size: 16pt !important; }
+  body[data-print-orientation="portrait"] {
+    .print-header-title { font-size: 11pt !important; }
+    .print-header-sub { font-size: 7.5pt !important; }
 
     .grid-row-header,
     .grid-row-slot {
-      grid-template-columns: 200px repeat(7, minmax(0, 1fr)) !important;
+      grid-template-columns: 75px repeat(7, minmax(0, 1fr)) !important;
     }
 
     .print-slot-meta {
-      padding: 12px 14px !important;
+      padding: 3px 4px !important;
     }
-    .print-slot-title { font-size: 16pt !important; font-weight: 800 !important; }
-    .print-slot-time { font-size: 13pt !important; margin-top: 4px !important; }
-    .print-slot-max { font-size: 11pt !important; }
+    .print-slot-title { font-size: 7.5pt !important; font-weight: 800 !important; line-height: 1.1; }
+    .print-slot-time { font-size: 6.5pt !important; margin-top: 1px !important; }
+    .print-slot-max { font-size: 5.5pt !important; }
 
     .print-header-cell {
-      padding: 10px !important;
+      padding: 3px 2px !important;
     }
-    .print-day-title { font-size: 18pt !important; font-weight: 800 !important; }
-    .print-day-sub { font-size: 13pt !important; }
+    .print-day-title { font-size: 7.5pt !important; font-weight: 800 !important; }
+    .print-day-sub { font-size: 6.5pt !important; }
 
     .print-slot-cell {
-      padding: 8px !important;
-      gap: 8px !important;
-      min-height: 110px !important;
+      padding: 2px !important;
+      gap: 2px !important;
+      min-height: 42px !important;
     }
 
     .print-shift-card {
-      padding: 10px 12px !important;
-      margin-bottom: 8px !important;
-      border-radius: 8px !important;
-      border-width: 1.5px !important;
+      padding: 2.5px 3px !important;
+      margin-bottom: 2px !important;
+      border-radius: 3px !important;
     }
 
-    .print-shift-code { font-size: 15pt !important; font-weight: 800 !important; }
-    .print-shift-plate { font-size: 13pt !important; font-weight: 600 !important; }
-    .print-shift-name { font-size: 13pt !important; line-height: 1.2 !important; }
-    .print-driver-avatar { width: 26px !important; height: 26px !important; font-size: 13px !important; }
-    .print-driver-name { font-size: 15pt !important; font-weight: 700 !important; }
-    .print-uncovered-badge { font-size: 13pt !important; font-weight: 800 !important; }
+    .print-shift-top { margin-bottom: 1px !important; }
+    .print-shift-code { font-size: 7pt !important; font-weight: 800 !important; }
+    .print-shift-plate { font-size: 6.5pt !important; font-weight: 600 !important; }
+    .print-shift-name { font-size: 6.5pt !important; line-height: 1.05 !important; }
+    .print-driver-row { margin-top: 1px !important; }
+    .print-driver-avatar { display: none !important; }
+    .print-driver-name { font-size: 7pt !important; font-weight: 700 !important; }
+    .print-uncovered-badge { font-size: 6.5pt !important; font-weight: 800 !important; }
   }
 }
 
