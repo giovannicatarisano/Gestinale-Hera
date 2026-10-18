@@ -37,7 +37,7 @@ export default function ScheduleBoard({
   return (
     <div className="space-y-4">
       {/* Intestazione selettore visualizzazione (Compatta e reattiva) */}
-      <div className="flex items-center justify-between gap-2 flex-wrap bg-card border border-border rounded-2xl p-2.5 shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
+      <div className="flex items-center justify-between gap-2 flex-wrap bg-card border border-border rounded-2xl p-2.5 shadow-[0_2px_8px_rgba(0,0,0,0.04)] no-print">
         {/* Selettore pillole dei giorni per smartphone e tablet */}
         <div className="flex items-center gap-1.5 overflow-x-auto board-scroll py-0.5 max-w-full">
           {days.map((d) => {
@@ -98,7 +98,7 @@ export default function ScheduleBoard({
       </div>
 
       {/* ================= 1. VISTA SCHEDE GIORNALIERE (Ottimizzata per smartphone) ================= */}
-      <div className={`${viewMode === "grid" ? "hidden" : viewMode === "day" ? "block" : "block md:hidden"} space-y-4`}>
+      <div className={`schedule-day-view ${viewMode === "grid" ? "hidden" : viewMode === "day" ? "block" : "block md:hidden"} space-y-4`}>
         <div className="bg-card border border-border rounded-2xl p-4 flex items-center justify-between shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
           <div>
             <div className="overline text-primary">{DAY_LABELS[activeTab]}</div>
@@ -280,17 +280,17 @@ export default function ScheduleBoard({
       </div>
 
       {/* ================= 2. MATRICE COMPLETA A GRIGLIA (Desktop e schermi estesi) ================= */}
-      <div className={`${viewMode === "day" ? "hidden" : viewMode === "grid" ? "block" : "hidden md:block"} board-scroll overflow-x-auto border border-border bg-card rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04)]`}>
-        <div className="min-w-[900px]">
+      <div className={`schedule-grid-view ${viewMode === "day" ? "hidden" : viewMode === "grid" ? "block" : "hidden md:block"} board-scroll overflow-x-auto border border-border bg-card rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04)]`}>
+        <div className="min-w-[900px] print:min-w-0">
           {/* Riga di intestazione */}
-          <div className="grid" style={{ gridTemplateColumns: `160px repeat(${days.length}, minmax(0,1fr))` }}>
-            <div className="border-b border-r border-border p-3 bg-secondary/70">
-              <span className="overline text-muted-foreground">Turno / Giorno</span>
+          <div className="grid grid-row-header" style={{ gridTemplateColumns: `160px repeat(${days.length}, minmax(0,1fr))` }}>
+            <div className="border-b border-r border-border p-3 bg-secondary/70 print-header-cell">
+              <span className="overline text-muted-foreground print-slot-title">Turno / Giorno</span>
             </div>
             {days.map((d) => (
-              <div key={d} className="border-b border-r border-border p-3 bg-secondary/70 text-center">
-                <div className="font-head font-bold text-sm text-foreground">{DAY_FULL[d]}</div>
-                <div className="overline text-muted-foreground">{DAY_LABELS[d]}</div>
+              <div key={d} className="border-b border-r border-border p-3 bg-secondary/70 text-center print-header-cell">
+                <div className="font-head font-bold text-sm text-foreground print-day-title">{DAY_FULL[d]}</div>
+                <div className="overline text-muted-foreground print-day-sub">{DAY_LABELS[d]}</div>
               </div>
             ))}
           </div>
@@ -303,16 +303,16 @@ export default function ScheduleBoard({
             return (
               <div
                 key={slot}
-                className="grid"
+                className="grid grid-row-slot"
                 style={{ gridTemplateColumns: `160px repeat(${days.length}, minmax(0,1fr))` }}
               >
-                <div className="border-b border-r border-border p-3 bg-card/90">
-                  <div className="font-head font-bold text-sm leading-tight text-foreground">{meta.label}</div>
-                  <div className="font-mono text-xs text-muted-foreground flex items-center gap-1 mt-1">
-                    <Clock size={11} /> {meta.time}
+                <div className="border-b border-r border-border p-3 bg-card/90 print-slot-meta">
+                  <div className="font-head font-bold text-sm leading-tight text-foreground print-slot-title">{meta.label}</div>
+                  <div className="font-mono text-xs text-muted-foreground flex items-center gap-1 mt-1 print-slot-time">
+                    <Clock size={11} className="print:hidden" /> {meta.time}
                   </div>
                   {meta.max && (
-                    <div className="overline text-primary mt-1 font-semibold">max {meta.max} autisti</div>
+                    <div className="overline text-primary mt-1 font-semibold print-slot-max">max {meta.max} autisti</div>
                   )}
                 </div>
 
@@ -323,11 +323,11 @@ export default function ScheduleBoard({
                   return (
                     <div
                       key={d}
-                      className={`border-b border-r border-border p-2 space-y-1.5 align-top min-h-[76px] ${
+                      className={`border-b border-r border-border p-2 space-y-1.5 align-top min-h-[76px] print-slot-cell ${
                         overCap ? "bg-destructive/10" : ""
                       }`}
                     >
-                      {items.length === 0 && <div className="h-full min-h-[56px]" />}
+                      {items.length === 0 && <div className="h-full min-h-[56px] print-empty-slot" />}
                       {items.map((s) => {
                         const route = routeById[s.route_id];
                         const veh = vehicleById[s.vehicle_id];
@@ -342,39 +342,39 @@ export default function ScheduleBoard({
                             data-testid={`shift-${s.id}`}
                             disabled={!editable}
                             onClick={() => editable && onCellClick?.(s)}
-                            className={`w-full text-left rounded-xl border p-2.5 transition-all duration-150 ${
+                            className={`w-full text-left rounded-xl border p-2.5 transition-all duration-150 print-shift-card ${
                               recovered
                                 ? "border-border bg-secondary/30 opacity-60"
                                 : uncovered
-                                ? "border-dashed border-destructive/80 bg-destructive/5 hover:bg-destructive/10 shadow-2xs"
+                                ? "border-dashed border-destructive/80 bg-destructive/5 hover:bg-destructive/10 shadow-2xs print-uncovered-card"
                                 : mine
                                 ? "border-primary/80 bg-primary/10 shadow-2xs hover:shadow-xs"
                                 : "border-border bg-card hover:border-foreground/40 shadow-2xs hover:shadow-xs hover:-translate-y-0.5"
                             }`}
                           >
-                            <div className="flex items-center justify-between gap-1">
-                              <span className="font-mono text-[11px] font-bold truncate max-w-[80px]">
+                            <div className="flex items-center justify-between gap-1 print-shift-top">
+                              <span className="font-mono text-[11px] font-bold truncate max-w-[80px] print-shift-code">
                                 {route?.code || "—"}
                               </span>
                               {uncovered ? (
-                                <span className="overline text-[9px] text-destructive font-bold">SCOPERTO</span>
+                                <span className="overline text-[9px] text-destructive font-bold print-uncovered-badge">SCOPERTO</span>
                               ) : (
-                                <span className="font-mono text-[10px] text-muted-foreground truncate max-w-[60px]">
+                                <span className="font-mono text-[10px] text-muted-foreground truncate max-w-[60px] print-shift-plate">
                                   {veh?.plate}
                                 </span>
                               )}
                             </div>
-                            <div className="text-xs font-medium truncate mt-0.5">
+                            <div className="text-xs font-medium truncate mt-0.5 print-shift-name">
                               {route?.name || "Giro"}
                             </div>
-                            <div className="flex items-center gap-1 mt-1 text-[11px]">
+                            <div className="flex items-center gap-1 mt-1 text-[11px] print-driver-row">
                               {drv ? (
                                 <div className="min-w-0 flex-1">
                                   <div className="flex items-center gap-1">
-                                    <div className="h-4 w-4 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-[8px] font-bold shrink-0">
+                                    <div className="h-4 w-4 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-[8px] font-bold shrink-0 print-driver-avatar">
                                       {initials(drv.name)}
                                     </div>
-                                    <span className={`truncate font-medium ${mine ? "text-primary font-bold" : ""}`}>
+                                    <span className={`truncate font-medium print-driver-name ${mine ? "text-primary font-bold" : ""}`}>
                                       {drv.name}
                                     </span>
                                   </div>
