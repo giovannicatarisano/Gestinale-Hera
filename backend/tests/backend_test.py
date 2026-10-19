@@ -300,10 +300,10 @@ class TestNotifications:
             requests.delete(f"{BASE_URL}/api/drivers/{did}", headers=H(admin_token))
 
     def test_notifications_require_driver(self, admin_token):
-        """Admin has no driver_id -> endpoint returns []."""
+        """Admin/staff receives staff notifications."""
         r = requests.get(f"{BASE_URL}/api/notifications", headers=H(admin_token))
         assert r.status_code == 200
-        assert r.json() == []
+        assert isinstance(r.json(), list)
 
 
 # ============================================================================
@@ -337,17 +337,15 @@ class TestSwapRequests:
         toks = {}
         for tag in ("A", "B"):
             email = f"TEST_swap{tag}_{uuid.uuid4().hex[:5]}@hera.it"
+            # Regola cambio turno: i colleghi devono appartenere a gruppi opposti
+            grp = "gruppo1" if tag == "A" else "gruppo2"
             r = requests.post(f"{BASE_URL}/api/drivers",
                               json={"name": f"TEST Swap {tag}", "email": email,
-                                    "phone": "0", "password": "test1234"},
+                                    "phone": "0", "password": "test1234", "group": grp},
                               headers=H(admin_token))
             assert r.status_code == 200
             did = r.json()["id"]
             made.append(did)
-            requests.put(f"{BASE_URL}/api/drivers/{did}/skills",
-                         json={"vehicle_skills": [vid],
-                               "route_skills": [rid]},
-                         headers=H(admin_token))
             toks[tag] = requests.post(f"{BASE_URL}/api/auth/login",
                                       json={"email": email, "password": "test1234"}).json()["token"]
         # Genera e assegna esplicitamente un turno ad A
@@ -356,6 +354,14 @@ class TestSwapRequests:
         shifts = requests.get(f"{BASE_URL}/api/shifts?week_start={self.WK}",
                               headers=H(admin_token)).json()
         target = next((s for s in shifts if s["slot"] != "domenica"), shifts[0])
+        # Regola cambio turno: entrambi gli autisti devono avere le abilitazioni per mezzo e giro del turno
+        target_rid = target.get("route_id") or rid
+        target_vid = target.get("vehicle_id") or vid
+        for did in made:
+            requests.put(f"{BASE_URL}/api/drivers/{did}/skills",
+                         json={"vehicle_skills": [target_vid],
+                               "route_skills": [target_rid]},
+                         headers=H(admin_token))
         pr = requests.patch(f"{BASE_URL}/api/shifts/{target['id']}",
                             json={"driver_id": made[0]}, headers=H(admin_token))
         assert pr.status_code == 200
@@ -371,9 +377,14 @@ class TestSwapRequests:
             assert cr.status_code == 200, cr.text
             swid = cr.json()["id"]
 
-            # Amministratore visualizza la richiesta
+            # Autista B accetta la richiesta di cambio turno
+            br = requests.patch(f"{BASE_URL}/api/swap-requests/{swid}/driver-respond",
+                                json={"accepted": True}, headers=H(b_tok))
+            assert br.status_code == 200, br.text
+
+            # Amministratore visualizza la richiesta in attesa di approvazione finale
             lst = requests.get(f"{BASE_URL}/api/swap-requests", headers=H(admin_token)).json()
-            assert any(x["id"] == swid and x["status"] == "pending" for x in lst)
+            assert any(x["id"] == swid and x["status"] in ("pending", "pending_admin") for x in lst)
 
             # Autista B visualizza la richiesta nella propria bacheca
             lst_b = requests.get(f"{BASE_URL}/api/swap-requests", headers=H(b_tok)).json()

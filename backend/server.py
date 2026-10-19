@@ -791,19 +791,19 @@ async def notify(driver_id: str, message: str, kind: str = "shift", shift_id: st
 
 
 async def notify_admins(message: str, kind: str = "swap", shift_id: str = None):
-    """Broadcast a notification to all admin and assistant users via their user_id."""
-    staff = await db.users.find({"role": {"$in": ["admin", "assistant"]}}, {"_id": 0}).to_list(100)
-    for member in staff:
-        await db.notifications.insert_one({
-            "id": str(uuid.uuid4()),
-            "user_id": member["id"],
-            "driver_id": None,
-            "kind": kind,
-            "message": message,
-            "shift_id": shift_id,
-            "read": False,
-            "created_at": datetime.now(timezone.utc).isoformat(),
-        })
+    """Broadcast a notification to all admin and assistant users (including those added in the future)."""
+    await db.notifications.insert_one({
+        "id": str(uuid.uuid4()),
+        "target_role": "staff",
+        "user_id": None,
+        "driver_id": None,
+        "kind": kind,
+        "message": message,
+        "shift_id": shift_id,
+        "read": False,
+        "read_by": [],
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    })
 
 
 async def _shift_label(shift: dict) -> str:
@@ -873,22 +873,37 @@ def weekly_slot_map(week_start: str, drivers: list) -> dict:
     """
     Assign each active driver a concrete slot for the week.
     - Drivers with a group get the slot their group is scheduled for.
-    - 'mattina' maps to 'standard' by default; 'presto' is also mattina.
-    - Drivers without a group keep the old round-robin rotation.
+    - Morning group drivers: up to max_drivers (3) assigned to 'presto', others to 'standard'.
+    - L'autista del mattino presto non si alterna con mattino standard in automatico.
+    - Drivers without a group keep round-robin rotation.
     """
     wi = week_index(week_start)
     ungrouped = sorted([d for d in drivers if not d.get("group")], key=lambda d: d["id"])
     result = {}
-    for d in drivers:
-        grp = d.get("group", "")
-        if grp:
-            cat = group_slot_for_week(grp, week_start)
-            # Mappa la categoria alla fascia oraria effettiva (il turno presto è gestito a parte nel generatore)
-            result[d["id"]] = "standard" if cat == "mattina" else "pomeriggio"
-        else:
-            # Rotazione sequenziale per autisti senza gruppo assegnato
-            idx = ungrouped.index(d)
-            result[d["id"]] = ROTATION_SLOTS[(idx + wi) % len(ROTATION_SLOTS)]
+
+    grouped_morning = sorted(
+        [d for d in drivers if d.get("group") and group_slot_for_week(d.get("group"), week_start) == "mattina"],
+        key=lambda d: d["id"]
+    )
+    grouped_afternoon = [d for d in drivers if d.get("group") and group_slot_for_week(d.get("group"), week_start) == "pomeriggio"]
+
+    for d in grouped_afternoon:
+        result[d["id"]] = "pomeriggio"
+
+    max_presto = SHIFT_SLOTS.get("presto", {}).get("max_drivers") or 3
+    num_morning = len(grouped_morning)
+    if num_morning <= max_presto:
+        for d in grouped_morning:
+            result[d["id"]] = "standard"
+    else:
+        offset = (wi * max_presto) % num_morning
+        presto_indices = set((offset + i) % num_morning for i in range(max_presto))
+        for i, d in enumerate(grouped_morning):
+            result[d["id"]] = "presto" if i in presto_indices else "standard"
+
+    for d in ungrouped:
+        idx = ungrouped.index(d)
+        result[d["id"]] = ROTATION_SLOTS[(idx + wi) % len(ROTATION_SLOTS)]
     return result
 
 
@@ -985,18 +1000,11 @@ async def generate_shifts(data: GenerateInput, user: dict = Depends(require_staf
                         continue
                     if day_taken.get((day, did)) or did in absent:
                         continue
-                    # Vincolo di fascia oraria legato al gruppo di appartenenza
-                    grp = d.get("group", "")
+                    # Vincolo di fascia oraria: ciascun autista mantiene la fascia oraria assegnata (presto, standard o pomeriggio)
+                    # L'autista del mattino presto non si alterna con mattino standard in automatico
                     if slot != "domenica":
-                        if grp:
-                            cat = group_slot_for_week(grp, week_start)  # "mattina" or "pomeriggio"
-                            if slot == "pomeriggio" and cat != "pomeriggio":
-                                continue
-                            if slot in ("presto", "standard") and cat != "mattina":
-                                continue
-                        else:
-                            if wslot.get(did) != slot:
-                                continue
+                        if wslot.get(did) != slot:
+                            continue
                     # Verifica rispetto vincolo riposo 11 ore
                     if early and (day - 1) in pom_days.get(did, set()):
                         continue
@@ -1272,10 +1280,20 @@ async def meta_slots(user: dict = Depends(get_current_user)):
 @api_router.get("/notifications")
 async def list_notifications(user: dict = Depends(get_current_user)):
     if user.get("role") in ("admin", "assistant"):
-        # Gli utenti staff visualizzano le notifiche indirizzate al loro profilo
-        return await db.notifications.find(
-            {"user_id": user["id"]}, {"_id": 0}
+        uid = user.get("id")
+        # Gli utenti staff visualizzano notifiche personali e notifiche generali rivolte allo staff (anche se aggiunti in seguito)
+        notifs = await db.notifications.find(
+            {"$or": [
+                {"user_id": uid},
+                {"target_role": {"$in": ["staff", "admin", "assistant"]}},
+                {"target_roles": {"$in": ["staff", "admin", "assistant"]}}
+            ]},
+            {"_id": 0}
         ).sort("created_at", -1).to_list(100)
+        for n in notifs:
+            if "read_by" in n and isinstance(n["read_by"], list):
+                n["read"] = uid in n["read_by"]
+        return notifs
     did = user.get("driver_id")
     if not did:
         return []
@@ -1285,11 +1303,23 @@ async def list_notifications(user: dict = Depends(get_current_user)):
 @api_router.post("/notifications/read")
 async def mark_notifications_read(data: NotifRead, user: dict = Depends(get_current_user)):
     if user.get("role") in ("admin", "assistant"):
-        q = {"user_id": user["id"]}
+        uid = user.get("id")
+        q_user = {"user_id": uid}
+        q_staff = {"target_role": {"$in": ["staff", "admin", "assistant"]}}
         if data.ids:
-            q["id"] = {"$in": data.ids}
-        await db.notifications.update_many(q, {"$set": {"read": True}})
+            q_user["id"] = {"$in": data.ids}
+            q_staff["id"] = {"$in": data.ids}
+        await db.notifications.update_many(q_user, {"$set": {"read": True}})
+        await db.notifications.update_many(q_staff, {"$addToSet": {"read_by": uid}})
         return {"ok": True}
+    did = user.get("driver_id")
+    if not did:
+        return {"ok": True}
+    q = {"driver_id": did}
+    if data.ids:
+        q["id"] = {"$in": data.ids}
+    await db.notifications.update_many(q, {"$set": {"read": True}})
+    return {"ok": True}
     did = user.get("driver_id")
     if not did:
         return {"ok": True}
