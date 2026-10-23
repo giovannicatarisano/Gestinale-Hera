@@ -1,10 +1,11 @@
-import { useState, useCallback } from "react";
+﻿import { useState, useCallback } from "react";
 import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import Logo from "./Logo";
 import NotificationsPanel from "./NotificationsPanel";
 import {
   LayoutDashboard,
+  CalendarDays,
   Users,
   Truck,
   Route,
@@ -22,7 +23,8 @@ import {
 import { initials } from "../lib/dates";
 
 const PRIMARY_NAV = [
-  { to: "/dashboard", label: "Turni", icon: LayoutDashboard, tid: "nav-dashboard" },
+  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, tid: "nav-overview" },
+  { to: "/turni", label: "Tabellone Turni", icon: CalendarDays, tid: "nav-dashboard" },
   { to: "/autisti", label: "Autisti", icon: Users, tid: "nav-drivers" },
   { to: "/mezzi", label: "Mezzi", icon: Truck, tid: "nav-fleet" },
   { to: "/giri", label: "Giri", icon: Route, tid: "nav-routes" },
@@ -50,7 +52,7 @@ export default function Layout() {
     setRefreshing(true);
     // Ricarica i dati della pagina inviando un evento personalizzato
     window.dispatchEvent(new CustomEvent("hera:refresh"));
-    // Ricarica la pagina se nessun listener è ancora attivo
+    // Ricarica la pagina se nessun listener Ã¨ ancora attivo
     setTimeout(() => setRefreshing(false), 800);
   }, []);
 
@@ -332,3 +334,5 @@ export default function Layout() {
     </div>
   );
 }
+
+

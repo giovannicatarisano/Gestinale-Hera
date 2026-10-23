@@ -1,8 +1,9 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+﻿import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "sonner";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import Login from "./pages/Login";
 import Layout from "./components/Layout";
+import Overview from "./pages/Overview";
 import Dashboard from "./pages/Dashboard";
 import Drivers from "./pages/Drivers";
 import Fleet from "./pages/Fleet";
@@ -63,7 +64,8 @@ function App() {
               </Protected>
             }
           >
-            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/dashboard" element={<Overview />} />
+            <Route path="/turni" element={<Dashboard />} />
             <Route path="/autisti" element={<Drivers />} />
             <Route path="/mezzi" element={<Fleet />} />
             <Route path="/giri" element={<RoutesPage />} />
