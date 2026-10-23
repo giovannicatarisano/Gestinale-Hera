@@ -16,7 +16,7 @@ import { toast } from "sonner";
 import { ChevronLeft, ChevronRight, LogOut, LayoutDashboard, Clock, Bell, ArrowLeftRight, Check, X as XIcon, Info, RefreshCw, BriefcaseMedical, RotateCw, CheckCircle2, AlertTriangle, MessageSquarePlus, Award, ShieldCheck, Fuel } from "lucide-react";
 import { getMedicalKitSummary, getMedicalItemStatus, getLicensesSummary, getLicenseStatus } from "./Drivers";
 
-const SLOT_TIME = { presto: "05:30 â€“ 11:50", standard: "06:00 â€“ 12:20", pomeriggio: "12:30 â€“ 18:50", domenica: "06:00 â€“ 12:20" };
+const SLOT_TIME = { presto: "05:30 - 11:50", standard: "06:00 - 12:20", pomeriggio: "12:30 - 18:50", domenica: "06:00 - 12:20" };
 const SLOT_LABEL = { presto: "Mattino Presto", standard: "Mattino Standard", pomeriggio: "Pomeriggio", domenica: "Turno Domenica" };
 const SWAP_STATUS = {
   pending_driver: { label: "In attesa risposta collega", cls: "bg-amber-500/15 text-amber-700" },
@@ -356,7 +356,7 @@ export default function DriverView() {
       <main className="p-3.5 sm:p-6 max-w-7xl mx-auto space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
           <div>
-            <div className="overline text-primary mb-0.5">Tabellone condiviso Â· sola lettura</div>
+            <div className="overline text-primary mb-0.5">Tabellone condiviso - Sola lettura</div>
             <h1 className="font-head font-black text-2xl sm:text-3xl lg:text-4xl tracking-tighter">Turni della settimana</h1>
           </div>
           {myId && (
@@ -381,7 +381,7 @@ export default function DriverView() {
                         <div className={`font-head font-bold text-sm sm:text-base ${
                           myGroup === "gruppo1" ? "text-blue-700 dark:text-blue-400" : "text-orange-700 dark:text-orange-400"
                         }`}>
-                          {cat === "mattina" ? "â˜€ï¸ Turno Mattina" : cat === "pomeriggio" ? "ðŸŒ† Turno Pomeriggio" : mySlot ? SLOT_LABEL[mySlot] : "â€”"}
+                          {cat === "mattina" ? "Turno Mattina" : cat === "pomeriggio" ? "Turno Pomeriggio" : mySlot ? SLOT_LABEL[mySlot] : "In definizione"}
                         </div>
                       </div>
                     )}
@@ -495,9 +495,9 @@ export default function DriverView() {
                       </div>
                       <div className="text-sm font-semibold text-foreground mt-1">{route?.name}</div>
                       <div className="flex items-center gap-2 mt-2 font-mono text-xs text-muted-foreground">
-                        <Clock size={12} /> {SLOT_TIME[s.slot]} Â· {SLOT_LABEL[s.slot]}
+                        <Clock size={12} /> {SLOT_TIME[s.slot]} - {SLOT_LABEL[s.slot]}
                       </div>
-                      <div className="font-mono text-xs text-muted-foreground mt-1">Mezzo: <span className="font-medium text-foreground">{veh?.name}</span> Â· {veh?.plate}</div>
+                      <div className="font-mono text-xs text-muted-foreground mt-1">Mezzo: <span className="font-medium text-foreground">{veh?.name}</span> - {veh?.plate}</div>
                       {/* Sezione Verifiche Mezzo Hera Inizio e Fine Servizio */}
                       <div className="mt-3 pt-3 border-t border-border/60 space-y-2">
                         <div className="flex items-center justify-between text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
@@ -571,7 +571,7 @@ export default function DriverView() {
               {myIncomingSwaps.map((sw) => (
                 <div key={sw.id} className="border border-primary/30 bg-primary/5 rounded-sm p-3.5 sm:p-4" data-testid={`incoming-swap-${sw.id}`}>
                   <div className="flex items-center justify-between gap-2 flex-wrap mb-1">
-                    <span className="text-sm font-semibold">{sw.from_name} ti propone uno scambio</span>
+                      <div className="font-mono text-xs text-muted-foreground">{sw.from_name} &rarr; {sw.to_name}</div>
                     {sw.kind === "week" && (
                       <span className="overline text-[10px] px-2 py-0.5 rounded-sm font-bold bg-primary text-primary-foreground">
                         ðŸ“… Intera Settimana
@@ -605,7 +605,7 @@ export default function DriverView() {
                   <div key={sw.id} className="flex items-center justify-between gap-3 p-3" data-testid={`my-swap-${sw.id}`}>
                     <div className="min-w-0">
                       <div className="text-sm font-medium truncate">{sw.shift_label}</div>
-                      <div className="font-mono text-xs text-muted-foreground">{sw.from_name} â†’ {sw.to_name}</div>
+                      <div className="font-mono text-xs text-muted-foreground">{sw.from_name} &rarr; {sw.to_name}</div>
                     </div>
                     <span className={`overline text-[10px] px-2 py-0.5 rounded-sm shrink-0 font-semibold ${st.cls}`}>{st.label}</span>
                   </div>
@@ -649,7 +649,7 @@ export default function DriverView() {
             <div className="space-y-3.5 py-2">
               <div className="border border-border rounded-sm p-3 bg-secondary/30">
                 <div className="text-sm font-semibold">{routeById[swapShift.route_id]?.name}</div>
-                <div className="font-mono text-xs text-muted-foreground mt-1">{DAY_FULL[swapShift.day]} Â· {SLOT_LABEL[swapShift.slot]}</div>
+                <div className="font-mono text-xs text-muted-foreground mt-1">{DAY_FULL[swapShift.day]} - {SLOT_LABEL[swapShift.slot]}</div>
               </div>
               <div>
                 <div className="flex items-center justify-between mb-1.5">
@@ -905,7 +905,7 @@ export default function DriverView() {
                             )}
                             {item.replacement_note && (
                               <div className="text-[11px] italic text-foreground/90 mt-1">
-                                Â«{item.replacement_note}Â»
+                                Â«"{item.replacement_note}"Â»
                               </div>
                             )}
                           </div>
@@ -1014,4 +1014,5 @@ export default function DriverView() {
     </div>
   );
 }
+
 

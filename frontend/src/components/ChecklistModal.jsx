@@ -3,7 +3,7 @@ import api, { apiError } from "../lib/api";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "./ui/dialog";
 import { Button } from "./ui/button";
 import { toast } from "sonner";
-import { Check, X as XIcon, AlertTriangle, ShieldCheck, Fuel, Route, Clock, Truck, Gauge } from "lucide-react";
+import { Check, X as XIcon, AlertTriangle, ShieldCheck, Fuel, Clock, Gauge } from "lucide-react";
 
 export const DEFAULT_CHECKLIST_ITEMS = [
   { id: 1, title: "Controllo integrità pedane cabina e maniglie salita" },
@@ -24,7 +24,6 @@ export const DEFAULT_CHECKLIST_ITEMS = [
 ];
 
 export default function ChecklistModal({ open, onOpenChange, shift, mode = "start", onSuccess }) {
-  // mode: "start" (Inizio Servizio) oppure "end" (Fine Servizio)
   const isStart = mode === "start";
 
   const [items, setItems] = useState([]);
@@ -54,12 +53,12 @@ export default function ChecklistModal({ open, onOpenChange, shift, mode = "star
         setServiceNotes(existing.service_notes || "");
       }
     } else {
-      // Inizializza con i 15 punti predefiniti impostati su "C" (Conforme)
+      // Inizializza con i 15 punti predefiniti VUOTI (senza alcuna selezione predefinita)
       setItems(
         DEFAULT_CHECKLIST_ITEMS.map((item) => ({
           id: item.id,
           title: item.title,
-          status: "C",
+          status: null, // Parte non selezionato!
           notes: "",
         }))
       );
@@ -74,7 +73,7 @@ export default function ChecklistModal({ open, onOpenChange, shift, mode = "star
 
   const setItemStatus = (id, status) => {
     setItems((prev) =>
-      prev.map((it) => (it.id === id ? { ...it, status } : it))
+      prev.map((it) => (it.id === id ? { ...it, status: it.status === status ? null : status } : it))
     );
   };
 
@@ -89,8 +88,18 @@ export default function ChecklistModal({ open, onOpenChange, shift, mode = "star
     toast.success("Tutte le voci impostate su 'Conforme'");
   };
 
+  const completedCount = items.filter((it) => it.status === "C" || it.status === "NC").length;
+  const anomaliesCount = items.filter((it) => it.status === "NC").length;
+
   const handleSubmit = async () => {
-    // Validazioni
+    // 1. Verifica che tutte e 15 le voci siano state valutate
+    const unselected = items.filter((it) => it.status !== "C" && it.status !== "NC");
+    if (unselected.length > 0) {
+      toast.error(`Devi completare tutte le voci: restano ${unselected.length} controlli da verificare!`);
+      return;
+    }
+
+    // 2. Validazioni specifiche per fine turno
     if (!isStart) {
       if (!fuelDone && !fuelNotes.trim()) {
         toast.error("Specifica il motivo del mancato rifornimento");
@@ -102,7 +111,7 @@ export default function ChecklistModal({ open, onOpenChange, shift, mode = "star
       }
     }
 
-    // Verifica che gli NC abbiano una breve nota esplicativa
+    // 3. Verifica che per ogni NC ci sia una nota
     const ncWithoutNotes = items.filter((it) => it.status === "NC" && !it.notes?.trim());
     if (ncWithoutNotes.length > 0) {
       toast.error(`Aggiungi una breve nota per le voci Non Conformi (${ncWithoutNotes.length} senza motivo)`);
@@ -140,8 +149,6 @@ export default function ChecklistModal({ open, onOpenChange, shift, mode = "star
     }
   };
 
-  const anomaliesCount = items.filter((it) => it.status === "NC").length;
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0 rounded-2xl gap-0 overflow-hidden bg-card border-border shadow-xl">
@@ -160,7 +167,7 @@ export default function ChecklistModal({ open, onOpenChange, shift, mode = "star
                 </DialogTitle>
                 <DialogDescription className="text-xs text-muted-foreground">
                   {isStart
-                    ? "Controlli pre-partenza veicolo e attrezzatura di bordo (Modulo Ufficiale HERA)"
+                    ? "Controlli pre-partenza veicolo e attrezzatura (Modulo Ufficiale HERA)"
                     : "Verifica riconsegna mezzo, rifornimento carburante e completamento servizio"}
                 </DialogDescription>
               </div>
@@ -226,7 +233,7 @@ export default function ChecklistModal({ open, onOpenChange, shift, mode = "star
               {/* Rifornimento */}
               <div className="space-y-2 pt-1 border-t border-blue-500/10">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-foreground">⛽ Rifornimento effettuato?</span>
+                  <span className="text-xs font-semibold text-foreground">Rifornimento effettuato?</span>
                   <div className="flex items-center gap-1.5">
                     <button
                       type="button"
@@ -267,7 +274,7 @@ export default function ChecklistModal({ open, onOpenChange, shift, mode = "star
               {/* Giro Completato */}
               <div className="space-y-2 pt-2 border-t border-blue-500/10">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-foreground">🗺️ Giro completato regolarmente?</span>
+                  <span className="text-xs font-semibold text-foreground">Giro completato regolarmente?</span>
                   <div className="flex items-center gap-1.5">
                     <button
                       type="button"
@@ -311,7 +318,7 @@ export default function ChecklistModal({ open, onOpenChange, shift, mode = "star
           <div className="space-y-2">
             <div className="flex items-center justify-between px-1">
               <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                Elenco Controlli Visivi e Strumentali (15 Voci)
+                Verifiche Mezzo ({completedCount}/15 compilate)
               </span>
               {anomaliesCount > 0 && (
                 <span className="text-[11px] font-bold text-amber-600 dark:text-amber-400 bg-amber-500/15 px-2 py-0.5 rounded-full flex items-center gap-1">
@@ -323,13 +330,18 @@ export default function ChecklistModal({ open, onOpenChange, shift, mode = "star
             <div className="space-y-2">
               {items.map((it) => {
                 const isConform = it.status === "C";
+                const isNonConform = it.status === "NC";
+                const isUnset = it.status === null;
+
                 return (
                   <div
                     key={it.id}
                     className={`p-3 rounded-xl border transition-all ${
-                      isConform
-                        ? "border-border/60 bg-secondary/15 hover:bg-secondary/30"
-                        : "border-amber-500/40 bg-amber-500/5"
+                      isUnset
+                        ? "border-border/50 bg-secondary/10"
+                        : isConform
+                        ? "border-emerald-500/30 bg-emerald-500/5"
+                        : "border-rose-500/40 bg-rose-500/5"
                     }`}
                   >
                     <div className="flex items-start justify-between gap-3">
@@ -342,15 +354,15 @@ export default function ChecklistModal({ open, onOpenChange, shift, mode = "star
                         </span>
                       </div>
 
-                      <div className="flex items-center gap-1 shrink-0">
+                      <div className="flex items-center gap-1.5 shrink-0">
                         {/* Bottone Conforme (C) */}
                         <button
                           type="button"
                           onClick={() => setItemStatus(it.id, "C")}
-                          className={`h-7 px-2.5 rounded-lg text-xs font-bold transition-all ${
+                          className={`h-7 px-3 rounded-lg text-xs font-bold border transition-all ${
                             isConform
-                              ? "bg-emerald-600 text-white shadow-2xs font-black"
-                              : "bg-secondary text-muted-foreground hover:bg-secondary/80"
+                              ? "bg-emerald-600 border-emerald-600 text-white shadow-2xs font-black"
+                              : "bg-background border-border text-muted-foreground hover:bg-secondary"
                           }`}
                           title="Conforme"
                         >
@@ -361,10 +373,10 @@ export default function ChecklistModal({ open, onOpenChange, shift, mode = "star
                         <button
                           type="button"
                           onClick={() => setItemStatus(it.id, "NC")}
-                          className={`h-7 px-2.5 rounded-lg text-xs font-bold transition-all ${
-                            !isConform
-                              ? "bg-rose-600 text-white shadow-2xs font-black"
-                              : "bg-secondary text-muted-foreground hover:bg-secondary/80"
+                          className={`h-7 px-3 rounded-lg text-xs font-bold border transition-all ${
+                            isNonConform
+                              ? "bg-rose-600 border-rose-600 text-white shadow-2xs font-black"
+                              : "bg-background border-border text-muted-foreground hover:bg-secondary"
                           }`}
                           title="Non Conforme"
                         >
@@ -374,8 +386,8 @@ export default function ChecklistModal({ open, onOpenChange, shift, mode = "star
                     </div>
 
                     {/* Campo note se Non Conforme */}
-                    {!isConform && (
-                      <div className="mt-2.5 pt-2 border-t border-amber-500/20">
+                    {isNonConform && (
+                      <div className="mt-2.5 pt-2 border-t border-rose-500/20">
                         <input
                           type="text"
                           placeholder="Specifica anomalia o difetto riscontrato (obbligatorio)..."
@@ -423,10 +435,20 @@ export default function ChecklistModal({ open, onOpenChange, shift, mode = "star
             onClick={handleSubmit}
             disabled={submitting}
             className={`rounded-xl text-xs font-bold px-4 gap-1.5 shadow-sm text-white ${
-              isStart ? "bg-emerald-600 hover:bg-emerald-700" : "bg-blue-600 hover:bg-blue-700"
+              completedCount < 15
+                ? "bg-slate-500 hover:bg-slate-600 opacity-80"
+                : isStart
+                ? "bg-emerald-600 hover:bg-emerald-700"
+                : "bg-blue-600 hover:bg-blue-700"
             }`}
           >
-            {submitting ? "Salvataggio..." : isStart ? "✓ Convalida Inizio Servizio" : "✓ Invia Chiusura Turno"}
+            {submitting
+              ? "Salvataggio..."
+              : completedCount < 15
+              ? `Compila tutte le voci (${completedCount}/15)`
+              : isStart
+              ? "✓ Convalida Inizio Servizio"
+              : "✓ Invia Chiusura Turno"}
           </Button>
         </DialogFooter>
       </DialogContent>
