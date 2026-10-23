@@ -1,9 +1,10 @@
-import { useEffect, useState, useCallback, useRef } from "react";
+﻿import { useEffect, useState, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import api, { apiError } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
 import { weekKey, weekLabel, shiftWeek, DAY_FULL, initials } from "../lib/dates";
 import ScheduleBoard from "../components/ScheduleBoard";
+import ChecklistModal from "../components/ChecklistModal";
 import Logo from "../components/Logo";
 import { Button } from "../components/ui/button";
 import { Textarea } from "../components/ui/textarea";
@@ -12,16 +13,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "../components/ui/dialog";
 import { requestNotificationPermission, triggerLocalNotification } from "../lib/pushNotifications";
 import { toast } from "sonner";
-import { ChevronLeft, ChevronRight, LogOut, LayoutDashboard, Clock, Bell, ArrowLeftRight, Check, X as XIcon, Info, RefreshCw, BriefcaseMedical, RotateCw, CheckCircle2, AlertTriangle, MessageSquarePlus, Award } from "lucide-react";
+import { ChevronLeft, ChevronRight, LogOut, LayoutDashboard, Clock, Bell, ArrowLeftRight, Check, X as XIcon, Info, RefreshCw, BriefcaseMedical, RotateCw, CheckCircle2, AlertTriangle, MessageSquarePlus, Award, ShieldCheck, Fuel } from "lucide-react";
 import { getMedicalKitSummary, getMedicalItemStatus, getLicensesSummary, getLicenseStatus } from "./Drivers";
 
-const SLOT_TIME = { presto: "05:30 – 11:50", standard: "06:00 – 12:20", pomeriggio: "12:30 – 18:50", domenica: "06:00 – 12:20" };
+const SLOT_TIME = { presto: "05:30 â€“ 11:50", standard: "06:00 â€“ 12:20", pomeriggio: "12:30 â€“ 18:50", domenica: "06:00 â€“ 12:20" };
 const SLOT_LABEL = { presto: "Mattino Presto", standard: "Mattino Standard", pomeriggio: "Pomeriggio", domenica: "Turno Domenica" };
 const SWAP_STATUS = {
   pending_driver: { label: "In attesa risposta collega", cls: "bg-amber-500/15 text-amber-700" },
   pending_admin: { label: "In attesa admin", cls: "bg-blue-500/15 text-blue-700" },
-  approved: { label: "Approvato ✅", cls: "bg-emerald-500/15 text-emerald-700" },
-  rejected: { label: "Rifiutato ❌", cls: "bg-destructive/15 text-destructive" },
+  approved: { label: "Approvato âœ…", cls: "bg-emerald-500/15 text-emerald-700" },
+  rejected: { label: "Rifiutato âŒ", cls: "bg-destructive/15 text-destructive" },
   pending: { label: "In attesa", cls: "bg-amber-500/15 text-amber-700" },
 };
 
@@ -37,6 +38,9 @@ export default function DriverView() {
   const [swaps, setSwaps] = useState([]);
   const [rotation, setRotation] = useState(null);
   const [swapShift, setSwapShift] = useState(null);
+  const [checklistModalOpen, setChecklistModalOpen] = useState(false);
+  const [checklistMode, setChecklistMode] = useState("start");
+  const [activeChecklistShift, setActiveChecklistShift] = useState(null);
   const [weekSwapOpen, setWeekSwapOpen] = useState(false);
   const [swapTo, setSwapTo] = useState("");
   const [swapNote, setSwapNote] = useState("");
@@ -183,7 +187,7 @@ export default function DriverView() {
   const respondToSwap = async (swapId, accepted) => {
     try {
       await api.patch(`/swap-requests/${swapId}/driver-respond`, { accepted });
-      toast.success(accepted ? "✅ Hai accettato il cambio — in attesa dell'admin" : "Hai rifiutato la richiesta");
+      toast.success(accepted ? "âœ… Hai accettato il cambio â€” in attesa dell'admin" : "Hai rifiutato la richiesta");
       loadSwaps(); loadNotifs();
     } catch (e) { toast.error(apiError(e.response?.data?.detail)); }
   };
@@ -211,7 +215,7 @@ export default function DriverView() {
     if (!swapTo) return toast.error("Seleziona un collega");
     try {
       await api.post("/swap-requests", { kind: "shift", shift_id: swapShift.id, to_driver_id: swapTo, note: swapNote });
-      toast.success("Richiesta di cambio inviata · notifica inviata al collega e all'admin");
+      toast.success("Richiesta di cambio inviata Â· notifica inviata al collega e all'admin");
       setSwapShift(null); setSwapTo(""); setSwapNote("");
       loadSwaps();
     } catch (e) { toast.error(apiError(e.response?.data?.detail)); }
@@ -251,7 +255,7 @@ export default function DriverView() {
 
       // 3. Abilitazione al mezzo
       if (vehId && !d.vehicle_skills?.includes(vehId)) {
-        // Se il giro è automatico e non ha un mezzo fisso rigido, controlliamo se è abilitato ad almeno un mezzo ammesso
+        // Se il giro Ã¨ automatico e non ha un mezzo fisso rigido, controlliamo se Ã¨ abilitato ad almeno un mezzo ammesso
         if (route?.vehicle_assignment_mode === "auto") {
           const hasAnyVehicle = d.vehicle_skills?.length > 0;
           if (!hasAnyVehicle) return false;
@@ -352,7 +356,7 @@ export default function DriverView() {
       <main className="p-3.5 sm:p-6 max-w-7xl mx-auto space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
           <div>
-            <div className="overline text-primary mb-0.5">Tabellone condiviso · sola lettura</div>
+            <div className="overline text-primary mb-0.5">Tabellone condiviso Â· sola lettura</div>
             <h1 className="font-head font-black text-2xl sm:text-3xl lg:text-4xl tracking-tighter">Turni della settimana</h1>
           </div>
           {myId && (
@@ -377,7 +381,7 @@ export default function DriverView() {
                         <div className={`font-head font-bold text-sm sm:text-base ${
                           myGroup === "gruppo1" ? "text-blue-700 dark:text-blue-400" : "text-orange-700 dark:text-orange-400"
                         }`}>
-                          {cat === "mattina" ? "☀️ Turno Mattina" : cat === "pomeriggio" ? "🌆 Turno Pomeriggio" : mySlot ? SLOT_LABEL[mySlot] : "—"}
+                          {cat === "mattina" ? "â˜€ï¸ Turno Mattina" : cat === "pomeriggio" ? "ðŸŒ† Turno Pomeriggio" : mySlot ? SLOT_LABEL[mySlot] : "â€”"}
                         </div>
                       </div>
                     )}
@@ -491,13 +495,57 @@ export default function DriverView() {
                       </div>
                       <div className="text-sm font-semibold text-foreground mt-1">{route?.name}</div>
                       <div className="flex items-center gap-2 mt-2 font-mono text-xs text-muted-foreground">
-                        <Clock size={12} /> {SLOT_TIME[s.slot]} · {SLOT_LABEL[s.slot]}
+                        <Clock size={12} /> {SLOT_TIME[s.slot]} Â· {SLOT_LABEL[s.slot]}
                       </div>
-                      <div className="font-mono text-xs text-muted-foreground mt-1">Mezzo: <span className="font-medium text-foreground">{veh?.name}</span> · {veh?.plate}</div>
+                      <div className="font-mono text-xs text-muted-foreground mt-1">Mezzo: <span className="font-medium text-foreground">{veh?.name}</span> Â· {veh?.plate}</div>
+                      {/* Sezione Verifiche Mezzo Hera Inizio e Fine Servizio */}
+                      <div className="mt-3 pt-3 border-t border-border/60 space-y-2">
+                        <div className="flex items-center justify-between text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+                          <span>Verifiche Mezzo Hera</span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setActiveChecklistShift(s);
+                              setChecklistMode("start");
+                              setChecklistModalOpen(true);
+                            }}
+                            className={`h-9 px-2 text-[11px] font-bold rounded-xl border flex items-center justify-center gap-1.5 ${
+                              s.start_checklist
+                                ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-700 dark:text-emerald-400"
+                                : "hover:bg-emerald-500/10 hover:border-emerald-500/30"
+                            }`}
+                          >
+                            <ShieldCheck size={14} className={s.start_checklist ? "text-emerald-600" : "text-muted-foreground"} />
+                            <span>{s.start_checklist ? "Inizio: Fatto" : "Inizio Servizio"}</span>
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setActiveChecklistShift(s);
+                              setChecklistMode("end");
+                              setChecklistModalOpen(true);
+                            }}
+                            className={`h-9 px-2 text-[11px] font-bold rounded-xl border flex items-center justify-center gap-1.5 ${
+                              s.end_checklist
+                                ? "bg-blue-500/10 border-blue-500/30 text-blue-700 dark:text-blue-400"
+                                : "hover:bg-blue-500/10 hover:border-blue-500/30"
+                            }`}
+                          >
+                            <Clock size={14} className={s.end_checklist ? "text-blue-600" : "text-muted-foreground"} />
+                            <span>{s.end_checklist ? "Fine: Fatto" : "Fine Servizio"}</span>
+                          </Button>
+                        </div>
+                      </div>
                       {pendingSwap ? (
                         <div className="mt-3 text-xs font-mono text-amber-700 bg-amber-500/10 p-2 rounded-sm border border-amber-500/20 flex items-center gap-1.5">
                           <ArrowLeftRight size={13} className="shrink-0" />
-                          <span>Cambio richiesto → <b>{pendingSwap.to_name}</b> (in attesa)</span>
+                          <span>Cambio richiesto â†’ <b>{pendingSwap.to_name}</b> (in attesa)</span>
                         </div>
                       ) : (
                         <Button variant="outline" size="sm" className="rounded-sm w-full mt-3 h-10 font-semibold text-xs" data-testid={`request-swap-${s.id}`} onClick={() => { setSwapShift(s); setSwapTo(""); setSwapNote(""); }}>
@@ -526,7 +574,7 @@ export default function DriverView() {
                     <span className="text-sm font-semibold">{sw.from_name} ti propone uno scambio</span>
                     {sw.kind === "week" && (
                       <span className="overline text-[10px] px-2 py-0.5 rounded-sm font-bold bg-primary text-primary-foreground">
-                        📅 Intera Settimana
+                        ðŸ“… Intera Settimana
                       </span>
                     )}
                   </div>
@@ -557,7 +605,7 @@ export default function DriverView() {
                   <div key={sw.id} className="flex items-center justify-between gap-3 p-3" data-testid={`my-swap-${sw.id}`}>
                     <div className="min-w-0">
                       <div className="text-sm font-medium truncate">{sw.shift_label}</div>
-                      <div className="font-mono text-xs text-muted-foreground">{sw.from_name} → {sw.to_name}</div>
+                      <div className="font-mono text-xs text-muted-foreground">{sw.from_name} â†’ {sw.to_name}</div>
                     </div>
                     <span className={`overline text-[10px] px-2 py-0.5 rounded-sm shrink-0 font-semibold ${st.cls}`}>{st.label}</span>
                   </div>
@@ -595,13 +643,13 @@ export default function DriverView() {
         <DialogContent className="w-[94vw] sm:max-w-md rounded-sm p-4 sm:p-5 max-h-[85vh] overflow-y-auto" data-testid="swap-modal">
           <DialogHeader>
             <DialogTitle className="font-head tracking-tight text-lg">Richiedi cambio turno</DialogTitle>
-            <DialogDescription className="sr-only">Scegli un collega a cui proporre il tuo turno; la richiesta sarà approvata da un assistente.</DialogDescription>
+            <DialogDescription className="sr-only">Scegli un collega a cui proporre il tuo turno; la richiesta sarÃ  approvata da un assistente.</DialogDescription>
           </DialogHeader>
           {swapShift && (
             <div className="space-y-3.5 py-2">
               <div className="border border-border rounded-sm p-3 bg-secondary/30">
                 <div className="text-sm font-semibold">{routeById[swapShift.route_id]?.name}</div>
-                <div className="font-mono text-xs text-muted-foreground mt-1">{DAY_FULL[swapShift.day]} · {SLOT_LABEL[swapShift.slot]}</div>
+                <div className="font-mono text-xs text-muted-foreground mt-1">{DAY_FULL[swapShift.day]} Â· {SLOT_LABEL[swapShift.slot]}</div>
               </div>
               <div>
                 <div className="flex items-center justify-between mb-1.5">
@@ -641,7 +689,7 @@ export default function DriverView() {
               {/* Avviso processo di doppia approvazione (collega + coordinatore) */}
               <div className="flex items-start gap-2 bg-blue-500/10 border border-blue-500/20 rounded-sm p-3 text-xs text-blue-700 dark:text-blue-400">
                 <Info size={13} className="shrink-0 mt-0.5" />
-                <span>Il collega riceverà una notifica e dovrà accettare. Dopo, l'admin approverà definitivamente. Solo con <b>entrambe le approvazioni</b> il cambio viene effettuato.</span>
+                <span>Il collega riceverÃ  una notifica e dovrÃ  accettare. Dopo, l'admin approverÃ  definitivamente. Solo con <b>entrambe le approvazioni</b> il cambio viene effettuato.</span>
               </div>
             </div>
           )}
@@ -714,7 +762,7 @@ export default function DriverView() {
             </div>
             <div className="flex items-start gap-2 bg-blue-500/10 border border-blue-500/20 rounded-sm p-3 text-xs text-blue-700 dark:text-blue-400">
               <Info size={13} className="shrink-0 mt-0.5" />
-              <span>Il collega riceverà la notifica per accettare lo scambio settimanale. L'admin darà l'approvazione finale.</span>
+              <span>Il collega riceverÃ  la notifica per accettare lo scambio settimanale. L'admin darÃ  l'approvazione finale.</span>
             </div>
           </div>
           <DialogFooter className="gap-2 sm:gap-0 mt-2">
@@ -733,7 +781,7 @@ export default function DriverView() {
               <span>Le mie patenti & abilitazioni</span>
             </DialogTitle>
             <DialogDescription className="text-xs text-muted-foreground">
-              Verifica le date di validità e le scadenze delle tue patenti e del CQC Merci.
+              Verifica le date di validitÃ  e le scadenze delle tue patenti e del CQC Merci.
             </DialogDescription>
           </DialogHeader>
 
@@ -857,7 +905,7 @@ export default function DriverView() {
                             )}
                             {item.replacement_note && (
                               <div className="text-[11px] italic text-foreground/90 mt-1">
-                                «{item.replacement_note}»
+                                Â«{item.replacement_note}Â»
                               </div>
                             )}
                           </div>
@@ -910,7 +958,7 @@ export default function DriverView() {
               <span>Segnala utilizzo presidio</span>
             </DialogTitle>
             <DialogDescription className="text-xs text-muted-foreground">
-              Verrà inviata una segnalazione all'amministrazione per provvedere alla sostituzione/reintegro.
+              VerrÃ  inviata una segnalazione all'amministrazione per provvedere alla sostituzione/reintegro.
             </DialogDescription>
           </DialogHeader>
 
@@ -956,6 +1004,14 @@ export default function DriverView() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <ChecklistModal
+        open={checklistModalOpen}
+        onOpenChange={setChecklistModalOpen}
+        shift={activeChecklistShift}
+        mode={checklistMode}
+        onSuccess={loadWeekData}
+      />
     </div>
   );
 }
+

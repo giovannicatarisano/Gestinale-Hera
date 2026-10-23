@@ -13,6 +13,7 @@ import Swaps from "./pages/Swaps";
 import SkillMatrix from "./pages/SkillMatrix";
 import DriverView from "./pages/DriverView";
 import Assistants from "./pages/Assistants";
+import ChecklistArchive from "./pages/ChecklistArchive";
 import "./App.css";
 
 function Loader() {
@@ -69,6 +70,7 @@ function App() {
             <Route path="/autisti" element={<Drivers />} />
             <Route path="/mezzi" element={<Fleet />} />
             <Route path="/giri" element={<RoutesPage />} />
+            <Route path="/archivio-checklist" element={<ChecklistArchive />} />
             <Route path="/assenze" element={<Absences />} />
             <Route path="/scambi" element={<Swaps />} />
             <Route path="/formazioni" element={<SkillMatrix />} />

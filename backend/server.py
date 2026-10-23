@@ -1,4 +1,4 @@
-from dotenv import load_dotenv
+﻿from dotenv import load_dotenv
 from pathlib import Path
 import os
 
@@ -52,7 +52,7 @@ SHIFT_SLOTS = {
     "pomeriggio": {"label": "Pomeriggio", "start": "12:30", "end": "18:50", "max_drivers": None},
     "domenica": {"label": "Turno Domenica", "start": "06:00", "end": "12:20", "max_drivers": 3},
 }
-DAYS = ["Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato", "Domenica"]
+DAYS = ["LunedÃ¬", "MartedÃ¬", "MercoledÃ¬", "GiovedÃ¬", "VenerdÃ¬", "Sabato", "Domenica"]
 
 
 # ---------------------------------------------------------------------------
@@ -271,6 +271,49 @@ class CredentialsInput(BaseModel):
     password: str
 
 
+# Costanti Checklist Hera
+CHECKLIST_ITEMS_DEFAULT = [
+    {"id": 1, "title": "Controllo integrità pedane cabina e maniglie salita"},
+    {"id": 2, "title": "Controllo spie di segnalazione anomalie cruscotto mezzo e pannello controllo attrezzatura (assenza spie anomalie accese/messaggi di errore)"},
+    {"id": 3, "title": "Controllo spie relative ai sistemi di informazione e avvertimento (assenza spie anomalie accese/messaggi di errore)"},
+    {"id": 4, "title": "Funzionamento delle telecamere (se presenti)"},
+    {"id": 5, "title": "Funzionamento dell'impianto frenante, compreso il freno di stazionamento"},
+    {"id": 6, "title": "Integrità degli specchi retrovisori e di quelli esterni e funzionamento dei tergicristalli"},
+    {"id": 7, "title": "Presenza del triangolo di emergenza"},
+    {"id": 8, "title": "Controllo visivo che il mezzo e la relativa attrezzatura siano in sagoma"},
+    {"id": 9, "title": "Controllo visivo presenza e integrità sistemi di informazione ed avvertimento (se presenti)"},
+    {"id": 10, "title": "Per i veicoli carico posteriore, controllo integrità delle pedane posteriori (uomo presente) e del sistema di comunicazione tra autista e uomo in pedana"},
+    {"id": 11, "title": "Controllo visivo dello stato dei pneumatici, usura e deformazioni visibili e dei relativi indicatori di serraggio se presenti"},
+    {"id": 12, "title": "Funzionamento luci e segnalatori"},
+    {"id": 13, "title": "Controllo visivo eventuali perdite liquidi/aria"},
+    {"id": 14, "title": "Estintore (se presente): immediatamente utilizzabile, dispositivo di sicurezza per azionamenti accidentali correttamente inserito, indicatore di pressione indicante un valore compreso all'interno del campo verde"},
+    {"id": 15, "title": "Pacchetto di medicazione"}
+]
+
+
+class ChecklistEntry(BaseModel):
+    id: int
+    title: str
+    status: str = "C"  # "C" = Conforme, "NC" = Non Conforme
+    notes: Optional[str] = ""
+
+
+class StartChecklistInput(BaseModel):
+    km_start: Optional[int] = None
+    items: List[ChecklistEntry]
+    notes: Optional[str] = ""
+
+
+class EndChecklistInput(BaseModel):
+    km_end: Optional[int] = None
+    fuel_done: bool
+    fuel_notes: Optional[str] = ""
+    service_completed: bool
+    service_notes: Optional[str] = ""
+    items: List[ChecklistEntry]
+    notes: Optional[str] = ""
+
+
 class SwapRequestInput(BaseModel):
     kind: str = "shift"  # "shift" | "week"
     shift_id: Optional[str] = None
@@ -339,7 +382,7 @@ async def create_assistant(data: AssistantInput, user: dict = Depends(require_ad
         raise HTTPException(status_code=400, detail="Password troppo breve (minimo 4 caratteri)")
     existing = await db.users.find_one({"email": email})
     if existing:
-        raise HTTPException(status_code=400, detail="Esiste già un account con questa email")
+        raise HTTPException(status_code=400, detail="Esiste giÃ  un account con questa email")
 
     aid = str(uuid.uuid4())
     now_iso = datetime.now(timezone.utc).isoformat()
@@ -378,7 +421,7 @@ async def update_assistant(aid: str, data: AssistantUpdateInput, user: dict = De
         if new_email != target["email"]:
             exists = await db.users.find_one({"email": new_email})
             if exists:
-                raise HTTPException(status_code=400, detail="Email già utilizzata da un altro account")
+                raise HTTPException(status_code=400, detail="Email giÃ  utilizzata da un altro account")
             updates["email"] = new_email
     if data.password is not None and data.password.strip():
         if len(data.password.strip()) < 4:
@@ -476,7 +519,7 @@ async def _create_driver_account(driver: dict, password: str):
         raise HTTPException(status_code=400, detail="Email autista obbligatoria per creare l'accesso")
     existing = await db.users.find_one({"email": email})
     if existing and existing.get("driver_id") != driver["id"]:
-        raise HTTPException(status_code=400, detail="Email già utilizzata da un altro account")
+        raise HTTPException(status_code=400, detail="Email giÃ  utilizzata da un altro account")
     if existing:
         await db.users.update_one({"email": email}, {"$set": {"password_hash": hash_password(password), "name": driver["name"]}})
     else:
@@ -550,7 +593,7 @@ async def request_medical_kit_replacement(
             break
 
     if not item_found:
-        # Se non è in elenco, aggiungiamolo come presidio con reintegro richiesto
+        # Se non Ã¨ in elenco, aggiungiamolo come presidio con reintegro richiesto
         kit.append({
             "name": data.item_name,
             "expiry_date": "",
@@ -638,7 +681,7 @@ async def restock_medical_kit_item(
         "target_role": "driver",
         "driver_id": did,
         "title": "Presidio Kit Medico reintegrato",
-        "message": f"Il presidio '{data.item_name}' del tuo kit medico è stato sostituito/reintegrato.{' Nuova scadenza: ' + data.new_expiry_date if data.new_expiry_date else ''}",
+        "message": f"Il presidio '{data.item_name}' del tuo kit medico Ã¨ stato sostituito/reintegrato.{' Nuova scadenza: ' + data.new_expiry_date if data.new_expiry_date else ''}",
         "category": "medical_kit",
         "created_at": now_iso,
         "read": False,
@@ -754,9 +797,9 @@ def _driver_can_sync(driver: dict, route: dict, available_vehicles: list = None)
                     return True, vid
             return False, None
 
-    # Modalità veicolo fisso
+    # ModalitÃ  veicolo fisso
     if fixed_vid in vehicle_skills:
-        # Verifica disponibilità del mezzo fisso assegnato
+        # Verifica disponibilitÃ  del mezzo fisso assegnato
         if avail_map is not None:
             if fixed_vid in avail_map:
                 return True, fixed_vid
@@ -810,7 +853,7 @@ async def _shift_label(shift: dict) -> str:
     route = await db.routes.find_one({"id": shift["route_id"]}, {"_id": 0})
     slot = SHIFT_SLOTS.get(shift["slot"], {}).get("label", shift["slot"])
     day = DAYS[shift["day"]] if 0 <= shift["day"] < len(DAYS) else ""
-    return f"{route['name'] if route else 'Giro'} · {day} · {slot}"
+    return f"{route['name'] if route else 'Giro'} Â· {day} Â· {slot}"
 
 
 def route_days_for_week(route: dict, week_start: str) -> list:
@@ -841,7 +884,7 @@ def route_days_for_week(route: dict, week_start: str) -> list:
 
 
 ROTATION_SLOTS = ["presto", "standard", "pomeriggio"]
-ROTATION_EPOCH = date(2026, 1, 5)  # Lunedì di riferimento iniziale
+ROTATION_EPOCH = date(2026, 1, 5)  # LunedÃ¬ di riferimento iniziale
 
 # Fasce orarie considerate mattina (assegnate al gruppo del mattino nella settimana)
 MATTINA_SLOTS = {"presto", "standard"}
@@ -856,8 +899,8 @@ def week_index(week_start: str) -> int:
 def group_slot_for_week(group: str, week_start: str) -> Optional[str]:
     """
     Return the SLOT CATEGORY assigned to this group for the given week.
-    Even week_index  → gruppo1=mattina, gruppo2=pomeriggio
-    Odd  week_index  → gruppo1=pomeriggio, gruppo2=mattina
+    Even week_index  â†’ gruppo1=mattina, gruppo2=pomeriggio
+    Odd  week_index  â†’ gruppo1=pomeriggio, gruppo2=mattina
     Returns None for drivers without a group (no constraint).
     """
     if not group:
@@ -956,7 +999,7 @@ async def generate_shifts(data: GenerateInput, user: dict = Depends(require_staf
     shifts = []
 
     # Ordine di assegnazione: prima pomeriggio (per calcolare il riposo del giorno seguente),
-    # poi presto, standard, rotazione e infine domenica. I turni bloccati hanno priorità.
+    # poi presto, standard, rotazione e infine domenica. I turni bloccati hanno prioritÃ .
     phase = {"pomeriggio": 0, "presto": 1, "standard": 2, "rotazione": 3, "domenica": 4}
 
     def sort_key(r):
@@ -971,7 +1014,7 @@ async def generate_shifts(data: GenerateInput, user: dict = Depends(require_staf
             final_slot = route_slot
             final_vehicle_id = route.get("vehicle_id") or ""
 
-            # Se il giro è a rotazione libera, valuta sia lo slot standard che il pomeriggio
+            # Se il giro Ã¨ a rotazione libera, valuta sia lo slot standard che il pomeriggio
             slots_to_try = ["standard", "pomeriggio"] if route_slot == "rotazione" else [route_slot]
 
             best_candidate = None
@@ -1166,7 +1209,7 @@ async def substitutes(sid: str, user: dict = Depends(require_staff)):
     route = await db.routes.find_one({"id": shift["route_id"]}, {"_id": 0})
     drivers = [d for d in await db.drivers.find({}, {"_id": 0}).to_list(1000) if d.get("active", True)]
 
-    # Autisti già impegnati nella giornata
+    # Autisti giÃ  impegnati nella giornata
     day_shifts = await db.shifts.find(
         {"week_start": shift["week_start"], "day": shift["day"]}, {"_id": 0}
     ).to_list(5000)
@@ -1247,7 +1290,7 @@ async def patch_shift(sid: str, data: ShiftPatch, user: dict = Depends(require_s
         "by": user_name,
         "role": user_role,
         "at": now_iso,
-        "detail": " · ".join(detail_parts) if detail_parts else "Parametri turno aggiornati"
+        "detail": " Â· ".join(detail_parts) if detail_parts else "Parametri turno aggiornati"
     }
 
     await db.shifts.update_one(
@@ -1265,8 +1308,152 @@ async def patch_shift(sid: str, data: ShiftPatch, user: dict = Depends(require_s
         if prev_driver:
             await notify(prev_driver, f"Sei stato rimosso dal turno: {label}", "shift", sid)
         if new_driver:
-            await notify(new_driver, f"Ti è stato assegnato un nuovo turno: {label}", "shift", sid)
+            await notify(new_driver, f"Ti Ã¨ stato assegnato un nuovo turno: {label}", "shift", sid)
     return updated
+
+
+
+# ---------------------------------------------------------------------------
+# Gestione Checklist Servizio (Inizio e Fine Turno)
+# ---------------------------------------------------------------------------
+
+@api_router.get("/checklist/template")
+async def get_checklist_template():
+    """Restituisce l'elenco ufficiale delle 15 voci di controllo Hera."""
+    return {"items": CHECKLIST_ITEMS_DEFAULT}
+
+
+@api_router.post("/shifts/{sid}/start-checklist")
+async def submit_start_checklist(sid: str, data: StartChecklistInput, user: dict = Depends(get_current_user)):
+    """Registra la checklist di inizio servizio (pre-partenza) compilata dall'autista o dallo staff."""
+    shift = await db.shifts.find_one({"id": sid})
+    if not shift:
+        raise HTTPException(status_code=404, detail="Turno non trovato")
+
+    # Autorizzazione: o è l'autista titolare del turno o è un membro dello staff
+    if user.get("role") == "driver" and user.get("driver_id") != shift.get("driver_id"):
+        raise HTTPException(status_code=403, detail="Non sei l'autista assegnato a questo turno")
+
+    now_iso = datetime.now(timezone.utc).isoformat()
+    start_data = {
+        "submitted_at": now_iso,
+        "submitted_by_user": user.get("name") or user.get("email"),
+        "km_start": data.km_start,
+        "items": [item.dict() for item in data.items],
+        "notes": data.notes or "",
+        "has_anomalies": any(item.status == "NC" for item in data.items)
+    }
+
+    await db.shifts.update_one(
+        {"id": sid},
+        {"$set": {"start_checklist": start_data}}
+    )
+
+    # Se ci sono non conformità, notifica immediatamente lo staff
+    anomalies = [item for item in data.items if item.status == "NC"]
+    if anomalies:
+        driver_name = user.get("name") or "Autista"
+        vehicle = await db.vehicles.find_one({"id": shift.get("vehicle_id")})
+        veh_name = vehicle.get("name") if vehicle else "mezzo assegnato"
+        details = ", ".join([f"{a.title[:30]}... ({a.notes or 'NC'})" for a in anomalies[:2]])
+        await notify(
+            user_id="staff",
+            message=f"⚠️ {driver_name} ha segnalato {len(anomalies)} NC a inizio turno ({veh_name}): {details}",
+            ntype="checklist_anomaly",
+            link_id=sid,
+            target_role="staff"
+        )
+
+    updated = await db.shifts.find_one({"id": sid}, {"_id": 0})
+    return updated
+
+
+@api_router.post("/shifts/{sid}/end-checklist")
+async def submit_end_checklist(sid: str, data: EndChecklistInput, user: dict = Depends(get_current_user)):
+    """Registra la checklist di fine servizio (rientro), rifornimento e completamento giro."""
+    shift = await db.shifts.find_one({"id": sid})
+    if not shift:
+        raise HTTPException(status_code=404, detail="Turno non trovato")
+
+    if user.get("role") == "driver" and user.get("driver_id") != shift.get("driver_id"):
+        raise HTTPException(status_code=403, detail="Non sei l'autista assegnato a questo turno")
+
+    now_iso = datetime.now(timezone.utc).isoformat()
+    start_check = shift.get("start_checklist") or {}
+    km_start = start_check.get("km_start")
+    km_percorsi = None
+    if km_start is not None and data.km_end is not None and data.km_end >= km_start:
+        km_percorsi = data.km_end - km_start
+
+    end_data = {
+        "submitted_at": now_iso,
+        "submitted_by_user": user.get("name") or user.get("email"),
+        "km_end": data.km_end,
+        "km_percorsi": km_percorsi,
+        "fuel_done": data.fuel_done,
+        "fuel_notes": data.fuel_notes or "",
+        "service_completed": data.service_completed,
+        "service_notes": data.service_notes or "",
+        "items": [item.dict() for item in data.items],
+        "notes": data.notes or "",
+        "has_anomalies": any(item.status == "NC" for item in data.items) or not data.fuel_done or not data.service_completed
+    }
+
+    await db.shifts.update_one(
+        {"id": sid},
+        {"$set": {"end_checklist": end_data}}
+    )
+
+    # Se ci sono anomalie a fine servizio, avvisa lo staff
+    issues = []
+    if not data.fuel_done:
+        issues.append("Rifornimento non effettuato")
+    if not data.service_completed:
+        issues.append("Giro incompleto")
+    nc_items = [i for i in data.items if i.status == "NC"]
+    if nc_items:
+        issues.append(f"{len(nc_items)} NC mezzo")
+
+    if issues:
+        driver_name = user.get("name") or "Autista"
+        await notify(
+            user_id="staff",
+            message=f"⚠️ {driver_name} ha chiuso il turno con note: {'; '.join(issues)}",
+            ntype="shift_report_issue",
+            link_id=sid,
+            target_role="staff"
+        )
+
+    updated = await db.shifts.find_one({"id": sid}, {"_id": 0})
+    return updated
+
+
+@api_router.get("/shifts/checklist-archive")
+async def get_checklist_archive(
+    week_start: Optional[str] = None,
+    driver_id: Optional[str] = None,
+    only_anomalies: bool = False,
+    user: dict = Depends(require_staff)
+):
+    """Restituisce l'archivio dei turni con checklist avviate o concluse per la consultazione dello staff."""
+    query = {
+        "$or": [
+            {"start_checklist": {"$exists": True, "$ne": None}},
+            {"end_checklist": {"$exists": True, "$ne": None}}
+        ]
+    }
+    if week_start:
+        query["week_start"] = week_start
+    if driver_id:
+        query["driver_id"] = driver_id
+    if only_anomalies:
+        query["$or"] = [
+            {"start_checklist.has_anomalies": True},
+            {"end_checklist.has_anomalies": True}
+        ]
+
+    shifts = await db.shifts.find(query, {"_id": 0}).sort("week_start", -1).to_list(300)
+    return shifts
 
 
 @api_router.get("/meta/slots")
@@ -1346,8 +1533,8 @@ async def _enrich_swap(sw: dict) -> dict:
         shift_label = await _shift_label(shift) if shift else "Turno non disponibile"
     return {
         **sw,
-        "from_name": frm["name"] if frm else "—",
-        "to_name": to["name"] if to else "—",
+        "from_name": frm["name"] if frm else "â€”",
+        "to_name": to["name"] if to else "â€”",
         "shift_label": shift_label,
         "shift": shift,
     }
@@ -1376,12 +1563,12 @@ async def create_swap(data: SwapRequestInput, user: dict = Depends(get_current_u
     from_driver = await db.drivers.find_one({"id": did}, {"_id": 0})
     to_driver = await db.drivers.find_one({"id": data.to_driver_id}, {"_id": 0})
     if not to_driver or not to_driver.get("active", True):
-        raise HTTPException(status_code=400, detail="Il collega selezionato non è valido o non è attivo")
+        raise HTTPException(status_code=400, detail="Il collega selezionato non Ã¨ valido o non Ã¨ attivo")
 
     from_name = from_driver["name"] if from_driver else "Un collega"
     to_name = to_driver["name"] if to_driver else "un collega"
 
-    # Controllo gruppo: se il richiedente appartiene a un gruppo, può richiedere solo a chi è in un gruppo diverso
+    # Controllo gruppo: se il richiedente appartiene a un gruppo, puÃ² richiedere solo a chi Ã¨ in un gruppo diverso
     from_grp = (from_driver or {}).get("group")
     to_grp = (to_driver or {}).get("group")
     if from_grp and to_grp == from_grp:
@@ -1456,7 +1643,7 @@ async def create_swap(data: SwapRequestInput, user: dict = Depends(get_current_u
 
     # Invia notifica all'autista destinatario e agli amministratori
     await notify(data.to_driver_id, f"{from_name} ti propone uno scambio turno: {label}. Apri l'app per rispondere.", "swap", sw.get("shift_id"))
-    await notify_admins(f"Nuova richiesta cambio ({from_name} → {to_name}): {label}. In attesa della risposta del collega.", "swap", sw.get("shift_id"))
+    await notify_admins(f"Nuova richiesta cambio ({from_name} â†’ {to_name}): {label}. In attesa della risposta del collega.", "swap", sw.get("shift_id"))
     return sw
 
 
@@ -1472,7 +1659,7 @@ async def driver_respond_swap(swid: str, data: DriverSwapResponse, user: dict = 
     if sw["to_driver_id"] != did:
         raise HTTPException(status_code=403, detail="Non sei il destinatario di questa richiesta")
     if sw["status"] not in ("pending_driver",):
-        raise HTTPException(status_code=400, detail="Questa richiesta non è più in attesa della tua risposta")
+        raise HTTPException(status_code=400, detail="Questa richiesta non Ã¨ piÃ¹ in attesa della tua risposta")
 
     if sw.get("kind") == "week":
         label = f"l'intera settimana del {sw.get('week_start')}"
@@ -1491,7 +1678,7 @@ async def driver_respond_swap(swid: str, data: DriverSwapResponse, user: dict = 
             "driver_responded_at": datetime.now(timezone.utc).isoformat(),
         }})
         await notify(sw["from_driver_id"], f"{to_name} ha ACCETTATO lo scambio per {label}. In attesa dell'approvazione dell'admin.", "swap", sw.get("shift_id"))
-        await notify_admins(f"{to_name} ha accettato lo scambio per {label}. La tua approvazione è ora richiesta.", "swap", sw.get("shift_id"))
+        await notify_admins(f"{to_name} ha accettato lo scambio per {label}. La tua approvazione Ã¨ ora richiesta.", "swap", sw.get("shift_id"))
     else:
         await db.swap_requests.update_one({"id": swid}, {"$set": {
             "status": "rejected",
@@ -1564,11 +1751,11 @@ async def decide_swap(swid: str, data: SwapDecision, user: dict = Depends(requir
                 }
             )
             
-            await notify(from_did, f"✅ Scambio settimanale APPROVATO ({role_label}) per la settimana del {wk}.", "swap")
-            await notify(to_did, f"✅ Scambio settimanale APPROVATO ({role_label}) per la settimana del {wk}.", "swap")
+            await notify(from_did, f"âœ… Scambio settimanale APPROVATO ({role_label}) per la settimana del {wk}.", "swap")
+            await notify(to_did, f"âœ… Scambio settimanale APPROVATO ({role_label}) per la settimana del {wk}.", "swap")
         else:
-            await notify(sw["from_driver_id"], f"❌ Scambio settimanale RIFIUTATO ({role_label}) per {label}.", "swap")
-            await notify(sw["to_driver_id"], f"❌ Scambio settimanale RIFIUTATO ({role_label}): turni invariati.", "swap")
+            await notify(sw["from_driver_id"], f"âŒ Scambio settimanale RIFIUTATO ({role_label}) per {label}.", "swap")
+            await notify(sw["to_driver_id"], f"âŒ Scambio settimanale RIFIUTATO ({role_label}): turni invariati.", "swap")
     else:
         shift = await db.shifts.find_one({"id": sw["shift_id"]}, {"_id": 0})
         label = await _shift_label(shift) if shift else "turno"
@@ -1595,11 +1782,11 @@ async def decide_swap(swid: str, data: SwapDecision, user: dict = Depends(requir
                     }
                 }
             )
-            await notify(sw["from_driver_id"], f"✅ Cambio APPROVATO ({role_label}): {label} è ora del tuo collega.", "swap", sw["shift_id"])
-            await notify(sw["to_driver_id"], f"✅ Cambio APPROVATO ({role_label}): ti è stato assegnato il turno {label}.", "swap", sw["shift_id"])
+            await notify(sw["from_driver_id"], f"âœ… Cambio APPROVATO ({role_label}): {label} Ã¨ ora del tuo collega.", "swap", sw["shift_id"])
+            await notify(sw["to_driver_id"], f"âœ… Cambio APPROVATO ({role_label}): ti Ã¨ stato assegnato il turno {label}.", "swap", sw["shift_id"])
         else:
-            await notify(sw["from_driver_id"], f"❌ Cambio RIFIUTATO ({role_label}) per {label}.", "swap", sw["shift_id"])
-            await notify(sw["to_driver_id"], f"❌ Cambio RIFIUTATO ({role_label}): il turno {label} rimane invariato.", "swap", sw["shift_id"])
+            await notify(sw["from_driver_id"], f"âŒ Cambio RIFIUTATO ({role_label}) per {label}.", "swap", sw["shift_id"])
+            await notify(sw["to_driver_id"], f"âŒ Cambio RIFIUTATO ({role_label}): il turno {label} rimane invariato.", "swap", sw["shift_id"])
     return await db.swap_requests.find_one({"id": swid}, {"_id": 0})
 
 
@@ -1693,4 +1880,5 @@ app.add_middleware(
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()
+
 
