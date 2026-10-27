@@ -6,23 +6,19 @@ import { toast } from "sonner";
 import { Scale, Clock, Trash2, Edit2, Plus, Check, ArrowRight, Building2, Tag, AlertCircle } from "lucide-react";
 
 const COMMON_FACILITIES = [
-  "CDR Centro",
-  "CDR Nord",
-  "CDR Sud",
-  "Impianto Hera",
-  "Impianto Trattamento",
-  "Termovalorizzatore",
+  "Akron",
   "Altro..."
 ];
 
 const COMMON_WASTE_TYPES = [
-  "Indifferenziato (RSU)",
-  "Carta & Cartone",
-  "Plastica & Imballaggi",
-  "Organico (Umido)",
-  "Vetro & Lattine",
-  "Verde & Sfalci",
+  "Carta",
+  "Cartone",
+  "Plastica",
+  "Vetro e Lattine",
+  "Indifferenziato",
+  "Verde e Sfalci",
   "Ingombranti",
+  "Legno",
   "Altro"
 ];
 
@@ -55,7 +51,7 @@ export default function WeighingModal({ open, onOpenChange, shift, onSuccess }) 
   // Form stato
   const [editingId, setEditingId] = useState(null);
   const [netWeight, setNetWeight] = useState("");
-  const [destination, setDestination] = useState("");
+  const [destination, setDestination] = useState("Akron");
   const [customDestination, setCustomDestination] = useState("");
   const [wasteType, setWasteType] = useState("");
   const [customWasteType, setCustomWasteType] = useState("");
@@ -87,7 +83,7 @@ export default function WeighingModal({ open, onOpenChange, shift, onSuccess }) 
   const resetForm = () => {
     setEditingId(null);
     setNetWeight("");
-    setDestination("");
+    setDestination("Akron");
     setCustomDestination("");
     setWasteType("");
     setCustomWasteType("");
@@ -103,7 +99,7 @@ export default function WeighingModal({ open, onOpenChange, shift, onSuccess }) 
       setDestination(w.destination);
       setCustomDestination("");
     } else {
-      setDestination(w.destination ? "Altro..." : "");
+      setDestination(w.destination ? "Altro..." : "Akron");
       setCustomDestination(w.destination || "");
     }
     if (COMMON_WASTE_TYPES.includes(w.waste_type)) {
@@ -143,8 +139,17 @@ export default function WeighingModal({ open, onOpenChange, shift, onSuccess }) 
       return;
     }
 
-    const finalDestination = destination === "Altro..." ? customDestination.trim() : destination;
+    const finalDestination = destination === "Altro..." ? customDestination.trim() : (destination || "Akron");
+    if (!finalDestination) {
+      toast.error("Specifica l'impianto di scarico");
+      return;
+    }
+
     const finalWasteType = wasteType === "Altro" ? customWasteType.trim() : wasteType;
+    if (!finalWasteType) {
+      toast.error("La tipologia di rifiuto è obbligatoria. Selezionane una.");
+      return;
+    }
 
     setSaving(true);
     try {
@@ -345,55 +350,63 @@ export default function WeighingModal({ open, onOpenChange, shift, onSuccess }) 
             </div>
           </div>
 
-          {/* Impianto o CDR */}
+          {/* Impianto di Scarico (Default: Akron) */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
-              <Building2 size={13} className="text-primary" />
-              <span>Impianto / CDR di Scarico</span>
-            </label>
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                <Building2 size={13} className="text-primary" />
+                <span>Impianto di Scarico *</span>
+              </label>
+              <span className="text-[11px] text-muted-foreground font-normal">Predefinito: Akron</span>
+            </div>
             <div className="flex flex-wrap gap-1.5">
               {COMMON_FACILITIES.map((fac) => (
                 <button
                   type="button"
                   key={fac}
                   onClick={() => setDestination(fac)}
-                  className={`text-[11px] px-2.5 py-1 rounded-lg border font-medium transition-all ${
+                  className={`text-[11px] px-3 py-1.5 rounded-lg border font-bold transition-all flex items-center gap-1.5 ${
                     destination === fac
                       ? "bg-primary text-primary-foreground border-primary shadow-xs"
                       : "bg-background border-border text-foreground hover:bg-secondary/60"
                   }`}
                 >
-                  {fac}
+                  {destination === fac && <Check size={12} />}
+                  <span>{fac}</span>
                 </button>
               ))}
             </div>
             {destination === "Altro..." && (
               <input
                 type="text"
+                required
                 value={customDestination}
                 onChange={(e) => setCustomDestination(e.target.value)}
-                placeholder="Specifica nome impianto o CDR..."
+                placeholder="Specifica nome impianto o CDR di scarico..."
                 className="w-full h-9 px-3 text-xs rounded-lg border border-border bg-background focus:ring-2 focus:ring-primary focus:outline-none mt-1.5"
               />
             )}
           </div>
 
-          {/* Tipologia Rifiuto (opzionale) */}
+          {/* Tipologia Rifiuto (Obbligatoria) */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
-              <Tag size={13} className="text-primary" />
-              <span>Tipologia Rifiuto (Opzionale)</span>
-            </label>
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                <Tag size={13} className="text-primary" />
+                <span>Tipologia Rifiuto *</span>
+              </label>
+              <span className="text-[11px] text-rose-500 font-semibold">Obbligatorio</span>
+            </div>
             <div className="flex flex-wrap gap-1.5">
               {COMMON_WASTE_TYPES.map((type) => (
                 <button
                   type="button"
                   key={type}
-                  onClick={() => setWasteType(wasteType === type ? "" : type)}
-                  className={`text-[11px] px-2.5 py-1 rounded-lg border font-medium transition-all ${
+                  onClick={() => setWasteType(type)}
+                  className={`text-[11px] px-2.5 py-1.5 rounded-lg border font-semibold transition-all ${
                     wasteType === type
-                      ? "bg-secondary text-secondary-foreground border-foreground/30 font-bold"
-                      : "bg-background border-border text-muted-foreground hover:bg-secondary/50"
+                      ? "bg-emerald-600 text-white border-emerald-600 shadow-xs"
+                      : "bg-background border-border text-foreground hover:bg-secondary/50"
                   }`}
                 >
                   {type}
@@ -403,6 +416,7 @@ export default function WeighingModal({ open, onOpenChange, shift, onSuccess }) 
             {wasteType === "Altro" && (
               <input
                 type="text"
+                required
                 value={customWasteType}
                 onChange={(e) => setCustomWasteType(e.target.value)}
                 placeholder="Specifica tipologia rifiuto..."

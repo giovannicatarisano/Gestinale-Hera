@@ -333,8 +333,8 @@ class EndChecklistInput(BaseModel):
 
 class WeighingInput(BaseModel):
     net_weight: float = Field(..., ge=0, description="Peso netto in kg comunicato dalla pesa")
-    destination: Optional[str] = ""
-    waste_type: Optional[str] = ""
+    destination: Optional[str] = "Akron"
+    waste_type: str = Field(..., min_length=1, description="Tipologia rifiuto obbligatoria")
     entry_time: Optional[str] = ""
     exit_time: Optional[str] = ""
     duration_minutes: Optional[int] = None
@@ -1633,8 +1633,8 @@ async def create_shift_weighing(sid: str, data: WeighingInput, user: dict = Depe
         "route_code": route_code,
         "route_name": route_name,
         "net_weight": float(data.net_weight),
-        "destination": (data.destination or "").strip(),
-        "waste_type": (data.waste_type or "").strip(),
+        "destination": ((data.destination or "").strip() or "Akron"),
+        "waste_type": data.waste_type.strip(),
         "entry_time": (data.entry_time or "").strip(),
         "exit_time": (data.exit_time or "").strip(),
         "duration_minutes": duration,

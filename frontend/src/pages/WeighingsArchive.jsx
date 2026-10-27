@@ -22,6 +22,18 @@ import {
   Tag
 } from "lucide-react";
 
+const ALL_WASTE_TYPES = [
+  "Carta",
+  "Cartone",
+  "Plastica",
+  "Vetro e Lattine",
+  "Indifferenziato",
+  "Verde e Sfalci",
+  "Ingombranti",
+  "Legno",
+  "Altro"
+];
+
 export default function WeighingsArchive() {
   const [weighings, setWeighings] = useState([]);
   const [drivers, setDrivers] = useState([]);
@@ -117,11 +129,13 @@ export default function WeighingsArchive() {
 
   // Opzioni uniche per i filtri ricavate dai dati esistenti
   const destinationOptions = useMemo(() => {
-    return Array.from(new Set(weighings.map((w) => w.destination).filter(Boolean))).sort();
+    const fromData = weighings.map((w) => w.destination).filter(Boolean);
+    return Array.from(new Set(["Akron", ...fromData])).sort();
   }, [weighings]);
 
   const wasteTypeOptions = useMemo(() => {
-    return Array.from(new Set(weighings.map((w) => w.waste_type).filter(Boolean))).sort();
+    const fromData = weighings.map((w) => w.waste_type).filter(Boolean);
+    return Array.from(new Set([...ALL_WASTE_TYPES, ...fromData])).sort();
   }, [weighings]);
 
   // Filtri temporali rapidi
@@ -173,11 +187,16 @@ export default function WeighingsArchive() {
       return;
     }
 
+    if (!editWasteType.trim()) {
+      toast.error("La tipologia di rifiuto è obbligatoria");
+      return;
+    }
+
     setSavingEdit(true);
     try {
       await api.patch(`/weighings/${editingItem.id}`, {
         net_weight: wNum,
-        destination: editDestination.trim(),
+        destination: (editDestination.trim() || "Akron"),
         waste_type: editWasteType.trim(),
         entry_time: editEntryTime,
         exit_time: editExitTime,
@@ -696,25 +715,39 @@ export default function WeighingsArchive() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-bold text-foreground">Impianto / CDR</label>
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-foreground">Impianto di Scarico</label>
+                  <button
+                    type="button"
+                    onClick={() => setEditDestination("Akron")}
+                    className="text-[10px] text-primary hover:underline font-bold"
+                  >
+                    Imposta "Akron"
+                  </button>
+                </div>
                 <input
                   type="text"
+                  required
                   value={editDestination}
                   onChange={(e) => setEditDestination(e.target.value)}
-                  placeholder="Es. CDR Centro, Impianto Hera..."
+                  placeholder="Es. Akron (o altro impianto)..."
                   className="w-full h-9 px-3 text-xs rounded-xl border border-border bg-background focus:ring-2 focus:ring-primary focus:outline-none"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-bold text-foreground">Tipologia Rifiuto</label>
-                <input
-                  type="text"
+                <label className="text-xs font-bold text-foreground">Tipologia Rifiuto *</label>
+                <select
+                  required
                   value={editWasteType}
                   onChange={(e) => setEditWasteType(e.target.value)}
-                  placeholder="Es. Indifferenziato, Carta, Plastica, Organico..."
                   className="w-full h-9 px-3 text-xs rounded-xl border border-border bg-background focus:ring-2 focus:ring-primary focus:outline-none"
-                />
+                >
+                  <option value="">Seleziona tipologia rifiuto...</option>
+                  {ALL_WASTE_TYPES.map((t) => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                </select>
               </div>
 
               <div className="grid grid-cols-2 gap-2">
