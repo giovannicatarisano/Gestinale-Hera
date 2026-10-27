@@ -1,4 +1,4 @@
-﻿from dotenv import load_dotenv
+from dotenv import load_dotenv
 from pathlib import Path
 import os
 
@@ -1356,12 +1356,10 @@ async def submit_start_checklist(sid: str, data: StartChecklistInput, user: dict
         vehicle = await db.vehicles.find_one({"id": shift.get("vehicle_id")})
         veh_name = vehicle.get("name") if vehicle else "mezzo assegnato"
         details = ", ".join([f"{a.title[:30]}... ({a.notes or 'NC'})" for a in anomalies[:2]])
-        await notify(
-            user_id="staff",
+        await notify_admins(
             message=f"⚠️ {driver_name} ha segnalato {len(anomalies)} NC a inizio turno ({veh_name}): {details}",
-            ntype="checklist_anomaly",
-            link_id=sid,
-            target_role="staff"
+            kind="checklist_anomaly",
+            shift_id=sid
         )
 
     updated = await db.shifts.find_one({"id": sid}, {"_id": 0})
@@ -1416,12 +1414,10 @@ async def submit_end_checklist(sid: str, data: EndChecklistInput, user: dict = D
 
     if issues:
         driver_name = user.get("name") or "Autista"
-        await notify(
-            user_id="staff",
+        await notify_admins(
             message=f"⚠️ {driver_name} ha chiuso il turno con note: {'; '.join(issues)}",
-            ntype="shift_report_issue",
-            link_id=sid,
-            target_role="staff"
+            kind="shift_report_issue",
+            shift_id=sid
         )
 
     updated = await db.shifts.find_one({"id": sid}, {"_id": 0})
