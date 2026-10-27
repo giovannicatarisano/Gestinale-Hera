@@ -409,6 +409,8 @@ class TestSwapRequests:
             assert any(n["kind"] == "swap" for n in na), "A missing swap notification"
             assert any(n["kind"] == "swap" for n in nb), "B missing swap notification"
         finally:
+            if 'swid' in locals():
+                requests.delete(f"{BASE_URL}/api/swap-requests/{swid}", headers=H(admin_token))
             for did in (a_id, b_id):
                 requests.delete(f"{BASE_URL}/api/drivers/{did}", headers=H(admin_token))
 
@@ -428,6 +430,8 @@ class TestSwapRequests:
             still_a = next(s for s in sh if s["id"] == shift["id"])
             assert still_a["driver_id"] == a_id, "Shift must not move on reject"
         finally:
+            if 'swid' in locals():
+                requests.delete(f"{BASE_URL}/api/swap-requests/{swid}", headers=H(admin_token))
             for did in (a_id, b_id):
                 requests.delete(f"{BASE_URL}/api/drivers/{did}", headers=H(admin_token))
 

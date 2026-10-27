@@ -1601,8 +1601,8 @@ async def _enrich_swap(sw: dict) -> dict:
         shift_label = await _shift_label(shift) if shift else "Turno non disponibile"
     return {
         **sw,
-        "from_name": frm["name"] if frm else "â€”",
-        "to_name": to["name"] if to else "â€”",
+        "from_name": frm["name"] if frm else (sw.get("from_name") or "Autista"),
+        "to_name": to["name"] if to else (sw.get("to_name") or "Autista"),
         "shift_label": shift_label,
         "shift": shift,
     }
@@ -1856,6 +1856,15 @@ async def decide_swap(swid: str, data: SwapDecision, user: dict = Depends(requir
             await notify(sw["from_driver_id"], f"❌ Cambio RIFIUTATO ({role_label}) per {label}.", "swap", sw["shift_id"])
             await notify(sw["to_driver_id"], f"❌ Cambio RIFIUTATO ({role_label}): il turno {label} rimane invariato.", "swap", sw["shift_id"])
     return await db.swap_requests.find_one({"id": swid}, {"_id": 0})
+
+
+@api_router.delete("/swap-requests/{swid}")
+async def delete_swap(swid: str, user: dict = Depends(require_role("admin"))):
+    sw = await db.swap_requests.find_one({"id": swid})
+    if not sw:
+        raise HTTPException(status_code=404, detail="Richiesta di cambio non trovata")
+    await db.swap_requests.delete_one({"id": swid})
+    return {"ok": True, "deleted": swid}
 
 
 # ---------------------------------------------------------------------------
