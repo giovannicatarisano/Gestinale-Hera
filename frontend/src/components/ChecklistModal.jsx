@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import api, { apiError } from "../lib/api";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "./ui/dialog";
 import { Button } from "./ui/button";
@@ -30,12 +30,27 @@ export default function ChecklistModal({ open, onOpenChange, shift, mode = "star
   const [km, setKm] = useState("");
   const [notes, setNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [vehicle, setVehicle] = useState(null);
 
   // Campi specifici per fine turno
   const [fuelDone, setFuelDone] = useState(true);
   const [fuelNotes, setFuelNotes] = useState("");
   const [serviceCompleted, setServiceCompleted] = useState(true);
   const [serviceNotes, setServiceNotes] = useState("");
+
+  // Caricamento dati veicolo per confronto e suggerimento chilometri
+  useEffect(() => {
+    if (!open || !shift?.vehicle_id) {
+      setVehicle(null);
+      return;
+    }
+    api.get("/vehicles")
+      .then((res) => {
+        const found = res.data.find((v) => v.id === shift.vehicle_id);
+        if (found) setVehicle(found);
+      })
+      .catch(() => {});
+  }, [open, shift?.vehicle_id]);
 
   useEffect(() => {
     if (!open) return;
@@ -111,7 +126,25 @@ export default function ChecklistModal({ open, onOpenChange, shift, mode = "star
       }
     }
 
-    // 3. Verifica che per ogni NC ci sia una nota
+    // 3. Verifica congruenza chilometri
+    const kmNum = km ? parseInt(km, 10) : null;
+    if (!isStart) {
+      const startKm = shift?.start_checklist?.km_start;
+      if (startKm && kmNum !== null && kmNum < startKm) {
+        toast.error(`I chilometri di rientro (${kmNum}) non possono essere inferiori a quelli di partenza (${startKm} km)!`);
+        return;
+      }
+    } else {
+      const prevKm = vehicle?.current_km || 0;
+      if (prevKm > 0 && kmNum !== null && kmNum < prevKm) {
+        const ok = window.confirm(
+          `Attenzione: il chilometraggio inserito (${kmNum.toLocaleString("it-IT")} km) è inferiore all'ultimo rientro registrato del mezzo (${prevKm.toLocaleString("it-IT")} km).\nVuoi confermare comunque?`
+        );
+        if (!ok) return;
+      }
+    }
+
+    // 4. Verifica che per ogni NC ci sia una nota
     const ncWithoutNotes = items.filter((it) => it.status === "NC" && !it.notes?.trim());
     if (ncWithoutNotes.length > 0) {
       toast.error(`Aggiungi una breve nota per le voci Non Conformi (${ncWithoutNotes.length} senza motivo)`);
@@ -200,27 +233,71 @@ export default function ChecklistModal({ open, onOpenChange, shift, mode = "star
         {/* Corpo scrollabile */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 board-scroll">
           {/* Sezione Chilometri Mezzo */}
-          <div className="p-3.5 rounded-xl border border-border bg-secondary/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <Gauge size={18} className="text-primary shrink-0" />
-              <div>
-                <div className="text-xs font-bold text-foreground">
-                  {isStart ? "Chilometri di Inizio Turno" : "Chilometri di Rientro (Fine Turno)"}
+          <div className="p-3.5 rounded-xl border border-border bg-secondary/20 space-y-2.5">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <Gauge size={18} className="text-primary shrink-0" />
+                <div>
+                  <div className="text-xs font-bold text-foreground">
+                    {isStart ? "Chilometri di Inizio Turno" : "Chilometri di Rientro (Fine Turno)"}
+                  </div>
+                  <div className="text-[11px] text-muted-foreground">
+                    {isStart ? "Rilevati dal tachimetro alla partenza" : "Servono a conteggiare i km percorsi sul giro"}
+                  </div>
                 </div>
-                <div className="text-[11px] text-muted-foreground">
-                  {isStart ? "Rilevati dal tachimetro alla partenza" : "Servono a conteggiare i km percorsi sul giro"}
+              </div>
+
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                {isStart && vehicle?.current_km > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setKm(vehicle.current_km.toString())}
+                    className="text-[10px] font-bold px-2 py-1.5 rounded-lg border border-primary/30 bg-primary/10 text-primary hover:bg-primary/20 transition-colors whitespace-nowrap shadow-2xs"
+                    title="Copia l'ultimo chilometraggio noto del mezzo"
+                  >
+                    Usa {vehicle.current_km.toLocaleString("it-IT")} km
+                  </button>
+                )}
+                <div className="w-full sm:w-40">
+                  <input
+                    type="number"
+                    placeholder="es. 124500"
+                    value={km}
+                    onChange={(e) => setKm(e.target.value)}
+                    className="w-full h-9 px-3 text-xs sm:text-sm rounded-xl border border-border bg-background font-mono font-bold focus:outline-none focus:ring-2 focus:ring-primary/40"
+                  />
                 </div>
               </div>
             </div>
-            <div className="w-full sm:w-44">
-              <input
-                type="number"
-                placeholder="es. 124500"
-                value={km}
-                onChange={(e) => setKm(e.target.value)}
-                className="w-full h-9 px-3 text-xs sm:text-sm rounded-xl border border-border bg-background font-mono font-bold focus:outline-none focus:ring-2 focus:ring-primary/40"
-              />
-            </div>
+
+            {/* Informazioni aggiuntive e controlli live sui km */}
+            {isStart && vehicle?.current_km > 0 && (
+              <div className="text-[11px] flex items-center justify-between text-muted-foreground pt-1 border-t border-border/40">
+                <span>Ultimo chilometraggio registrato per {vehicle.plate}:</span>
+                <span className="font-mono font-bold text-foreground">{vehicle.current_km.toLocaleString("it-IT")} km</span>
+              </div>
+            )}
+
+            {!isStart && shift?.start_checklist?.km_start && (
+              <div className="text-[11px] flex items-center justify-between pt-1 border-t border-border/40">
+                <span className="text-muted-foreground">Partenza: <strong className="font-mono text-foreground">{shift.start_checklist.km_start.toLocaleString("it-IT")} km</strong></span>
+                {km && (() => {
+                  const diff = parseInt(km, 10) - shift.start_checklist.km_start;
+                  if (diff >= 0) {
+                    return (
+                      <span className="text-emerald-700 dark:text-emerald-400 font-bold font-mono">
+                        ✓ Percorsi: +{diff.toLocaleString("it-IT")} km
+                      </span>
+                    );
+                  }
+                  return (
+                    <span className="text-destructive font-bold font-mono">
+                      ⚠️ Inferiore alla partenza ({diff} km)
+                    </span>
+                  );
+                })()}
+              </div>
+            )}
           </div>
 
           {/* Sezione di Fine Turno: Rifornimento e Giro */}

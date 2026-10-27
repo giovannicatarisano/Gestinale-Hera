@@ -137,6 +137,12 @@ class Vehicle(BaseModel):
     type: str = "Compattatore"
     status: str = "available"  # "available" | "faulty" | "maintenance"
     fault_note: str = ""
+    current_km: Optional[int] = 0
+    last_km_updated_at: Optional[str] = None
+    last_km_updated_by: Optional[str] = None
+    maintenance_km_interval: Optional[int] = 20000  # Soglia tagliando programmato (km)
+    last_service_km: Optional[int] = 0              # Km all'ultimo tagliando effettuato
+    last_service_date: Optional[str] = None         # Data ultimo tagliando (YYYY-MM-DD)
 
 
 class VehicleInput(BaseModel):
@@ -145,6 +151,17 @@ class VehicleInput(BaseModel):
     type: str = "Compattatore"
     status: str = "available"
     fault_note: str = ""
+    current_km: Optional[int] = 0
+    maintenance_km_interval: Optional[int] = 20000
+    last_service_km: Optional[int] = 0
+    last_service_date: Optional[str] = None
+
+
+class ServiceRecordInput(BaseModel):
+    service_km: Optional[int] = None
+    service_date: Optional[str] = None
+    notes: Optional[str] = ""
+    next_interval: Optional[int] = None
 
 
 class Route(BaseModel):
@@ -471,6 +488,33 @@ async def update_vehicle(vid: str, data: VehicleInput, user: dict = Depends(requ
 async def delete_vehicle(vid: str, user: dict = Depends(require_staff)):
     await db.vehicles.delete_one({"id": vid})
     return {"ok": True}
+
+
+@api_router.post("/vehicles/{vid}/service")
+async def record_vehicle_service(vid: str, data: Optional[ServiceRecordInput] = None, user: dict = Depends(require_staff)):
+    """Registra l'avvenuto tagliando/manutenzione programmata del mezzo, azzerando la soglia di allerta."""
+    veh = await db.vehicles.find_one({"id": vid})
+    if not veh:
+        raise HTTPException(status_code=404, detail="Mezzo non trovato")
+
+    current_km = veh.get("current_km") or 0
+    service_km = data.service_km if (data and data.service_km is not None) else current_km
+    service_date = (data and data.service_date) or datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
+    update_dict = {
+        "last_service_km": service_km,
+        "last_service_date": service_date,
+    }
+    if data and data.next_interval:
+        update_dict["maintenance_km_interval"] = data.next_interval
+
+    # Se il mezzo era fermo per manutenzione, lo ripristina disponibile
+    if veh.get("status") == "maintenance":
+        update_dict["status"] = "available"
+        update_dict["fault_note"] = ""
+
+    await db.vehicles.update_one({"id": vid}, {"$set": update_dict})
+    return await db.vehicles.find_one({"id": vid}, {"_id": 0})
 
 
 # ---------------------------------------------------------------------------
@@ -1349,6 +1393,20 @@ async def submit_start_checklist(sid: str, data: StartChecklistInput, user: dict
         {"$set": {"start_checklist": start_data}}
     )
 
+    # Aggiornamento in tempo reale del contachilometri del mezzo assegnato
+    vehicle_id = shift.get("vehicle_id")
+    if vehicle_id and data.km_start is not None and data.km_start > 0:
+        v_update = {
+            "last_km_updated_at": now_iso,
+            "last_km_updated_by": user.get("name") or user.get("email") or "Autista"
+        }
+        veh = await db.vehicles.find_one({"id": vehicle_id})
+        if veh:
+            prev_km = veh.get("current_km") or 0
+            if data.km_start >= prev_km:
+                v_update["current_km"] = data.km_start
+            await db.vehicles.update_one({"id": vehicle_id}, {"$set": v_update})
+
     # Se ci sono non conformità, notifica immediatamente lo staff
     anomalies = [item for item in data.items if item.status == "NC"]
     if anomalies:
@@ -1401,6 +1459,20 @@ async def submit_end_checklist(sid: str, data: EndChecklistInput, user: dict = D
         {"id": sid},
         {"$set": {"end_checklist": end_data}}
     )
+
+    # Aggiornamento in tempo reale del contachilometri del mezzo assegnato a fine servizio
+    vehicle_id = shift.get("vehicle_id")
+    if vehicle_id and data.km_end is not None and data.km_end > 0:
+        v_update = {
+            "last_km_updated_at": now_iso,
+            "last_km_updated_by": user.get("name") or user.get("email") or "Autista"
+        }
+        veh = await db.vehicles.find_one({"id": vehicle_id})
+        if veh:
+            prev_km = veh.get("current_km") or 0
+            if data.km_end >= prev_km:
+                v_update["current_km"] = data.km_end
+            await db.vehicles.update_one({"id": vehicle_id}, {"$set": v_update})
 
     # Se ci sono anomalie a fine servizio, avvisa lo staff
     issues = []

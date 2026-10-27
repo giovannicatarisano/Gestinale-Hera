@@ -7,9 +7,19 @@ import { Label } from "../components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { toast } from "sonner";
-import { Pencil, Trash2, Truck, AlertTriangle, CheckCircle2, Wrench } from "lucide-react";
+import { Pencil, Trash2, Truck, AlertTriangle, CheckCircle2, Wrench, Gauge } from "lucide-react";
 
-const EMPTY = { name: "", plate: "", type: "Compattatore", status: "available", fault_note: "" };
+const EMPTY = {
+  name: "",
+  plate: "",
+  type: "Compattatore",
+  status: "available",
+  fault_note: "",
+  current_km: 0,
+  maintenance_km_interval: 20000,
+  last_service_km: 0,
+  last_service_date: "",
+};
 
 const STATUS_CONFIG = {
   available: {
@@ -47,6 +57,10 @@ export default function Fleet() {
       type: v.type || "Compattatore",
       status: v.status || "available",
       fault_note: v.fault_note || "",
+      current_km: v.current_km ?? 0,
+      maintenance_km_interval: v.maintenance_km_interval ?? 20000,
+      last_service_km: v.last_service_km ?? 0,
+      last_service_date: v.last_service_date || "",
     });
     setOpen(true);
   };
@@ -59,6 +73,25 @@ export default function Fleet() {
       toast.success(editing ? "Mezzo aggiornato" : "Mezzo aggiunto");
       setOpen(false); load();
     } catch (e) { toast.error(apiError(e.response?.data?.detail)); }
+  };
+
+  const handleRecordService = async (v) => {
+    const curr = v.current_km || 0;
+    const ok = window.confirm(
+      `Confermi di aver eseguito il tagliando/manutenzione per ${v.name} (${v.plate}) ai chilometri attuali (${curr.toLocaleString("it-IT")} km)?\nQuesto aggiornerà la data e azzererà il conteggio di allerta tagliando.`
+    );
+    if (!ok) return;
+
+    try {
+      await api.post(`/vehicles/${v.id}/service`, {
+        service_km: curr,
+        service_date: new Date().toISOString().split("T")[0],
+      });
+      toast.success(`Tagliando registrato con successo a ${curr.toLocaleString("it-IT")} km`);
+      load();
+    } catch (e) {
+      toast.error(apiError(e.response?.data?.detail));
+    }
   };
 
   const remove = async (v) => {
@@ -182,6 +215,68 @@ export default function Fleet() {
                 </div>
               </div>
 
+              {/* Sezione Chilometri e Manutenzione Programmata */}
+              <div className="mt-3 pt-2.5 border-t border-border/60 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
+                    <Gauge size={14} className="text-primary shrink-0" />
+                    <span>Contachilometri:</span>
+                  </div>
+                  <div className="font-mono font-bold text-xs text-foreground bg-secondary/80 px-2 py-0.5 rounded-lg border border-border shadow-2xs">
+                    {(v.current_km || 0).toLocaleString("it-IT")} km
+                  </div>
+                </div>
+
+                {v.last_km_updated_at && (
+                  <div className="text-[10px] text-muted-foreground flex items-center justify-between px-0.5">
+                    <span>Ultima lettura:</span>
+                    <span className="truncate max-w-[170px]" title={`Aggiornato da ${v.last_km_updated_by || 'Autista'}`}>
+                      {new Date(v.last_km_updated_at).toLocaleDateString("it-IT", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                      {v.last_km_updated_by ? ` • ${v.last_km_updated_by}` : ""}
+                    </span>
+                  </div>
+                )}
+
+                {(() => {
+                  const interval = v.maintenance_km_interval || 20000;
+                  const lastService = v.last_service_km || 0;
+                  const nextServiceAt = lastService + interval;
+                  const remainingKm = nextServiceAt - (v.current_km || 0);
+
+                  const isOverdue = remainingKm <= 0;
+                  const isImminent = !isOverdue && remainingKm <= 1500;
+
+                  return (
+                    <div className={`p-2 rounded-xl border text-[11px] flex items-center justify-between gap-1.5 transition-colors ${
+                      isOverdue
+                        ? "bg-rose-500/15 border-rose-500/40 text-rose-700 dark:text-rose-400"
+                        : isImminent
+                        ? "bg-amber-500/15 border-amber-500/40 text-amber-700 dark:text-amber-400"
+                        : "bg-emerald-500/10 border-emerald-500/25 text-emerald-700 dark:text-emerald-400"
+                    }`}>
+                      <div className="flex items-center gap-1.5 font-semibold truncate">
+                        <Wrench size={12} className="shrink-0" />
+                        <span className="truncate">
+                          {isOverdue
+                            ? `Tagliando scaduto (${Math.abs(remainingKm).toLocaleString('it-IT')} km fa)`
+                            : isImminent
+                            ? `Tagliando tra ${remainingKm.toLocaleString('it-IT')} km`
+                            : `Tagliando tra ${remainingKm.toLocaleString('it-IT')} km`}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleRecordService(v)}
+                        className="text-[10px] font-bold px-2 py-0.5 rounded-lg bg-background border border-current hover:opacity-85 transition-opacity shrink-0 shadow-2xs cursor-pointer"
+                        title="Registra tagliando effettuato ai km attuali"
+                      >
+                        Tagliando Fatto
+                      </button>
+                    </div>
+                  );
+                })()}
+              </div>
+
               {v.fault_note && (
                 <div className="mt-2.5 p-2.5 bg-destructive/10 border border-destructive/30 rounded-xl text-xs text-destructive flex items-start gap-1.5">
                   <AlertTriangle size={13} className="shrink-0 mt-0.5" />
@@ -189,7 +284,7 @@ export default function Fleet() {
                 </div>
               )}
 
-              <div className="flex gap-2 mt-4 pt-2 border-t border-border">
+              <div className="flex gap-2 mt-3 pt-2 border-t border-border">
                 <Button variant="outline" size="sm" className="rounded-xl flex-1 font-semibold border-border hover:bg-secondary hover:border-foreground/40 shadow-2xs h-9" data-testid={`edit-vehicle-${v.id}`} onClick={() => openEdit(v)}>
                   <Pencil size={14} className="mr-1.5" /> Modifica
                 </Button>
@@ -279,6 +374,59 @@ export default function Fleet() {
                 />
               </Field>
             )}
+
+            {/* Configurazione Chilometri e Manutenzione Programmata */}
+            <div className="pt-2 border-t border-border space-y-3">
+              <div className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                <Gauge size={14} className="text-primary" />
+                <span>Gestione Chilometri e Tagliando</span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <Field label="Chilometri attuali (km)">
+                  <Input
+                    type="number"
+                    data-testid="vehicle-current-km-input"
+                    value={form.current_km}
+                    onChange={(e) => setForm({ ...form, current_km: parseInt(e.target.value, 10) || 0 })}
+                    placeholder="es. 124500"
+                    className="rounded-sm font-mono"
+                  />
+                </Field>
+                <Field label="Soglia tagliando ogni (km)">
+                  <Input
+                    type="number"
+                    data-testid="vehicle-maintenance-interval-input"
+                    value={form.maintenance_km_interval}
+                    onChange={(e) => setForm({ ...form, maintenance_km_interval: parseInt(e.target.value, 10) || 20000 })}
+                    placeholder="es. 20000"
+                    className="rounded-sm font-mono"
+                  />
+                </Field>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <Field label="Km all'ultimo tagliando">
+                  <Input
+                    type="number"
+                    data-testid="vehicle-last-service-km-input"
+                    value={form.last_service_km}
+                    onChange={(e) => setForm({ ...form, last_service_km: parseInt(e.target.value, 10) || 0 })}
+                    placeholder="es. 100000"
+                    className="rounded-sm font-mono"
+                  />
+                </Field>
+                <Field label="Data ultimo tagliando">
+                  <Input
+                    type="date"
+                    data-testid="vehicle-last-service-date-input"
+                    value={form.last_service_date}
+                    onChange={(e) => setForm({ ...form, last_service_date: e.target.value })}
+                    className="rounded-sm"
+                  />
+                </Field>
+              </div>
+            </div>
           </div>
           <DialogFooter className="gap-2 sm:gap-0 mt-2">
             <Button variant="ghost" className="rounded-sm h-10 text-xs sm:text-sm" onClick={() => setOpen(false)}>Annulla</Button>

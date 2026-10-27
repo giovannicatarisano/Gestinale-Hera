@@ -172,8 +172,18 @@ export default function ScheduleBoard({
                             {route?.name || "Giro senza nome"}
                           </span>
                         </div>
-                        <div className="font-mono text-xs text-muted-foreground">
-                          Mezzo: <span className="font-medium text-foreground">{veh?.name || "—"}</span> ({veh?.plate || "N/D"})
+                        <div className="font-mono text-xs text-muted-foreground flex items-center gap-1.5 flex-wrap">
+                          <span>Mezzo: <span className="font-medium text-foreground">{veh?.name || "—"}</span> ({veh?.plate || "N/D"})</span>
+                          {veh?.current_km > 0 && (
+                            <span className="text-[10px] bg-secondary px-1.5 py-0.2 rounded font-mono font-medium border border-border">
+                              {veh.current_km.toLocaleString('it-IT')} km
+                            </span>
+                          )}
+                          {veh && (veh.last_service_km || 0) + (veh.maintenance_km_interval || 20000) <= (veh.current_km || 0) && (
+                            <span className="text-[10px] bg-rose-500/15 text-rose-700 dark:text-rose-400 font-bold px-1.5 py-0.2 rounded border border-rose-500/30">
+                              ⚠️ Tagliando Scaduto
+                            </span>
+                          )}
                         </div>
                         {s.last_modified_by && (
                           <div className="flex items-center gap-1.5 text-[10px] text-amber-700 dark:text-amber-400 bg-amber-500/10 border border-amber-500/25 px-2 py-0.5 rounded-xs w-fit mt-1">
@@ -359,8 +369,11 @@ export default function ScheduleBoard({
                               {uncovered ? (
                                 <span className="overline text-[9px] text-destructive font-bold print-uncovered-badge">SCOPERTO</span>
                               ) : (
-                                <span className="font-mono text-[10px] text-muted-foreground truncate max-w-[60px] print-shift-plate">
+                                <span className="font-mono text-[10px] text-muted-foreground truncate max-w-[65px] print-shift-plate inline-flex items-center gap-0.5">
                                   {veh?.plate}
+                                  {veh && (veh.last_service_km || 0) + (veh.maintenance_km_interval || 20000) <= (veh.current_km || 0) && (
+                                    <span title="Attenzione: Tagliando mezzo scaduto!" className="text-rose-500 font-bold text-[9px]">⚠️</span>
+                                  )}
                                 </span>
                               )}
                             </div>
