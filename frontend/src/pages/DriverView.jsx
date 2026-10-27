@@ -21,8 +21,8 @@ const SLOT_LABEL = { presto: "Mattino Presto", standard: "Mattino Standard", pom
 const SWAP_STATUS = {
   pending_driver: { label: "In attesa risposta collega", cls: "bg-amber-500/15 text-amber-700" },
   pending_admin: { label: "In attesa admin", cls: "bg-blue-500/15 text-blue-700" },
-  approved: { label: "Approvato âœ…", cls: "bg-emerald-500/15 text-emerald-700" },
-  rejected: { label: "Rifiutato âŒ", cls: "bg-destructive/15 text-destructive" },
+  approved: { label: "Approvato ✅", cls: "bg-emerald-500/15 text-emerald-700" },
+  rejected: { label: "Rifiutato ❌", cls: "bg-destructive/15 text-destructive" },
   pending: { label: "In attesa", cls: "bg-amber-500/15 text-amber-700" },
 };
 
@@ -187,7 +187,7 @@ export default function DriverView() {
   const respondToSwap = async (swapId, accepted) => {
     try {
       await api.patch(`/swap-requests/${swapId}/driver-respond`, { accepted });
-      toast.success(accepted ? "âœ… Hai accettato il cambio â€” in attesa dell'admin" : "Hai rifiutato la richiesta");
+      toast.success(accepted ? "✅ Hai accettato il cambio — in attesa dell'admin" : "Hai rifiutato la richiesta");
       loadSwaps(); loadNotifs();
     } catch (e) { toast.error(apiError(e.response?.data?.detail)); }
   };
@@ -255,7 +255,7 @@ export default function DriverView() {
 
       // 3. Abilitazione al mezzo
       if (vehId && !d.vehicle_skills?.includes(vehId)) {
-        // Se il giro Ã¨ automatico e non ha un mezzo fisso rigido, controlliamo se Ã¨ abilitato ad almeno un mezzo ammesso
+        // Se il giro è automatico e non ha un mezzo fisso rigido, controlliamo se è abilitato ad almeno un mezzo ammesso
         if (route?.vehicle_assignment_mode === "auto") {
           const hasAnyVehicle = d.vehicle_skills?.length > 0;
           if (!hasAnyVehicle) return false;
@@ -545,7 +545,7 @@ export default function DriverView() {
                       {pendingSwap ? (
                         <div className="mt-3 text-xs font-mono text-amber-700 bg-amber-500/10 p-2 rounded-sm border border-amber-500/20 flex items-center gap-1.5">
                           <ArrowLeftRight size={13} className="shrink-0" />
-                          <span>Cambio richiesto â†’ <b>{pendingSwap.to_name}</b> (in attesa)</span>
+                          <span>Cambio richiesto → <b>{pendingSwap.to_name}</b> (in attesa)</span>
                         </div>
                       ) : (
                         <Button variant="outline" size="sm" className="rounded-sm w-full mt-3 h-10 font-semibold text-xs" data-testid={`request-swap-${s.id}`} onClick={() => { setSwapShift(s); setSwapTo(""); setSwapNote(""); }}>
@@ -643,7 +643,7 @@ export default function DriverView() {
         <DialogContent className="w-[94vw] sm:max-w-md rounded-sm p-4 sm:p-5 max-h-[85vh] overflow-y-auto" data-testid="swap-modal">
           <DialogHeader>
             <DialogTitle className="font-head tracking-tight text-lg">Richiedi cambio turno</DialogTitle>
-            <DialogDescription className="sr-only">Scegli un collega a cui proporre il tuo turno; la richiesta sarÃ  approvata da un assistente.</DialogDescription>
+            <DialogDescription className="sr-only">Scegli un collega a cui proporre il tuo turno; la richiesta sarà approvata da un assistente.</DialogDescription>
           </DialogHeader>
           {swapShift && (
             <div className="space-y-3.5 py-2">
@@ -689,7 +689,7 @@ export default function DriverView() {
               {/* Avviso processo di doppia approvazione (collega + coordinatore) */}
               <div className="flex items-start gap-2 bg-blue-500/10 border border-blue-500/20 rounded-sm p-3 text-xs text-blue-700 dark:text-blue-400">
                 <Info size={13} className="shrink-0 mt-0.5" />
-                <span>Il collega riceverÃ  una notifica e dovrÃ  accettare. Dopo, l'admin approverÃ  definitivamente. Solo con <b>entrambe le approvazioni</b> il cambio viene effettuato.</span>
+                <span>Il collega riceverà una notifica e dovrà accettare. Dopo, l'admin approverà definitivamente. Solo con <b>entrambe le approvazioni</b> il cambio viene effettuato.</span>
               </div>
             </div>
           )}
@@ -762,7 +762,7 @@ export default function DriverView() {
             </div>
             <div className="flex items-start gap-2 bg-blue-500/10 border border-blue-500/20 rounded-sm p-3 text-xs text-blue-700 dark:text-blue-400">
               <Info size={13} className="shrink-0 mt-0.5" />
-              <span>Il collega riceverÃ  la notifica per accettare lo scambio settimanale. L'admin darÃ  l'approvazione finale.</span>
+              <span>Il collega riceverà la notifica per accettare lo scambio settimanale. L'admin darà l'approvazione finale.</span>
             </div>
           </div>
           <DialogFooter className="gap-2 sm:gap-0 mt-2">
@@ -781,7 +781,7 @@ export default function DriverView() {
               <span>Le mie patenti & abilitazioni</span>
             </DialogTitle>
             <DialogDescription className="text-xs text-muted-foreground">
-              Verifica le date di validitÃ  e le scadenze delle tue patenti e del CQC Merci.
+              Verifica le date di validità e le scadenze delle tue patenti e del CQC Merci.
             </DialogDescription>
           </DialogHeader>
 
@@ -958,7 +958,7 @@ export default function DriverView() {
               <span>Segnala utilizzo presidio</span>
             </DialogTitle>
             <DialogDescription className="text-xs text-muted-foreground">
-              VerrÃ  inviata una segnalazione all'amministrazione per provvedere alla sostituzione/reintegro.
+              Verrà inviata una segnalazione all'amministrazione per provvedere alla sostituzione/reintegro.
             </DialogDescription>
           </DialogHeader>
 

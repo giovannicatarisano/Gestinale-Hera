@@ -52,7 +52,7 @@ SHIFT_SLOTS = {
     "pomeriggio": {"label": "Pomeriggio", "start": "12:30", "end": "18:50", "max_drivers": None},
     "domenica": {"label": "Turno Domenica", "start": "06:00", "end": "12:20", "max_drivers": 3},
 }
-DAYS = ["LunedÃ¬", "MartedÃ¬", "MercoledÃ¬", "GiovedÃ¬", "VenerdÃ¬", "Sabato", "Domenica"]
+DAYS = ["Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato", "Domenica"]
 
 
 # ---------------------------------------------------------------------------
@@ -399,7 +399,7 @@ async def create_assistant(data: AssistantInput, user: dict = Depends(require_ad
         raise HTTPException(status_code=400, detail="Password troppo breve (minimo 4 caratteri)")
     existing = await db.users.find_one({"email": email})
     if existing:
-        raise HTTPException(status_code=400, detail="Esiste giÃ  un account con questa email")
+        raise HTTPException(status_code=400, detail="Esiste già  un account con questa email")
 
     aid = str(uuid.uuid4())
     now_iso = datetime.now(timezone.utc).isoformat()
@@ -438,7 +438,7 @@ async def update_assistant(aid: str, data: AssistantUpdateInput, user: dict = De
         if new_email != target["email"]:
             exists = await db.users.find_one({"email": new_email})
             if exists:
-                raise HTTPException(status_code=400, detail="Email giÃ  utilizzata da un altro account")
+                raise HTTPException(status_code=400, detail="Email già  utilizzata da un altro account")
             updates["email"] = new_email
     if data.password is not None and data.password.strip():
         if len(data.password.strip()) < 4:
@@ -563,7 +563,7 @@ async def _create_driver_account(driver: dict, password: str):
         raise HTTPException(status_code=400, detail="Email autista obbligatoria per creare l'accesso")
     existing = await db.users.find_one({"email": email})
     if existing and existing.get("driver_id") != driver["id"]:
-        raise HTTPException(status_code=400, detail="Email giÃ  utilizzata da un altro account")
+        raise HTTPException(status_code=400, detail="Email già  utilizzata da un altro account")
     if existing:
         await db.users.update_one({"email": email}, {"$set": {"password_hash": hash_password(password), "name": driver["name"]}})
     else:
@@ -637,7 +637,7 @@ async def request_medical_kit_replacement(
             break
 
     if not item_found:
-        # Se non Ã¨ in elenco, aggiungiamolo come presidio con reintegro richiesto
+        # Se non è in elenco, aggiungiamolo come presidio con reintegro richiesto
         kit.append({
             "name": data.item_name,
             "expiry_date": "",
@@ -725,7 +725,7 @@ async def restock_medical_kit_item(
         "target_role": "driver",
         "driver_id": did,
         "title": "Presidio Kit Medico reintegrato",
-        "message": f"Il presidio '{data.item_name}' del tuo kit medico Ã¨ stato sostituito/reintegrato.{' Nuova scadenza: ' + data.new_expiry_date if data.new_expiry_date else ''}",
+        "message": f"Il presidio '{data.item_name}' del tuo kit medico è stato sostituito/reintegrato.{' Nuova scadenza: ' + data.new_expiry_date if data.new_expiry_date else ''}",
         "category": "medical_kit",
         "created_at": now_iso,
         "read": False,
@@ -841,9 +841,9 @@ def _driver_can_sync(driver: dict, route: dict, available_vehicles: list = None)
                     return True, vid
             return False, None
 
-    # ModalitÃ  veicolo fisso
+    # Modalità  veicolo fisso
     if fixed_vid in vehicle_skills:
-        # Verifica disponibilitÃ  del mezzo fisso assegnato
+        # Verifica disponibilità  del mezzo fisso assegnato
         if avail_map is not None:
             if fixed_vid in avail_map:
                 return True, fixed_vid
@@ -928,7 +928,7 @@ def route_days_for_week(route: dict, week_start: str) -> list:
 
 
 ROTATION_SLOTS = ["presto", "standard", "pomeriggio"]
-ROTATION_EPOCH = date(2026, 1, 5)  # LunedÃ¬ di riferimento iniziale
+ROTATION_EPOCH = date(2026, 1, 5)  # Lunedì di riferimento iniziale
 
 # Fasce orarie considerate mattina (assegnate al gruppo del mattino nella settimana)
 MATTINA_SLOTS = {"presto", "standard"}
@@ -943,8 +943,8 @@ def week_index(week_start: str) -> int:
 def group_slot_for_week(group: str, week_start: str) -> Optional[str]:
     """
     Return the SLOT CATEGORY assigned to this group for the given week.
-    Even week_index  â†’ gruppo1=mattina, gruppo2=pomeriggio
-    Odd  week_index  â†’ gruppo1=pomeriggio, gruppo2=mattina
+    Even week_index  → gruppo1=mattina, gruppo2=pomeriggio
+    Odd  week_index  → gruppo1=pomeriggio, gruppo2=mattina
     Returns None for drivers without a group (no constraint).
     """
     if not group:
@@ -1043,7 +1043,7 @@ async def generate_shifts(data: GenerateInput, user: dict = Depends(require_staf
     shifts = []
 
     # Ordine di assegnazione: prima pomeriggio (per calcolare il riposo del giorno seguente),
-    # poi presto, standard, rotazione e infine domenica. I turni bloccati hanno prioritÃ .
+    # poi presto, standard, rotazione e infine domenica. I turni bloccati hanno priorità .
     phase = {"pomeriggio": 0, "presto": 1, "standard": 2, "rotazione": 3, "domenica": 4}
 
     def sort_key(r):
@@ -1058,7 +1058,7 @@ async def generate_shifts(data: GenerateInput, user: dict = Depends(require_staf
             final_slot = route_slot
             final_vehicle_id = route.get("vehicle_id") or ""
 
-            # Se il giro Ã¨ a rotazione libera, valuta sia lo slot standard che il pomeriggio
+            # Se il giro è a rotazione libera, valuta sia lo slot standard che il pomeriggio
             slots_to_try = ["standard", "pomeriggio"] if route_slot == "rotazione" else [route_slot]
 
             best_candidate = None
@@ -1253,7 +1253,7 @@ async def substitutes(sid: str, user: dict = Depends(require_staff)):
     route = await db.routes.find_one({"id": shift["route_id"]}, {"_id": 0})
     drivers = [d for d in await db.drivers.find({}, {"_id": 0}).to_list(1000) if d.get("active", True)]
 
-    # Autisti giÃ  impegnati nella giornata
+    # Autisti già  impegnati nella giornata
     day_shifts = await db.shifts.find(
         {"week_start": shift["week_start"], "day": shift["day"]}, {"_id": 0}
     ).to_list(5000)
@@ -1352,7 +1352,7 @@ async def patch_shift(sid: str, data: ShiftPatch, user: dict = Depends(require_s
         if prev_driver:
             await notify(prev_driver, f"Sei stato rimosso dal turno: {label}", "shift", sid)
         if new_driver:
-            await notify(new_driver, f"Ti Ã¨ stato assegnato un nuovo turno: {label}", "shift", sid)
+            await notify(new_driver, f"Ti è stato assegnato un nuovo turno: {label}", "shift", sid)
     return updated
 
 
@@ -1631,12 +1631,12 @@ async def create_swap(data: SwapRequestInput, user: dict = Depends(get_current_u
     from_driver = await db.drivers.find_one({"id": did}, {"_id": 0})
     to_driver = await db.drivers.find_one({"id": data.to_driver_id}, {"_id": 0})
     if not to_driver or not to_driver.get("active", True):
-        raise HTTPException(status_code=400, detail="Il collega selezionato non Ã¨ valido o non Ã¨ attivo")
+        raise HTTPException(status_code=400, detail="Il collega selezionato non è valido o non è attivo")
 
     from_name = from_driver["name"] if from_driver else "Un collega"
     to_name = to_driver["name"] if to_driver else "un collega"
 
-    # Controllo gruppo: se il richiedente appartiene a un gruppo, puÃ² richiedere solo a chi Ã¨ in un gruppo diverso
+    # Controllo gruppo: se il richiedente appartiene a un gruppo, può richiedere solo a chi è in un gruppo diverso
     from_grp = (from_driver or {}).get("group")
     to_grp = (to_driver or {}).get("group")
     if from_grp and to_grp == from_grp:
@@ -1711,7 +1711,7 @@ async def create_swap(data: SwapRequestInput, user: dict = Depends(get_current_u
 
     # Invia notifica all'autista destinatario e agli amministratori
     await notify(data.to_driver_id, f"{from_name} ti propone uno scambio turno: {label}. Apri l'app per rispondere.", "swap", sw.get("shift_id"))
-    await notify_admins(f"Nuova richiesta cambio ({from_name} â†’ {to_name}): {label}. In attesa della risposta del collega.", "swap", sw.get("shift_id"))
+    await notify_admins(f"Nuova richiesta cambio ({from_name} → {to_name}): {label}. In attesa della risposta del collega.", "swap", sw.get("shift_id"))
     return sw
 
 
@@ -1727,7 +1727,7 @@ async def driver_respond_swap(swid: str, data: DriverSwapResponse, user: dict = 
     if sw["to_driver_id"] != did:
         raise HTTPException(status_code=403, detail="Non sei il destinatario di questa richiesta")
     if sw["status"] not in ("pending_driver",):
-        raise HTTPException(status_code=400, detail="Questa richiesta non Ã¨ piÃ¹ in attesa della tua risposta")
+        raise HTTPException(status_code=400, detail="Questa richiesta non è più in attesa della tua risposta")
 
     if sw.get("kind") == "week":
         label = f"l'intera settimana del {sw.get('week_start')}"
@@ -1746,7 +1746,7 @@ async def driver_respond_swap(swid: str, data: DriverSwapResponse, user: dict = 
             "driver_responded_at": datetime.now(timezone.utc).isoformat(),
         }})
         await notify(sw["from_driver_id"], f"{to_name} ha ACCETTATO lo scambio per {label}. In attesa dell'approvazione dell'admin.", "swap", sw.get("shift_id"))
-        await notify_admins(f"{to_name} ha accettato lo scambio per {label}. La tua approvazione Ã¨ ora richiesta.", "swap", sw.get("shift_id"))
+        await notify_admins(f"{to_name} ha accettato lo scambio per {label}. La tua approvazione è ora richiesta.", "swap", sw.get("shift_id"))
     else:
         await db.swap_requests.update_one({"id": swid}, {"$set": {
             "status": "rejected",
@@ -1819,11 +1819,11 @@ async def decide_swap(swid: str, data: SwapDecision, user: dict = Depends(requir
                 }
             )
             
-            await notify(from_did, f"âœ… Scambio settimanale APPROVATO ({role_label}) per la settimana del {wk}.", "swap")
-            await notify(to_did, f"âœ… Scambio settimanale APPROVATO ({role_label}) per la settimana del {wk}.", "swap")
+            await notify(from_did, f"✅ Scambio settimanale APPROVATO ({role_label}) per la settimana del {wk}.", "swap")
+            await notify(to_did, f"✅ Scambio settimanale APPROVATO ({role_label}) per la settimana del {wk}.", "swap")
         else:
-            await notify(sw["from_driver_id"], f"âŒ Scambio settimanale RIFIUTATO ({role_label}) per {label}.", "swap")
-            await notify(sw["to_driver_id"], f"âŒ Scambio settimanale RIFIUTATO ({role_label}): turni invariati.", "swap")
+            await notify(sw["from_driver_id"], f"❌ Scambio settimanale RIFIUTATO ({role_label}) per {label}.", "swap")
+            await notify(sw["to_driver_id"], f"❌ Scambio settimanale RIFIUTATO ({role_label}): turni invariati.", "swap")
     else:
         shift = await db.shifts.find_one({"id": sw["shift_id"]}, {"_id": 0})
         label = await _shift_label(shift) if shift else "turno"
@@ -1850,11 +1850,11 @@ async def decide_swap(swid: str, data: SwapDecision, user: dict = Depends(requir
                     }
                 }
             )
-            await notify(sw["from_driver_id"], f"âœ… Cambio APPROVATO ({role_label}): {label} Ã¨ ora del tuo collega.", "swap", sw["shift_id"])
-            await notify(sw["to_driver_id"], f"âœ… Cambio APPROVATO ({role_label}): ti Ã¨ stato assegnato il turno {label}.", "swap", sw["shift_id"])
+            await notify(sw["from_driver_id"], f"✅ Cambio APPROVATO ({role_label}): {label} è ora del tuo collega.", "swap", sw["shift_id"])
+            await notify(sw["to_driver_id"], f"✅ Cambio APPROVATO ({role_label}): ti è stato assegnato il turno {label}.", "swap", sw["shift_id"])
         else:
-            await notify(sw["from_driver_id"], f"âŒ Cambio RIFIUTATO ({role_label}) per {label}.", "swap", sw["shift_id"])
-            await notify(sw["to_driver_id"], f"âŒ Cambio RIFIUTATO ({role_label}): il turno {label} rimane invariato.", "swap", sw["shift_id"])
+            await notify(sw["from_driver_id"], f"❌ Cambio RIFIUTATO ({role_label}) per {label}.", "swap", sw["shift_id"])
+            await notify(sw["to_driver_id"], f"❌ Cambio RIFIUTATO ({role_label}): il turno {label} rimane invariato.", "swap", sw["shift_id"])
     return await db.swap_requests.find_one({"id": swid}, {"_id": 0})
 
 

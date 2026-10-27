@@ -54,7 +54,7 @@ export default function Layout() {
     setRefreshing(true);
     // Ricarica i dati della pagina inviando un evento personalizzato
     window.dispatchEvent(new CustomEvent("hera:refresh"));
-    // Ricarica la pagina se nessun listener Ã¨ ancora attivo
+    // Ricarica la pagina se nessun listener è ancora attivo
     setTimeout(() => setRefreshing(false), 800);
   }, []);
 
