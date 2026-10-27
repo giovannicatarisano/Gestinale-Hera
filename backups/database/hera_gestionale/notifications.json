@@ -130,7 +130,7 @@
     "kind": "shift",
     "message": "Ti è stato assegnato un nuovo turno: Plastica 10 · Martedì · Mattino Presto",
     "shift_id": "95b8b595-849e-49bc-8959-45372e8f7fd1",
-    "read": false,
+    "read": true,
     "created_at": "2026-10-16T22:40:01.820423+00:00"
   },
   {
@@ -157,7 +157,7 @@
     "kind": "shift",
     "message": "Sei stato rimosso dal turno: Plastica 10 · Martedì · Mattino Presto",
     "shift_id": "95b8b595-849e-49bc-8959-45372e8f7fd1",
-    "read": false,
+    "read": true,
     "created_at": "2026-10-16T22:52:41.020438+00:00"
   },
   {
@@ -184,7 +184,7 @@
     "kind": "shift",
     "message": "Ti è stato assegnato un nuovo turno: Plastica 10 · Martedì · Mattino Presto",
     "shift_id": "95b8b595-849e-49bc-8959-45372e8f7fd1",
-    "read": false,
+    "read": true,
     "created_at": "2026-10-16T22:53:36.918218+00:00"
   },
   {
@@ -193,7 +193,7 @@
     "kind": "shift",
     "message": "Sei stato rimosso dal turno: Plastica 10 · Martedì · Mattino Presto",
     "shift_id": "95b8b595-849e-49bc-8959-45372e8f7fd1",
-    "read": false,
+    "read": true,
     "created_at": "2026-10-16T22:55:57.743222+00:00"
   },
   {
@@ -204,5 +204,1209 @@
     "shift_id": "95b8b595-849e-49bc-8959-45372e8f7fd1",
     "read": true,
     "created_at": "2026-10-16T22:55:57.747140+00:00"
+  },
+  {
+    "id": "f68d760b-a794-490b-b601-3b9070e6120a",
+    "driver_id": "52729506-03db-4078-aa37-6e0a3b329c6d",
+    "kind": "shift",
+    "message": "Sei stato rimosso dal turno: Ragno 10MC Pomeriggio · Lunedì · Pomeriggio",
+    "shift_id": "e00f7170-a764-4fae-a222-053f39ad21f1",
+    "read": true,
+    "created_at": "2026-10-19T07:54:38.460670+00:00"
+  },
+  {
+    "id": "914a26c3-60df-4f4a-bb9a-83f9e8619b8a",
+    "driver_id": "a737c682-01ee-474f-a5e8-0e2b08e5c12e",
+    "kind": "shift",
+    "message": "Ti è stato assegnato un nuovo turno: Ragno 10MC Pomeriggio · Lunedì · Pomeriggio",
+    "shift_id": "e00f7170-a764-4fae-a222-053f39ad21f1",
+    "read": false,
+    "created_at": "2026-10-19T07:54:38.466120+00:00"
+  },
+  {
+    "id": "c443aa36-b0ec-4ae7-82a1-4909f79bdad7",
+    "driver_id": "786b9457-d08e-48c8-9049-13ce392ef721",
+    "kind": "shift",
+    "message": "Sei stato rimosso dal turno: carta b · Lunedì · Pomeriggio",
+    "shift_id": "a7c0852b-e747-4703-82fb-288bf01179f8",
+    "read": true,
+    "created_at": "2026-10-19T07:54:49.636262+00:00"
+  },
+  {
+    "id": "f4dab869-a9a5-4134-a755-f8a65065406e",
+    "driver_id": "52729506-03db-4078-aa37-6e0a3b329c6d",
+    "kind": "shift",
+    "message": "Sei stato rimosso dal turno: Ragno 10MC Pomeriggio · Lunedì · Pomeriggio",
+    "shift_id": "cf5b021b-0683-4526-abf9-9fe0385ec86f",
+    "read": true,
+    "created_at": "2026-10-19T07:54:52.597053+00:00"
+  },
+  {
+    "id": "89dd458c-1904-49e5-a799-bcf52cb81db2",
+    "driver_id": "f0849cc6-8b3f-4148-81b3-a17dd4dcbf70",
+    "kind": "shift",
+    "message": "Ti è stato assegnato un nuovo turno: Ragno 10MC Pomeriggio · Lunedì · Pomeriggio",
+    "shift_id": "cf5b021b-0683-4526-abf9-9fe0385ec86f",
+    "read": false,
+    "created_at": "2026-10-19T07:54:52.600855+00:00"
+  },
+  {
+    "id": "33852443-3877-40d8-afcb-8a64cbeb343b",
+    "driver_id": "52729506-03db-4078-aa37-6e0a3b329c6d",
+    "kind": "shift",
+    "message": "Sei stato rimosso dal turno: Ragno 10MC Pomeriggio · Lunedì · Pomeriggio",
+    "shift_id": "81d24206-60d2-4c45-81ac-002f4df282c7",
+    "read": true,
+    "created_at": "2026-10-19T07:55:03.000289+00:00"
+  },
+  {
+    "id": "91db0d57-3798-4e00-a318-aa1d50b411fe",
+    "driver_id": "c98b015f-a7f6-4e0a-b3c0-865b7b995b34",
+    "kind": "shift",
+    "message": "Ti è stato assegnato un nuovo turno: Ragno 10MC Pomeriggio · Lunedì · Pomeriggio",
+    "shift_id": "81d24206-60d2-4c45-81ac-002f4df282c7",
+    "read": false,
+    "created_at": "2026-10-19T07:55:03.004375+00:00"
+  },
+  {
+    "id": "499eec9d-8f72-4837-a5f4-edf28ba43956",
+    "driver_id": "c98b015f-a7f6-4e0a-b3c0-865b7b995b34",
+    "kind": "shift",
+    "message": "Sei stato rimosso dal turno: Ragno 10MC Pomeriggio · Lunedì · Pomeriggio",
+    "shift_id": "81d24206-60d2-4c45-81ac-002f4df282c7",
+    "read": false,
+    "created_at": "2026-10-19T07:55:03.268279+00:00"
+  },
+  {
+    "id": "8cc6e0c2-6a8d-463e-88a0-3e66be02a398",
+    "driver_id": "e26faa8b-3160-4481-9f7d-b0b6b56bc510",
+    "kind": "shift",
+    "message": "Ti è stato assegnato un nuovo turno: Ragno 10MC Pomeriggio · Lunedì · Pomeriggio",
+    "shift_id": "81d24206-60d2-4c45-81ac-002f4df282c7",
+    "read": false,
+    "created_at": "2026-10-19T07:55:03.272334+00:00"
+  },
+  {
+    "id": "f898787a-8060-4117-9bc9-580b0027c616",
+    "driver_id": "52729506-03db-4078-aa37-6e0a3b329c6d",
+    "kind": "shift",
+    "message": "Sei stato rimosso dal turno: Ragno 10MC Pomeriggio · Lunedì · Pomeriggio",
+    "shift_id": "9d61d4a0-1d7e-4f84-9f31-5a4def332264",
+    "read": true,
+    "created_at": "2026-10-19T08:11:24.478557+00:00"
+  },
+  {
+    "id": "aa54f038-ad02-45a0-a723-5124f2bed28f",
+    "driver_id": "4978f2a0-032c-4a40-81bf-d1a799a2f8e5",
+    "kind": "shift",
+    "message": "Ti è stato assegnato un nuovo turno: Ragno 10MC Pomeriggio · Lunedì · Pomeriggio",
+    "shift_id": "9d61d4a0-1d7e-4f84-9f31-5a4def332264",
+    "read": false,
+    "created_at": "2026-10-19T08:11:24.485626+00:00"
+  },
+  {
+    "id": "4de4e6b3-636e-44f9-adc9-f71787d16002",
+    "driver_id": "67c2ab0d-cfa4-4f78-b88f-36ac2f749df8",
+    "kind": "swap",
+    "message": "TEST Swap A ti propone uno scambio turno: Ragno 10MC Pomeriggio · Lunedì · Pomeriggio. Apri l'app per rispondere.",
+    "shift_id": "9d61d4a0-1d7e-4f84-9f31-5a4def332264",
+    "read": false,
+    "created_at": "2026-10-19T08:11:24.812076+00:00"
+  },
+  {
+    "id": "ce00754f-f2cf-4d86-b06f-b2f552c4def6",
+    "user_id": "b27c02ff-5a5b-4b82-8f3a-5ec47245625d",
+    "driver_id": null,
+    "kind": "swap",
+    "message": "Nuova richiesta cambio (TEST Swap A → TEST Swap B): Ragno 10MC Pomeriggio · Lunedì · Pomeriggio. In attesa della risposta del collega.",
+    "shift_id": "9d61d4a0-1d7e-4f84-9f31-5a4def332264",
+    "read": true,
+    "created_at": "2026-10-19T08:11:24.818486+00:00"
+  },
+  {
+    "id": "4518f642-1782-4972-8be6-12b2ebfbefd0",
+    "user_id": "508f0a3f-ffdd-4e5e-8800-845a2bb673c7",
+    "driver_id": null,
+    "kind": "swap",
+    "message": "Nuova richiesta cambio (TEST Swap A → TEST Swap B): Ragno 10MC Pomeriggio · Lunedì · Pomeriggio. In attesa della risposta del collega.",
+    "shift_id": "9d61d4a0-1d7e-4f84-9f31-5a4def332264",
+    "read": false,
+    "created_at": "2026-10-19T08:11:24.822168+00:00"
+  },
+  {
+    "id": "d3b24fea-eafc-4025-aa8c-c7d263cfedae",
+    "driver_id": "ec5922c2-5e37-497b-8225-3f5a8e67a125",
+    "kind": "shift",
+    "message": "Sei stato rimosso dal turno: carta b · Lunedì · Pomeriggio",
+    "shift_id": "a19be9b5-437e-4735-bade-26eb99ddf609",
+    "read": true,
+    "created_at": "2026-10-19T08:11:27.837825+00:00"
+  },
+  {
+    "id": "69fd6824-1336-4c0c-9c64-be35cc32fdcb",
+    "driver_id": "52729506-03db-4078-aa37-6e0a3b329c6d",
+    "kind": "shift",
+    "message": "Sei stato rimosso dal turno: Ragno 10MC Pomeriggio · Lunedì · Pomeriggio",
+    "shift_id": "cfcc65c3-df53-40bc-bf12-c65ef3a6436b",
+    "read": true,
+    "created_at": "2026-10-19T08:11:37.141693+00:00"
+  },
+  {
+    "id": "5d3002e5-ccb1-42c7-945a-8fd73957df1e",
+    "driver_id": "bf9cd938-1a49-4c0a-ae7c-7ff13ebdb0ad",
+    "kind": "shift",
+    "message": "Ti è stato assegnato un nuovo turno: Ragno 10MC Pomeriggio · Lunedì · Pomeriggio",
+    "shift_id": "cfcc65c3-df53-40bc-bf12-c65ef3a6436b",
+    "read": false,
+    "created_at": "2026-10-19T08:11:37.145354+00:00"
+  },
+  {
+    "id": "9080db40-9638-45e6-9fa1-664a5a02a223",
+    "driver_id": "5cb1338e-d863-45fe-82ee-440555746f76",
+    "kind": "swap",
+    "message": "TEST Swap A ti propone uno scambio turno: Ragno 10MC Pomeriggio · Lunedì · Pomeriggio. Apri l'app per rispondere.",
+    "shift_id": "cfcc65c3-df53-40bc-bf12-c65ef3a6436b",
+    "read": false,
+    "created_at": "2026-10-19T08:11:37.405542+00:00"
+  },
+  {
+    "id": "14b3cf69-3652-4a97-8f80-2ec976a64a0b",
+    "user_id": "b27c02ff-5a5b-4b82-8f3a-5ec47245625d",
+    "driver_id": null,
+    "kind": "swap",
+    "message": "Nuova richiesta cambio (TEST Swap A → TEST Swap B): Ragno 10MC Pomeriggio · Lunedì · Pomeriggio. In attesa della risposta del collega.",
+    "shift_id": "cfcc65c3-df53-40bc-bf12-c65ef3a6436b",
+    "read": true,
+    "created_at": "2026-10-19T08:11:37.410706+00:00"
+  },
+  {
+    "id": "6b9a9dcb-2ec5-4302-b169-2d88999e930c",
+    "user_id": "508f0a3f-ffdd-4e5e-8800-845a2bb673c7",
+    "driver_id": null,
+    "kind": "swap",
+    "message": "Nuova richiesta cambio (TEST Swap A → TEST Swap B): Ragno 10MC Pomeriggio · Lunedì · Pomeriggio. In attesa della risposta del collega.",
+    "shift_id": "cfcc65c3-df53-40bc-bf12-c65ef3a6436b",
+    "read": false,
+    "created_at": "2026-10-19T08:11:37.414265+00:00"
+  },
+  {
+    "id": "5da3df37-1771-4982-8fc2-6df1ab7e3901",
+    "driver_id": "bf9cd938-1a49-4c0a-ae7c-7ff13ebdb0ad",
+    "kind": "swap",
+    "message": "❌ Cambio RIFIUTATO (Admin) per Ragno 10MC Pomeriggio · Lunedì · Pomeriggio.",
+    "shift_id": "cfcc65c3-df53-40bc-bf12-c65ef3a6436b",
+    "read": false,
+    "created_at": "2026-10-19T08:11:37.686800+00:00"
+  },
+  {
+    "id": "ffe89e88-271a-4724-86f7-a5c4fd70b80e",
+    "driver_id": "5cb1338e-d863-45fe-82ee-440555746f76",
+    "kind": "swap",
+    "message": "❌ Cambio RIFIUTATO (Admin): il turno Ragno 10MC Pomeriggio · Lunedì · Pomeriggio rimane invariato.",
+    "shift_id": "cfcc65c3-df53-40bc-bf12-c65ef3a6436b",
+    "read": false,
+    "created_at": "2026-10-19T08:11:37.690621+00:00"
+  },
+  {
+    "id": "905fb06c-012a-4a64-a835-3c8afc722795",
+    "driver_id": "52729506-03db-4078-aa37-6e0a3b329c6d",
+    "kind": "shift",
+    "message": "Sei stato rimosso dal turno: Ragno 10MC Pomeriggio · Lunedì · Pomeriggio",
+    "shift_id": "0645f315-41f3-497a-84e4-da568e67e0e5",
+    "read": true,
+    "created_at": "2026-10-19T08:11:47.706899+00:00"
+  },
+  {
+    "id": "ecb73991-7e79-4f0c-95ae-b1559cc91fbe",
+    "driver_id": "9948c0f8-fcc4-4d12-b775-4d1fc88a44cd",
+    "kind": "shift",
+    "message": "Ti è stato assegnato un nuovo turno: Ragno 10MC Pomeriggio · Lunedì · Pomeriggio",
+    "shift_id": "0645f315-41f3-497a-84e4-da568e67e0e5",
+    "read": false,
+    "created_at": "2026-10-19T08:11:47.710266+00:00"
+  },
+  {
+    "id": "da1eef9f-69a3-4734-92b6-0dde0f17bcdb",
+    "driver_id": "9948c0f8-fcc4-4d12-b775-4d1fc88a44cd",
+    "kind": "shift",
+    "message": "Sei stato rimosso dal turno: Ragno 10MC Pomeriggio · Lunedì · Pomeriggio",
+    "shift_id": "0645f315-41f3-497a-84e4-da568e67e0e5",
+    "read": false,
+    "created_at": "2026-10-19T08:11:47.982262+00:00"
+  },
+  {
+    "id": "c9f5077a-c435-4b8f-9893-24c4612d057d",
+    "driver_id": "73cffdff-ccb9-4a3d-b554-3527afe65a63",
+    "kind": "shift",
+    "message": "Ti è stato assegnato un nuovo turno: Ragno 10MC Pomeriggio · Lunedì · Pomeriggio",
+    "shift_id": "0645f315-41f3-497a-84e4-da568e67e0e5",
+    "read": false,
+    "created_at": "2026-10-19T08:11:47.985670+00:00"
+  },
+  {
+    "id": "f372edcf-28ff-4cba-af3f-0b963583ad00",
+    "driver_id": "52729506-03db-4078-aa37-6e0a3b329c6d",
+    "kind": "shift",
+    "message": "Sei stato rimosso dal turno: Ragno 10MC Pomeriggio · Lunedì · Pomeriggio",
+    "shift_id": "3e5ecbf6-58b2-416a-9525-77e25c059d35",
+    "read": true,
+    "created_at": "2026-10-19T08:13:13.799350+00:00"
+  },
+  {
+    "id": "07fdfb78-ae05-4f06-b0b2-edae4af0d437",
+    "driver_id": "0535c74c-2d6a-4492-8d99-691f08f25e89",
+    "kind": "shift",
+    "message": "Ti è stato assegnato un nuovo turno: Ragno 10MC Pomeriggio · Lunedì · Pomeriggio",
+    "shift_id": "3e5ecbf6-58b2-416a-9525-77e25c059d35",
+    "read": false,
+    "created_at": "2026-10-19T08:13:13.819506+00:00"
+  },
+  {
+    "id": "d726e627-1987-4d7a-b8fd-1a49d2176933",
+    "driver_id": "67546d18-d4f3-4847-bbfe-efc0eec2bde9",
+    "kind": "swap",
+    "message": "TEST Swap A ti propone uno scambio turno: Ragno 10MC Pomeriggio · Lunedì · Pomeriggio. Apri l'app per rispondere.",
+    "shift_id": "3e5ecbf6-58b2-416a-9525-77e25c059d35",
+    "read": false,
+    "created_at": "2026-10-19T08:13:13.966494+00:00"
+  },
+  {
+    "id": "792757e8-6265-43e5-8a2f-904434f2591c",
+    "target_role": "staff",
+    "user_id": null,
+    "driver_id": null,
+    "kind": "swap",
+    "message": "Nuova richiesta cambio (TEST Swap A → TEST Swap B): Ragno 10MC Pomeriggio · Lunedì · Pomeriggio. In attesa della risposta del collega.",
+    "shift_id": "3e5ecbf6-58b2-416a-9525-77e25c059d35",
+    "read": false,
+    "read_by": [
+      "b27c02ff-5a5b-4b82-8f3a-5ec47245625d"
+    ],
+    "created_at": "2026-10-19T08:13:13.985200+00:00"
+  },
+  {
+    "id": "76462b48-d195-4681-870c-f8b24137cc6b",
+    "driver_id": "0535c74c-2d6a-4492-8d99-691f08f25e89",
+    "kind": "swap",
+    "message": "TEST Swap B ha ACCETTATO lo scambio per Ragno 10MC Pomeriggio · Lunedì · Pomeriggio. In attesa dell'approvazione dell'admin.",
+    "shift_id": "3e5ecbf6-58b2-416a-9525-77e25c059d35",
+    "read": false,
+    "created_at": "2026-10-19T08:13:14.535517+00:00"
+  },
+  {
+    "id": "6032c940-dc2e-4a5e-8e1d-ca6c716cd3df",
+    "target_role": "staff",
+    "user_id": null,
+    "driver_id": null,
+    "kind": "swap",
+    "message": "TEST Swap B ha accettato lo scambio per Ragno 10MC Pomeriggio · Lunedì · Pomeriggio. La tua approvazione è ora richiesta.",
+    "shift_id": "3e5ecbf6-58b2-416a-9525-77e25c059d35",
+    "read": false,
+    "read_by": [
+      "b27c02ff-5a5b-4b82-8f3a-5ec47245625d"
+    ],
+    "created_at": "2026-10-19T08:13:14.559879+00:00"
+  },
+  {
+    "id": "8fa48577-f454-43cf-848b-c29b7a93cabe",
+    "driver_id": "c2db2408-998e-4193-816d-a071e878329e",
+    "kind": "shift",
+    "message": "Sei stato rimosso dal turno: carta b · Lunedì · Pomeriggio",
+    "shift_id": "61cf9a2a-a74f-4457-a8e3-20eb4c9d1eb2",
+    "read": true,
+    "created_at": "2026-10-19T08:13:14.821709+00:00"
+  },
+  {
+    "id": "16fe67c0-de75-4c90-90d2-ed7d1c70ad19",
+    "driver_id": "52729506-03db-4078-aa37-6e0a3b329c6d",
+    "kind": "shift",
+    "message": "Sei stato rimosso dal turno: Ragno 10MC Pomeriggio · Lunedì · Pomeriggio",
+    "shift_id": "1691c80c-df7d-41cd-9e35-a730288d52be",
+    "read": true,
+    "created_at": "2026-10-19T08:13:17.262526+00:00"
+  },
+  {
+    "id": "7d18cc36-f50a-4858-9b4a-448990b2e941",
+    "driver_id": "698748f9-63c8-4013-91b5-7beb1d1bfefc",
+    "kind": "shift",
+    "message": "Ti è stato assegnato un nuovo turno: Ragno 10MC Pomeriggio · Lunedì · Pomeriggio",
+    "shift_id": "1691c80c-df7d-41cd-9e35-a730288d52be",
+    "read": false,
+    "created_at": "2026-10-19T08:13:17.285412+00:00"
+  },
+  {
+    "id": "19d9c8d0-b5cb-49cf-9191-7f570e803602",
+    "driver_id": "18b60fe8-16af-469d-b5ac-b9daeae897a2",
+    "kind": "swap",
+    "message": "TEST Swap A ti propone uno scambio turno: Ragno 10MC Pomeriggio · Lunedì · Pomeriggio. Apri l'app per rispondere.",
+    "shift_id": "1691c80c-df7d-41cd-9e35-a730288d52be",
+    "read": false,
+    "created_at": "2026-10-19T08:13:17.455989+00:00"
+  },
+  {
+    "id": "850b8a37-472e-4444-9eab-4f4f87e60a1e",
+    "target_role": "staff",
+    "user_id": null,
+    "driver_id": null,
+    "kind": "swap",
+    "message": "Nuova richiesta cambio (TEST Swap A → TEST Swap B): Ragno 10MC Pomeriggio · Lunedì · Pomeriggio. In attesa della risposta del collega.",
+    "shift_id": "1691c80c-df7d-41cd-9e35-a730288d52be",
+    "read": false,
+    "read_by": [
+      "b27c02ff-5a5b-4b82-8f3a-5ec47245625d"
+    ],
+    "created_at": "2026-10-19T08:13:17.478545+00:00"
+  },
+  {
+    "id": "2eaba06c-6c45-41b9-8184-ab286f84271b",
+    "driver_id": "698748f9-63c8-4013-91b5-7beb1d1bfefc",
+    "kind": "swap",
+    "message": "❌ Cambio RIFIUTATO (Admin) per Ragno 10MC Pomeriggio · Lunedì · Pomeriggio.",
+    "shift_id": "1691c80c-df7d-41cd-9e35-a730288d52be",
+    "read": false,
+    "created_at": "2026-10-19T08:13:17.613240+00:00"
+  },
+  {
+    "id": "1919ddd4-87a6-425b-8a62-b04daa50a7e6",
+    "driver_id": "18b60fe8-16af-469d-b5ac-b9daeae897a2",
+    "kind": "swap",
+    "message": "❌ Cambio RIFIUTATO (Admin): il turno Ragno 10MC Pomeriggio · Lunedì · Pomeriggio rimane invariato.",
+    "shift_id": "1691c80c-df7d-41cd-9e35-a730288d52be",
+    "read": false,
+    "created_at": "2026-10-19T08:13:17.636011+00:00"
+  },
+  {
+    "id": "8b8cf11c-f291-4d35-b0f4-dac7a6f14da0",
+    "driver_id": "52729506-03db-4078-aa37-6e0a3b329c6d",
+    "kind": "shift",
+    "message": "Sei stato rimosso dal turno: Ragno 10MC Pomeriggio · Lunedì · Pomeriggio",
+    "shift_id": "0dbe59c8-10c5-474b-9a37-c3de9d94052d",
+    "read": true,
+    "created_at": "2026-10-19T08:13:19.503078+00:00"
+  },
+  {
+    "id": "604934e8-4dd5-46b7-86c9-ab40bae2821a",
+    "driver_id": "594042d9-0460-4e69-b8d4-e032af732afe",
+    "kind": "shift",
+    "message": "Ti è stato assegnato un nuovo turno: Ragno 10MC Pomeriggio · Lunedì · Pomeriggio",
+    "shift_id": "0dbe59c8-10c5-474b-9a37-c3de9d94052d",
+    "read": false,
+    "created_at": "2026-10-19T08:13:19.526122+00:00"
+  },
+  {
+    "id": "d3a85258-3d6f-4368-919a-299153e47f57",
+    "driver_id": "594042d9-0460-4e69-b8d4-e032af732afe",
+    "kind": "shift",
+    "message": "Sei stato rimosso dal turno: Ragno 10MC Pomeriggio · Lunedì · Pomeriggio",
+    "shift_id": "0dbe59c8-10c5-474b-9a37-c3de9d94052d",
+    "read": false,
+    "created_at": "2026-10-19T08:13:19.678761+00:00"
+  },
+  {
+    "id": "c01a24e6-8c1b-4727-afbf-91cf722e278a",
+    "driver_id": "22ada53a-751e-45c7-a963-77ec3935ae1f",
+    "kind": "shift",
+    "message": "Ti è stato assegnato un nuovo turno: Ragno 10MC Pomeriggio · Lunedì · Pomeriggio",
+    "shift_id": "0dbe59c8-10c5-474b-9a37-c3de9d94052d",
+    "read": false,
+    "created_at": "2026-10-19T08:13:19.701661+00:00"
+  },
+  {
+    "id": "03db885c-70af-47a6-8e7a-0287e7b070de",
+    "driver_id": "72da9538-b838-47fc-96f9-4c9a447d9000",
+    "kind": "shift",
+    "message": "Sei stato rimosso dal turno: carta b · Lunedì · Pomeriggio",
+    "shift_id": "90d9605e-78dc-47f8-8a16-41a765fe7c93",
+    "read": true,
+    "created_at": "2026-10-19T08:14:08.680909+00:00"
+  },
+  {
+    "id": "f684677b-0a34-45c0-a39f-28d0ee128ce8",
+    "driver_id": "52729506-03db-4078-aa37-6e0a3b329c6d",
+    "kind": "shift",
+    "message": "Sei stato rimosso dal turno: Ragno 10MC Pomeriggio · Lunedì · Pomeriggio",
+    "shift_id": "0cb57b0d-5373-4d8a-aafa-f4291d46bfc6",
+    "read": true,
+    "created_at": "2026-10-19T08:14:10.587552+00:00"
+  },
+  {
+    "id": "7e9bc8f2-51df-4212-93f9-26445f2c834e",
+    "driver_id": "f5e28cfe-b688-4892-8284-5f8bb302fe1e",
+    "kind": "shift",
+    "message": "Ti è stato assegnato un nuovo turno: Ragno 10MC Pomeriggio · Lunedì · Pomeriggio",
+    "shift_id": "0cb57b0d-5373-4d8a-aafa-f4291d46bfc6",
+    "read": false,
+    "created_at": "2026-10-19T08:14:10.610334+00:00"
+  },
+  {
+    "id": "679bb0b2-10a7-4b4c-9143-48ed5948889a",
+    "driver_id": "fa5a3be0-0b87-4eb6-a1b4-7713c97f2671",
+    "kind": "swap",
+    "message": "TEST Swap A ti propone uno scambio turno: Ragno 10MC Pomeriggio · Lunedì · Pomeriggio. Apri l'app per rispondere.",
+    "shift_id": "0cb57b0d-5373-4d8a-aafa-f4291d46bfc6",
+    "read": false,
+    "created_at": "2026-10-19T08:14:10.788755+00:00"
+  },
+  {
+    "id": "5ac8ebf9-1a90-4747-8743-41b8161a7652",
+    "target_role": "staff",
+    "user_id": null,
+    "driver_id": null,
+    "kind": "swap",
+    "message": "Nuova richiesta cambio (TEST Swap A → TEST Swap B): Ragno 10MC Pomeriggio · Lunedì · Pomeriggio. In attesa della risposta del collega.",
+    "shift_id": "0cb57b0d-5373-4d8a-aafa-f4291d46bfc6",
+    "read": false,
+    "read_by": [
+      "b27c02ff-5a5b-4b82-8f3a-5ec47245625d"
+    ],
+    "created_at": "2026-10-19T08:14:10.812068+00:00"
+  },
+  {
+    "id": "ce11de83-795d-4ff3-a1dc-571d393776dd",
+    "driver_id": "f5e28cfe-b688-4892-8284-5f8bb302fe1e",
+    "kind": "swap",
+    "message": "TEST Swap B ha ACCETTATO lo scambio per Ragno 10MC Pomeriggio · Lunedì · Pomeriggio. In attesa dell'approvazione dell'admin.",
+    "shift_id": "0cb57b0d-5373-4d8a-aafa-f4291d46bfc6",
+    "read": false,
+    "created_at": "2026-10-19T08:14:10.973071+00:00"
+  },
+  {
+    "id": "ac1661df-1a92-49ba-b3a7-3973663e504e",
+    "target_role": "staff",
+    "user_id": null,
+    "driver_id": null,
+    "kind": "swap",
+    "message": "TEST Swap B ha accettato lo scambio per Ragno 10MC Pomeriggio · Lunedì · Pomeriggio. La tua approvazione è ora richiesta.",
+    "shift_id": "0cb57b0d-5373-4d8a-aafa-f4291d46bfc6",
+    "read": false,
+    "read_by": [
+      "b27c02ff-5a5b-4b82-8f3a-5ec47245625d"
+    ],
+    "created_at": "2026-10-19T08:14:10.995949+00:00"
+  },
+  {
+    "id": "63792eac-b2bb-4c77-b42c-4ae201ef16eb",
+    "driver_id": "52729506-03db-4078-aa37-6e0a3b329c6d",
+    "kind": "shift",
+    "message": "Sei stato rimosso dal turno: Ragno 10MC Pomeriggio · Lunedì · Pomeriggio",
+    "shift_id": "0424010d-c4ed-4358-bc11-654c0f4dd07c",
+    "read": true,
+    "created_at": "2026-10-19T08:14:13.434695+00:00"
+  },
+  {
+    "id": "fa50e10c-ad32-4eaf-a054-2effa0afac0a",
+    "driver_id": "c1e18cc1-9685-4f38-bddd-f3935b848882",
+    "kind": "shift",
+    "message": "Ti è stato assegnato un nuovo turno: Ragno 10MC Pomeriggio · Lunedì · Pomeriggio",
+    "shift_id": "0424010d-c4ed-4358-bc11-654c0f4dd07c",
+    "read": false,
+    "created_at": "2026-10-19T08:14:13.456785+00:00"
+  },
+  {
+    "id": "eb04b5da-e776-4ba9-ae71-64855676bdf6",
+    "driver_id": "02982b82-e347-43fe-9637-f7b8d9f1500b",
+    "kind": "swap",
+    "message": "TEST Swap A ti propone uno scambio turno: Ragno 10MC Pomeriggio · Lunedì · Pomeriggio. Apri l'app per rispondere.",
+    "shift_id": "0424010d-c4ed-4358-bc11-654c0f4dd07c",
+    "read": false,
+    "created_at": "2026-10-19T08:14:13.643900+00:00"
+  },
+  {
+    "id": "f6d52728-8434-452e-9f63-e68d78d46a30",
+    "target_role": "staff",
+    "user_id": null,
+    "driver_id": null,
+    "kind": "swap",
+    "message": "Nuova richiesta cambio (TEST Swap A → TEST Swap B): Ragno 10MC Pomeriggio · Lunedì · Pomeriggio. In attesa della risposta del collega.",
+    "shift_id": "0424010d-c4ed-4358-bc11-654c0f4dd07c",
+    "read": false,
+    "read_by": [
+      "b27c02ff-5a5b-4b82-8f3a-5ec47245625d"
+    ],
+    "created_at": "2026-10-19T08:14:13.666655+00:00"
+  },
+  {
+    "id": "fee0f039-5a47-4614-b731-4edbbf608836",
+    "driver_id": "c1e18cc1-9685-4f38-bddd-f3935b848882",
+    "kind": "swap",
+    "message": "❌ Cambio RIFIUTATO (Admin) per Ragno 10MC Pomeriggio · Lunedì · Pomeriggio.",
+    "shift_id": "0424010d-c4ed-4358-bc11-654c0f4dd07c",
+    "read": false,
+    "created_at": "2026-10-19T08:14:13.801129+00:00"
+  },
+  {
+    "id": "a6a3b132-18cf-447d-a386-09c97d4b779f",
+    "driver_id": "02982b82-e347-43fe-9637-f7b8d9f1500b",
+    "kind": "swap",
+    "message": "❌ Cambio RIFIUTATO (Admin): il turno Ragno 10MC Pomeriggio · Lunedì · Pomeriggio rimane invariato.",
+    "shift_id": "0424010d-c4ed-4358-bc11-654c0f4dd07c",
+    "read": false,
+    "created_at": "2026-10-19T08:14:13.824569+00:00"
+  },
+  {
+    "id": "c52cd450-3b12-4640-86c6-667495028216",
+    "driver_id": "52729506-03db-4078-aa37-6e0a3b329c6d",
+    "kind": "shift",
+    "message": "Sei stato rimosso dal turno: Ragno 10MC Pomeriggio · Lunedì · Pomeriggio",
+    "shift_id": "b67a0482-7540-4b6c-a33b-3c217b748b33",
+    "read": true,
+    "created_at": "2026-10-19T08:14:15.726519+00:00"
+  },
+  {
+    "id": "53302d8d-a721-4db6-8964-0202e390db3c",
+    "driver_id": "28e1b6f2-9734-4853-91f7-f5e343ff984c",
+    "kind": "shift",
+    "message": "Ti è stato assegnato un nuovo turno: Ragno 10MC Pomeriggio · Lunedì · Pomeriggio",
+    "shift_id": "b67a0482-7540-4b6c-a33b-3c217b748b33",
+    "read": false,
+    "created_at": "2026-10-19T08:14:15.748894+00:00"
+  },
+  {
+    "id": "77945d16-983d-4311-a5e8-5671006e5da0",
+    "driver_id": "28e1b6f2-9734-4853-91f7-f5e343ff984c",
+    "kind": "shift",
+    "message": "Sei stato rimosso dal turno: Ragno 10MC Pomeriggio · Lunedì · Pomeriggio",
+    "shift_id": "b67a0482-7540-4b6c-a33b-3c217b748b33",
+    "read": false,
+    "created_at": "2026-10-19T08:14:15.921707+00:00"
+  },
+  {
+    "id": "d608e4db-6bcc-4325-b8e0-d1ef5635e73d",
+    "driver_id": "04444f5c-6035-4b46-8e26-ccfeeb761adf",
+    "kind": "shift",
+    "message": "Ti è stato assegnato un nuovo turno: Ragno 10MC Pomeriggio · Lunedì · Pomeriggio",
+    "shift_id": "b67a0482-7540-4b6c-a33b-3c217b748b33",
+    "read": false,
+    "created_at": "2026-10-19T08:14:15.944366+00:00"
+  },
+  {
+    "id": "49e6509f-097b-4d1f-a366-eb8580ccb687",
+    "driver_id": "da74db94-3b2d-426c-aa42-53f5263cfa00",
+    "kind": "shift",
+    "message": "Sei stato rimosso dal turno: carta b · Lunedì · Pomeriggio",
+    "shift_id": "0f5ff970-157d-4081-b7ee-ae2ae014901d",
+    "read": true,
+    "created_at": "2026-10-19T08:14:46.133198+00:00"
+  },
+  {
+    "id": "619a91a7-643f-4eea-bbf8-265f1c583cb2",
+    "driver_id": "52729506-03db-4078-aa37-6e0a3b329c6d",
+    "kind": "shift",
+    "message": "Sei stato rimosso dal turno: Ragno 10MC Pomeriggio · Lunedì · Pomeriggio",
+    "shift_id": "5804d89a-fe36-427d-9d26-3214dabfd5d2",
+    "read": true,
+    "created_at": "2026-10-19T08:14:48.068167+00:00"
+  },
+  {
+    "id": "8c996a5f-0340-4a64-9bb2-924b74c9f58d",
+    "driver_id": "baf35a6a-6dc3-451a-baff-89580fc2d6b6",
+    "kind": "shift",
+    "message": "Ti è stato assegnato un nuovo turno: Ragno 10MC Pomeriggio · Lunedì · Pomeriggio",
+    "shift_id": "5804d89a-fe36-427d-9d26-3214dabfd5d2",
+    "read": false,
+    "created_at": "2026-10-19T08:14:48.091867+00:00"
+  },
+  {
+    "id": "dff5b12f-d171-4af6-9f3c-d7c13d8b5eec",
+    "driver_id": "681e20e6-9d3f-40db-9aea-cae897f13b49",
+    "kind": "swap",
+    "message": "TEST Swap A ti propone uno scambio turno: Ragno 10MC Pomeriggio · Lunedì · Pomeriggio. Apri l'app per rispondere.",
+    "shift_id": "5804d89a-fe36-427d-9d26-3214dabfd5d2",
+    "read": false,
+    "created_at": "2026-10-19T08:14:48.267633+00:00"
+  },
+  {
+    "id": "94c665a8-9b26-4c43-86ce-04ffa45dd43b",
+    "target_role": "staff",
+    "user_id": null,
+    "driver_id": null,
+    "kind": "swap",
+    "message": "Nuova richiesta cambio (TEST Swap A → TEST Swap B): Ragno 10MC Pomeriggio · Lunedì · Pomeriggio. In attesa della risposta del collega.",
+    "shift_id": "5804d89a-fe36-427d-9d26-3214dabfd5d2",
+    "read": false,
+    "read_by": [
+      "b27c02ff-5a5b-4b82-8f3a-5ec47245625d"
+    ],
+    "created_at": "2026-10-19T08:14:48.290205+00:00"
+  },
+  {
+    "id": "9685e584-ed26-4479-97a9-25095d6a66bd",
+    "driver_id": "baf35a6a-6dc3-451a-baff-89580fc2d6b6",
+    "kind": "swap",
+    "message": "TEST Swap B ha ACCETTATO lo scambio per Ragno 10MC Pomeriggio · Lunedì · Pomeriggio. In attesa dell'approvazione dell'admin.",
+    "shift_id": "5804d89a-fe36-427d-9d26-3214dabfd5d2",
+    "read": false,
+    "created_at": "2026-10-19T08:14:48.451774+00:00"
+  },
+  {
+    "id": "fda574c7-ad60-407a-a87b-6c16d52c7bd9",
+    "target_role": "staff",
+    "user_id": null,
+    "driver_id": null,
+    "kind": "swap",
+    "message": "TEST Swap B ha accettato lo scambio per Ragno 10MC Pomeriggio · Lunedì · Pomeriggio. La tua approvazione è ora richiesta.",
+    "shift_id": "5804d89a-fe36-427d-9d26-3214dabfd5d2",
+    "read": false,
+    "read_by": [
+      "b27c02ff-5a5b-4b82-8f3a-5ec47245625d"
+    ],
+    "created_at": "2026-10-19T08:14:48.474076+00:00"
+  },
+  {
+    "id": "11de01a8-e1bb-46cd-8d29-0e66b3156c89",
+    "driver_id": "baf35a6a-6dc3-451a-baff-89580fc2d6b6",
+    "kind": "swap",
+    "message": "✅ Cambio APPROVATO (Admin): Ragno 10MC Pomeriggio · Lunedì · Pomeriggio è ora del tuo collega.",
+    "shift_id": "5804d89a-fe36-427d-9d26-3214dabfd5d2",
+    "read": false,
+    "created_at": "2026-10-19T08:14:49.447672+00:00"
+  },
+  {
+    "id": "11d16b33-ef0d-4788-955c-ba05d9441c53",
+    "driver_id": "681e20e6-9d3f-40db-9aea-cae897f13b49",
+    "kind": "swap",
+    "message": "✅ Cambio APPROVATO (Admin): ti è stato assegnato il turno Ragno 10MC Pomeriggio · Lunedì · Pomeriggio.",
+    "shift_id": "5804d89a-fe36-427d-9d26-3214dabfd5d2",
+    "read": false,
+    "created_at": "2026-10-19T08:14:49.470158+00:00"
+  },
+  {
+    "id": "65bb0bab-f890-4405-9c68-5d51fc151321",
+    "driver_id": "52729506-03db-4078-aa37-6e0a3b329c6d",
+    "kind": "shift",
+    "message": "Sei stato rimosso dal turno: Ragno 10MC Pomeriggio · Lunedì · Pomeriggio",
+    "shift_id": "1540e3c2-1a1c-43a5-bcd0-babe3c998fc7",
+    "read": true,
+    "created_at": "2026-10-19T08:14:51.435724+00:00"
+  },
+  {
+    "id": "2a47f2b1-dce7-4c5d-adf1-9b14a02cc8cc",
+    "driver_id": "31e1c0a9-d3a3-451d-a823-707ea60e9c69",
+    "kind": "shift",
+    "message": "Ti è stato assegnato un nuovo turno: Ragno 10MC Pomeriggio · Lunedì · Pomeriggio",
+    "shift_id": "1540e3c2-1a1c-43a5-bcd0-babe3c998fc7",
+    "read": false,
+    "created_at": "2026-10-19T08:14:51.457834+00:00"
+  },
+  {
+    "id": "b044bf71-9cfa-48fe-94a4-52c7d3bb66a8",
+    "driver_id": "5bc84cdf-9798-4e76-a799-3c7b03bcc633",
+    "kind": "swap",
+    "message": "TEST Swap A ti propone uno scambio turno: Ragno 10MC Pomeriggio · Lunedì · Pomeriggio. Apri l'app per rispondere.",
+    "shift_id": "1540e3c2-1a1c-43a5-bcd0-babe3c998fc7",
+    "read": false,
+    "created_at": "2026-10-19T08:14:51.630784+00:00"
+  },
+  {
+    "id": "95662f73-05ee-4f1c-b68f-fcf5190a79f1",
+    "target_role": "staff",
+    "user_id": null,
+    "driver_id": null,
+    "kind": "swap",
+    "message": "Nuova richiesta cambio (TEST Swap A → TEST Swap B): Ragno 10MC Pomeriggio · Lunedì · Pomeriggio. In attesa della risposta del collega.",
+    "shift_id": "1540e3c2-1a1c-43a5-bcd0-babe3c998fc7",
+    "read": false,
+    "read_by": [
+      "b27c02ff-5a5b-4b82-8f3a-5ec47245625d"
+    ],
+    "created_at": "2026-10-19T08:14:51.653825+00:00"
+  },
+  {
+    "id": "59226e4e-1ecd-416e-b9a9-37b57d1dd1b5",
+    "driver_id": "31e1c0a9-d3a3-451d-a823-707ea60e9c69",
+    "kind": "swap",
+    "message": "❌ Cambio RIFIUTATO (Admin) per Ragno 10MC Pomeriggio · Lunedì · Pomeriggio.",
+    "shift_id": "1540e3c2-1a1c-43a5-bcd0-babe3c998fc7",
+    "read": false,
+    "created_at": "2026-10-19T08:14:51.785232+00:00"
+  },
+  {
+    "id": "c30ff6a0-da9b-4c3e-a518-6ef1661c81ad",
+    "driver_id": "5bc84cdf-9798-4e76-a799-3c7b03bcc633",
+    "kind": "swap",
+    "message": "❌ Cambio RIFIUTATO (Admin): il turno Ragno 10MC Pomeriggio · Lunedì · Pomeriggio rimane invariato.",
+    "shift_id": "1540e3c2-1a1c-43a5-bcd0-babe3c998fc7",
+    "read": false,
+    "created_at": "2026-10-19T08:14:51.812143+00:00"
+  },
+  {
+    "id": "00a35ea3-5c77-4bc6-b09a-fb1141761cd8",
+    "driver_id": "52729506-03db-4078-aa37-6e0a3b329c6d",
+    "kind": "shift",
+    "message": "Sei stato rimosso dal turno: Ragno 10MC Pomeriggio · Lunedì · Pomeriggio",
+    "shift_id": "140fa511-b43d-4a32-a4ae-0c7a7e8ed2e6",
+    "read": true,
+    "created_at": "2026-10-19T08:14:53.691756+00:00"
+  },
+  {
+    "id": "adb43493-ac29-48ca-9ab7-996d0e8385bc",
+    "driver_id": "2a7b3b6c-3442-487e-82b2-4316049e2e5c",
+    "kind": "shift",
+    "message": "Ti è stato assegnato un nuovo turno: Ragno 10MC Pomeriggio · Lunedì · Pomeriggio",
+    "shift_id": "140fa511-b43d-4a32-a4ae-0c7a7e8ed2e6",
+    "read": false,
+    "created_at": "2026-10-19T08:14:53.715867+00:00"
+  },
+  {
+    "id": "cba35314-a0dd-4829-a17f-39278ed6fb8d",
+    "driver_id": "2a7b3b6c-3442-487e-82b2-4316049e2e5c",
+    "kind": "shift",
+    "message": "Sei stato rimosso dal turno: Ragno 10MC Pomeriggio · Lunedì · Pomeriggio",
+    "shift_id": "140fa511-b43d-4a32-a4ae-0c7a7e8ed2e6",
+    "read": false,
+    "created_at": "2026-10-19T08:14:53.883550+00:00"
+  },
+  {
+    "id": "10af91e3-8861-4ef1-a2b5-57bc9134ff7e",
+    "driver_id": "3bd52cd9-d5fe-4108-9572-914f0c39b586",
+    "kind": "shift",
+    "message": "Ti è stato assegnato un nuovo turno: Ragno 10MC Pomeriggio · Lunedì · Pomeriggio",
+    "shift_id": "140fa511-b43d-4a32-a4ae-0c7a7e8ed2e6",
+    "read": false,
+    "created_at": "2026-10-19T08:14:53.905565+00:00"
+  },
+  {
+    "id": "b5701cf8-fc6a-4b97-8d8a-945ae61f49a4",
+    "target_role": "admin",
+    "driver_id": "5ddad5dd-94b0-4e5f-80a7-6447df52b2e7",
+    "title": "Richiesta reintegro Kit Medico",
+    "message": "L'autista Giovanni Catarisano ha segnalato l'utilizzo di 'Disinfettante' e ne richiede la sostituzione.",
+    "category": "medical_kit",
+    "created_at": "2026-10-23T10:17:53.489468+00:00",
+    "read": true
+  },
+  {
+    "id": "1b16e7e1-c9c9-4cb9-a144-91c392897f23",
+    "driver_id": "52729506-03db-4078-aa37-6e0a3b329c6d",
+    "kind": "shift",
+    "message": "Sei stato rimosso dal turno: Ragno 10MC Pomeriggio · Lunedì · Pomeriggio",
+    "shift_id": "85ab7aca-119e-4176-9d6b-9a1e7c868127",
+    "read": false,
+    "created_at": "2026-10-23T19:36:28.662502+00:00"
+  },
+  {
+    "id": "e8d99264-212c-43b3-b697-5f6e16bc3f48",
+    "driver_id": "ecd4b64e-67a0-4230-864d-3ca83df8e003",
+    "kind": "shift",
+    "message": "Ti è stato assegnato un nuovo turno: Ragno 10MC Pomeriggio · Lunedì · Pomeriggio",
+    "shift_id": "85ab7aca-119e-4176-9d6b-9a1e7c868127",
+    "read": false,
+    "created_at": "2026-10-23T19:36:28.678599+00:00"
+  },
+  {
+    "id": "eb2d5287-faac-4c88-823f-24d818e13c7d",
+    "driver_id": "d63e6439-3d6d-4665-a373-22aa3f69e4b8",
+    "kind": "swap",
+    "message": "TEST Swap A ti propone uno scambio turno: Ragno 10MC Pomeriggio · Lunedì · Pomeriggio. Apri l'app per rispondere.",
+    "shift_id": "85ab7aca-119e-4176-9d6b-9a1e7c868127",
+    "read": false,
+    "created_at": "2026-10-23T19:36:29.026826+00:00"
+  },
+  {
+    "id": "f6c7a0ac-b040-4346-bbdc-fde836442caf",
+    "target_role": "staff",
+    "user_id": null,
+    "driver_id": null,
+    "kind": "swap",
+    "message": "Nuova richiesta cambio (TEST Swap A → TEST Swap B): Ragno 10MC Pomeriggio · Lunedì · Pomeriggio. In attesa della risposta del collega.",
+    "shift_id": "85ab7aca-119e-4176-9d6b-9a1e7c868127",
+    "read": false,
+    "read_by": [],
+    "created_at": "2026-10-23T19:36:29.030726+00:00"
+  },
+  {
+    "id": "4e6850ec-ec81-40a8-b482-1b79ba292497",
+    "driver_id": "ecd4b64e-67a0-4230-864d-3ca83df8e003",
+    "kind": "swap",
+    "message": "TEST Swap B ha ACCETTATO lo scambio per Ragno 10MC Pomeriggio · Lunedì · Pomeriggio. In attesa dell'approvazione dell'admin.",
+    "shift_id": "85ab7aca-119e-4176-9d6b-9a1e7c868127",
+    "read": false,
+    "created_at": "2026-10-23T19:36:29.375135+00:00"
+  },
+  {
+    "id": "167cee89-bb9f-4444-9d41-5d0944b94916",
+    "target_role": "staff",
+    "user_id": null,
+    "driver_id": null,
+    "kind": "swap",
+    "message": "TEST Swap B ha accettato lo scambio per Ragno 10MC Pomeriggio · Lunedì · Pomeriggio. La tua approvazione è ora richiesta.",
+    "shift_id": "85ab7aca-119e-4176-9d6b-9a1e7c868127",
+    "read": false,
+    "read_by": [],
+    "created_at": "2026-10-23T19:36:29.378724+00:00"
+  },
+  {
+    "id": "646a205c-67f9-4eed-ae52-d32d876df4bb",
+    "driver_id": "ecd4b64e-67a0-4230-864d-3ca83df8e003",
+    "kind": "swap",
+    "message": "✅ Cambio APPROVATO (Admin): Ragno 10MC Pomeriggio · Lunedì · Pomeriggio è ora del tuo collega.",
+    "shift_id": "85ab7aca-119e-4176-9d6b-9a1e7c868127",
+    "read": false,
+    "created_at": "2026-10-23T19:36:31.974632+00:00"
+  },
+  {
+    "id": "ca19d1cd-b8d2-4012-b871-3f4ca9d47bc5",
+    "driver_id": "d63e6439-3d6d-4665-a373-22aa3f69e4b8",
+    "kind": "swap",
+    "message": "✅ Cambio APPROVATO (Admin): ti è stato assegnato il turno Ragno 10MC Pomeriggio · Lunedì · Pomeriggio.",
+    "shift_id": "85ab7aca-119e-4176-9d6b-9a1e7c868127",
+    "read": false,
+    "created_at": "2026-10-23T19:36:31.996597+00:00"
+  },
+  {
+    "id": "95dca397-9798-48a9-aae8-584e9b3b1cd7",
+    "driver_id": "5ddad5dd-94b0-4e5f-80a7-6447df52b2e7",
+    "kind": "shift",
+    "message": "Sei stato rimosso dal turno: Ragno 10MC Pomeriggio · Lunedì · Pomeriggio",
+    "shift_id": "f9b41c03-e126-4445-b5f9-6d79d8055200",
+    "read": true,
+    "created_at": "2026-10-23T19:36:35.258257+00:00"
+  },
+  {
+    "id": "23233c4c-2772-4ab9-bf15-2bce4e8b0271",
+    "driver_id": "f7b71d1f-ec81-47a7-91bb-234b04998ebb",
+    "kind": "shift",
+    "message": "Ti è stato assegnato un nuovo turno: Ragno 10MC Pomeriggio · Lunedì · Pomeriggio",
+    "shift_id": "f9b41c03-e126-4445-b5f9-6d79d8055200",
+    "read": false,
+    "created_at": "2026-10-23T19:36:35.262425+00:00"
+  },
+  {
+    "id": "cf1840c4-2a55-4d22-b8e6-fbc4ec9ce53c",
+    "driver_id": "f7b71d1f-ec81-47a7-91bb-234b04998ebb",
+    "kind": "shift",
+    "message": "Sei stato rimosso dal turno: Ragno 10MC Pomeriggio · Lunedì · Pomeriggio",
+    "shift_id": "f9b41c03-e126-4445-b5f9-6d79d8055200",
+    "read": true,
+    "created_at": "2026-10-23T19:36:35.914613+00:00"
+  },
+  {
+    "id": "0db76abd-afa8-4067-b501-be584f7c3a4b",
+    "driver_id": "52729506-03db-4078-aa37-6e0a3b329c6d",
+    "kind": "shift",
+    "message": "Sei stato rimosso dal turno: Ragno 10MC Pomeriggio · Lunedì · Pomeriggio",
+    "shift_id": "99f9df9d-4665-459a-8f70-0048779fd126",
+    "read": false,
+    "created_at": "2026-10-23T19:36:44.990425+00:00"
+  },
+  {
+    "id": "58e79631-8b9e-40d4-8300-ae2fb5725c54",
+    "driver_id": "4a05a51f-49ff-44ca-b60c-38f06bfe648a",
+    "kind": "shift",
+    "message": "Ti è stato assegnato un nuovo turno: Ragno 10MC Pomeriggio · Lunedì · Pomeriggio",
+    "shift_id": "99f9df9d-4665-459a-8f70-0048779fd126",
+    "read": false,
+    "created_at": "2026-10-23T19:36:44.994201+00:00"
+  },
+  {
+    "id": "e824c27a-ac93-4c81-97a3-74fa1654791f",
+    "driver_id": "f89475f5-6469-49a7-b23b-e18206c4a488",
+    "kind": "swap",
+    "message": "TEST Swap A ti propone uno scambio turno: Ragno 10MC Pomeriggio · Lunedì · Pomeriggio. Apri l'app per rispondere.",
+    "shift_id": "99f9df9d-4665-459a-8f70-0048779fd126",
+    "read": false,
+    "created_at": "2026-10-23T19:36:45.287974+00:00"
+  },
+  {
+    "id": "db09c4ca-2ad0-4ef5-9aaf-3f46efd4fd3b",
+    "target_role": "staff",
+    "user_id": null,
+    "driver_id": null,
+    "kind": "swap",
+    "message": "Nuova richiesta cambio (TEST Swap A → TEST Swap B): Ragno 10MC Pomeriggio · Lunedì · Pomeriggio. In attesa della risposta del collega.",
+    "shift_id": "99f9df9d-4665-459a-8f70-0048779fd126",
+    "read": false,
+    "read_by": [],
+    "created_at": "2026-10-23T19:36:45.292327+00:00"
+  },
+  {
+    "id": "af73b817-d1e6-4284-b179-ef786aa27e9c",
+    "driver_id": "4a05a51f-49ff-44ca-b60c-38f06bfe648a",
+    "kind": "swap",
+    "message": "❌ Cambio RIFIUTATO (Admin) per Ragno 10MC Pomeriggio · Lunedì · Pomeriggio.",
+    "shift_id": "99f9df9d-4665-459a-8f70-0048779fd126",
+    "read": false,
+    "created_at": "2026-10-23T19:36:45.559056+00:00"
+  },
+  {
+    "id": "a92a8bda-e032-4250-8859-16872a308e21",
+    "driver_id": "f89475f5-6469-49a7-b23b-e18206c4a488",
+    "kind": "swap",
+    "message": "❌ Cambio RIFIUTATO (Admin): il turno Ragno 10MC Pomeriggio · Lunedì · Pomeriggio rimane invariato.",
+    "shift_id": "99f9df9d-4665-459a-8f70-0048779fd126",
+    "read": false,
+    "created_at": "2026-10-23T19:36:45.563478+00:00"
+  },
+  {
+    "id": "e9504776-a9a2-4971-b349-d3638a0285dd",
+    "driver_id": "52729506-03db-4078-aa37-6e0a3b329c6d",
+    "kind": "shift",
+    "message": "Sei stato rimosso dal turno: Ragno 10MC Pomeriggio · Lunedì · Pomeriggio",
+    "shift_id": "82c0580b-0318-44b4-b887-0ac163431156",
+    "read": false,
+    "created_at": "2026-10-23T19:36:55.786260+00:00"
+  },
+  {
+    "id": "9c42221c-4bcc-4f29-b84a-240cfcbe6cef",
+    "driver_id": "f1b6d286-d7b7-41c0-973f-08c05b9578e1",
+    "kind": "shift",
+    "message": "Ti è stato assegnato un nuovo turno: Ragno 10MC Pomeriggio · Lunedì · Pomeriggio",
+    "shift_id": "82c0580b-0318-44b4-b887-0ac163431156",
+    "read": false,
+    "created_at": "2026-10-23T19:36:55.789910+00:00"
+  },
+  {
+    "id": "3d22c1b5-90c7-4966-8d25-5e469c4f2ed4",
+    "driver_id": "f1b6d286-d7b7-41c0-973f-08c05b9578e1",
+    "kind": "shift",
+    "message": "Sei stato rimosso dal turno: Ragno 10MC Pomeriggio · Lunedì · Pomeriggio",
+    "shift_id": "82c0580b-0318-44b4-b887-0ac163431156",
+    "read": false,
+    "created_at": "2026-10-23T19:36:56.055137+00:00"
+  },
+  {
+    "id": "d291f755-8d64-4003-9d51-3d9e6fedbddc",
+    "driver_id": "74d38e0d-dc21-4f65-ba3e-d39a99540adb",
+    "kind": "shift",
+    "message": "Ti è stato assegnato un nuovo turno: Ragno 10MC Pomeriggio · Lunedì · Pomeriggio",
+    "shift_id": "82c0580b-0318-44b4-b887-0ac163431156",
+    "read": false,
+    "created_at": "2026-10-23T19:36:56.059856+00:00"
+  },
+  {
+    "id": "c90defb4-1f62-4a05-932f-17fdf002997d",
+    "driver_id": "f5e28cfe-b688-4892-8284-5f8bb302fe1e",
+    "kind": "swap",
+    "message": "âŒ Cambio RIFIUTATO (Admin) per turno.",
+    "shift_id": "0cb57b0d-5373-4d8a-aafa-f4291d46bfc6",
+    "read": false,
+    "created_at": "2026-10-24T06:44:23.298843+00:00"
+  },
+  {
+    "id": "ce40c035-28b6-4aa6-824a-9babbafbf1bf",
+    "driver_id": "fa5a3be0-0b87-4eb6-a1b4-7713c97f2671",
+    "kind": "swap",
+    "message": "âŒ Cambio RIFIUTATO (Admin): il turno turno rimane invariato.",
+    "shift_id": "0cb57b0d-5373-4d8a-aafa-f4291d46bfc6",
+    "read": false,
+    "created_at": "2026-10-24T06:44:23.303568+00:00"
+  },
+  {
+    "id": "659783ce-e1ef-4f8a-8f5c-221e249f3a37",
+    "driver_id": "0535c74c-2d6a-4492-8d99-691f08f25e89",
+    "kind": "swap",
+    "message": "âŒ Cambio RIFIUTATO (Admin) per turno.",
+    "shift_id": "3e5ecbf6-58b2-416a-9525-77e25c059d35",
+    "read": false,
+    "created_at": "2026-10-24T06:44:27.205622+00:00"
+  },
+  {
+    "id": "3eafcdad-2fcc-4afe-baf6-82908fb1c61e",
+    "driver_id": "67546d18-d4f3-4847-bbfe-efc0eec2bde9",
+    "kind": "swap",
+    "message": "âŒ Cambio RIFIUTATO (Admin): il turno turno rimane invariato.",
+    "shift_id": "3e5ecbf6-58b2-416a-9525-77e25c059d35",
+    "read": false,
+    "created_at": "2026-10-24T06:44:27.209023+00:00"
+  },
+  {
+    "id": "47f31367-a16e-4686-bb00-01f87ba8adc5",
+    "target_role": "driver",
+    "driver_id": "5ddad5dd-94b0-4e5f-80a7-6447df52b2e7",
+    "title": "Presidio Kit Medico reintegrato",
+    "message": "Il presidio 'Disinfettante' del tuo kit medico Ã¨ stato sostituito/reintegrato. Nuova scadenza: 2028-10-24",
+    "category": "medical_kit",
+    "created_at": "2026-10-24T06:46:42.405367+00:00",
+    "read": true
+  },
+  {
+    "id": "9b9c66fb-d77a-4094-8692-b869484df7bc",
+    "target_role": "admin",
+    "driver_id": "5ddad5dd-94b0-4e5f-80a7-6447df52b2e7",
+    "title": "Richiesta reintegro Kit Medico",
+    "message": "L'autista Giovanni Catarisano ha segnalato l'utilizzo di 'Disinfettante' e ne richiede la sostituzione.",
+    "category": "medical_kit",
+    "created_at": "2026-10-24T06:56:57.261303+00:00",
+    "read": true
+  },
+  {
+    "id": "960908db-3d80-459a-8f9f-5c3bbc11dbaf",
+    "driver_id": "52729506-03db-4078-aa37-6e0a3b329c6d",
+    "kind": "shift",
+    "message": "Sei stato rimosso dal turno: Ragno 10MC Pomeriggio Â· LunedÃ¬ Â· Pomeriggio",
+    "shift_id": "f3b57348-def6-43c5-b63b-927879499a27",
+    "read": false,
+    "created_at": "2026-10-27T07:46:30.525562+00:00"
+  },
+  {
+    "id": "40eaa967-80dd-42be-bc29-add7a7ec7d4f",
+    "driver_id": "fa4c48ad-052f-4e64-89ba-c950bb4ea8f1",
+    "kind": "shift",
+    "message": "Ti Ã¨ stato assegnato un nuovo turno: Ragno 10MC Pomeriggio Â· LunedÃ¬ Â· Pomeriggio",
+    "shift_id": "f3b57348-def6-43c5-b63b-927879499a27",
+    "read": false,
+    "created_at": "2026-10-27T07:46:30.530700+00:00"
+  },
+  {
+    "id": "c72325ef-dd46-49d4-8e72-82152aab46bb",
+    "driver_id": "24eecd46-45fe-45c6-81be-fe2a765d600b",
+    "kind": "swap",
+    "message": "TEST Swap A ti propone uno scambio turno: Ragno 10MC Pomeriggio Â· LunedÃ¬ Â· Pomeriggio. Apri l'app per rispondere.",
+    "shift_id": "f3b57348-def6-43c5-b63b-927879499a27",
+    "read": false,
+    "created_at": "2026-10-27T07:46:30.867723+00:00"
+  },
+  {
+    "id": "c0f27614-e54c-4419-bff4-dbe188fe1fbf",
+    "target_role": "staff",
+    "user_id": null,
+    "driver_id": null,
+    "kind": "swap",
+    "message": "Nuova richiesta cambio (TEST Swap A â†’ TEST Swap B): Ragno 10MC Pomeriggio Â· LunedÃ¬ Â· Pomeriggio. In attesa della risposta del collega.",
+    "shift_id": "f3b57348-def6-43c5-b63b-927879499a27",
+    "read": false,
+    "read_by": [],
+    "created_at": "2026-10-27T07:46:30.874816+00:00"
+  },
+  {
+    "id": "5df57292-c089-45c6-b982-c4e281d8a86a",
+    "driver_id": "fa4c48ad-052f-4e64-89ba-c950bb4ea8f1",
+    "kind": "swap",
+    "message": "TEST Swap B ha ACCETTATO lo scambio per Ragno 10MC Pomeriggio Â· LunedÃ¬ Â· Pomeriggio. In attesa dell'approvazione dell'admin.",
+    "shift_id": "f3b57348-def6-43c5-b63b-927879499a27",
+    "read": false,
+    "created_at": "2026-10-27T07:46:32.821284+00:00"
+  },
+  {
+    "id": "ce6c9aa1-b198-4e5e-b989-0fd721a156c2",
+    "target_role": "staff",
+    "user_id": null,
+    "driver_id": null,
+    "kind": "swap",
+    "message": "TEST Swap B ha accettato lo scambio per Ragno 10MC Pomeriggio Â· LunedÃ¬ Â· Pomeriggio. La tua approvazione Ã¨ ora richiesta.",
+    "shift_id": "f3b57348-def6-43c5-b63b-927879499a27",
+    "read": false,
+    "read_by": [],
+    "created_at": "2026-10-27T07:46:32.824989+00:00"
+  },
+  {
+    "id": "104ce92e-58c1-4e8c-882e-da71e71fe96e",
+    "driver_id": "13393453-2179-4538-9ba5-af18590721c4",
+    "kind": "shift",
+    "message": "Sei stato rimosso dal turno: carta b Â· LunedÃ¬ Â· Pomeriggio",
+    "shift_id": "96e3d81d-2441-48b0-ab35-da53df16be08",
+    "read": true,
+    "created_at": "2026-10-27T07:46:34.384578+00:00"
+  },
+  {
+    "id": "f97ce1f2-1f85-457e-9281-33cdaf17c508",
+    "driver_id": "fa4c48ad-052f-4e64-89ba-c950bb4ea8f1",
+    "kind": "swap",
+    "message": "âœ… Cambio APPROVATO (Admin): Ragno 10MC Pomeriggio Â· LunedÃ¬ Â· Pomeriggio Ã¨ ora del tuo collega.",
+    "shift_id": "f3b57348-def6-43c5-b63b-927879499a27",
+    "read": false,
+    "created_at": "2026-10-27T07:46:34.410762+00:00"
+  },
+  {
+    "id": "b67aa669-7e96-4ccc-a0d6-e66eb64e971d",
+    "driver_id": "24eecd46-45fe-45c6-81be-fe2a765d600b",
+    "kind": "swap",
+    "message": "âœ… Cambio APPROVATO (Admin): ti Ã¨ stato assegnato il turno Ragno 10MC Pomeriggio Â· LunedÃ¬ Â· Pomeriggio.",
+    "shift_id": "f3b57348-def6-43c5-b63b-927879499a27",
+    "read": false,
+    "created_at": "2026-10-27T07:46:34.414409+00:00"
+  },
+  {
+    "id": "12864ffb-516b-4eec-9b77-465af571f13b",
+    "driver_id": "52729506-03db-4078-aa37-6e0a3b329c6d",
+    "kind": "shift",
+    "message": "Sei stato rimosso dal turno: Ragno 10MC Pomeriggio Â· LunedÃ¬ Â· Pomeriggio",
+    "shift_id": "ce9bb8c4-f368-4185-b82d-691e1e4095a6",
+    "read": false,
+    "created_at": "2026-10-27T07:46:45.336153+00:00"
+  },
+  {
+    "id": "9f99ab51-1bf1-45a3-87d8-7f9fbae4aad4",
+    "driver_id": "ae3c3cad-50cc-456a-a2e4-acf2a3b77860",
+    "kind": "shift",
+    "message": "Ti Ã¨ stato assegnato un nuovo turno: Ragno 10MC Pomeriggio Â· LunedÃ¬ Â· Pomeriggio",
+    "shift_id": "ce9bb8c4-f368-4185-b82d-691e1e4095a6",
+    "read": false,
+    "created_at": "2026-10-27T07:46:45.340588+00:00"
+  },
+  {
+    "id": "5f1d038e-852a-467c-9ced-77c6b751e03a",
+    "driver_id": "26f0df07-1398-4157-8f60-4498260da430",
+    "kind": "swap",
+    "message": "TEST Swap A ti propone uno scambio turno: Ragno 10MC Pomeriggio Â· LunedÃ¬ Â· Pomeriggio. Apri l'app per rispondere.",
+    "shift_id": "ce9bb8c4-f368-4185-b82d-691e1e4095a6",
+    "read": false,
+    "created_at": "2026-10-27T07:46:45.610150+00:00"
+  },
+  {
+    "id": "81d7ca66-3770-4b3d-8e53-40abf69954bd",
+    "target_role": "staff",
+    "user_id": null,
+    "driver_id": null,
+    "kind": "swap",
+    "message": "Nuova richiesta cambio (TEST Swap A â†’ TEST Swap B): Ragno 10MC Pomeriggio Â· LunedÃ¬ Â· Pomeriggio. In attesa della risposta del collega.",
+    "shift_id": "ce9bb8c4-f368-4185-b82d-691e1e4095a6",
+    "read": false,
+    "read_by": [],
+    "created_at": "2026-10-27T07:46:45.614363+00:00"
+  },
+  {
+    "id": "8e877163-b86b-4fc0-a816-910a8b3bac7d",
+    "driver_id": "ae3c3cad-50cc-456a-a2e4-acf2a3b77860",
+    "kind": "swap",
+    "message": "âŒ Cambio RIFIUTATO (Admin) per Ragno 10MC Pomeriggio Â· LunedÃ¬ Â· Pomeriggio.",
+    "shift_id": "ce9bb8c4-f368-4185-b82d-691e1e4095a6",
+    "read": false,
+    "created_at": "2026-10-27T07:46:45.877969+00:00"
+  },
+  {
+    "id": "bdbb8c30-18ad-4c9b-ad12-68360ab531a9",
+    "driver_id": "26f0df07-1398-4157-8f60-4498260da430",
+    "kind": "swap",
+    "message": "âŒ Cambio RIFIUTATO (Admin): il turno Ragno 10MC Pomeriggio Â· LunedÃ¬ Â· Pomeriggio rimane invariato.",
+    "shift_id": "ce9bb8c4-f368-4185-b82d-691e1e4095a6",
+    "read": false,
+    "created_at": "2026-10-27T07:46:45.881723+00:00"
+  },
+  {
+    "id": "a03fa6b6-6c4c-48e0-9e1d-a54ccc67838f",
+    "driver_id": "52729506-03db-4078-aa37-6e0a3b329c6d",
+    "kind": "shift",
+    "message": "Sei stato rimosso dal turno: Ragno 10MC Pomeriggio Â· LunedÃ¬ Â· Pomeriggio",
+    "shift_id": "b9235f08-afbf-48a5-b4f4-0568badca22f",
+    "read": false,
+    "created_at": "2026-10-27T07:46:55.934552+00:00"
+  },
+  {
+    "id": "6ec42d9d-75aa-4dd5-8f07-ce8993451386",
+    "driver_id": "de3a4121-f0ee-448a-b5e4-f8fa31a15ab4",
+    "kind": "shift",
+    "message": "Ti Ã¨ stato assegnato un nuovo turno: Ragno 10MC Pomeriggio Â· LunedÃ¬ Â· Pomeriggio",
+    "shift_id": "b9235f08-afbf-48a5-b4f4-0568badca22f",
+    "read": false,
+    "created_at": "2026-10-27T07:46:55.938900+00:00"
+  },
+  {
+    "id": "c40ee6a0-e64d-4cc1-9e54-06032d33402c",
+    "driver_id": "de3a4121-f0ee-448a-b5e4-f8fa31a15ab4",
+    "kind": "shift",
+    "message": "Sei stato rimosso dal turno: Ragno 10MC Pomeriggio Â· LunedÃ¬ Â· Pomeriggio",
+    "shift_id": "b9235f08-afbf-48a5-b4f4-0568badca22f",
+    "read": false,
+    "created_at": "2026-10-27T07:46:56.210709+00:00"
+  },
+  {
+    "id": "c97f7a26-3b6b-4ee5-a9d7-a08f607824ed",
+    "driver_id": "826195d7-c387-4ec5-a613-199671873519",
+    "kind": "shift",
+    "message": "Ti Ã¨ stato assegnato un nuovo turno: Ragno 10MC Pomeriggio Â· LunedÃ¬ Â· Pomeriggio",
+    "shift_id": "b9235f08-afbf-48a5-b4f4-0568badca22f",
+    "read": false,
+    "created_at": "2026-10-27T07:46:56.214824+00:00"
   }
 ]

@@ -1,14 +1,15 @@
 {
-  "timestamp": "2026-10-17T22:34:54.411110",
+  "timestamp": "2026-10-27T08:55:59.233773",
   "database": "hera_gestionale",
   "collections": {
     "users": 14,
     "vehicles": 8,
-    "routes": 9,
-    "swap_requests": 2,
-    "notifications": 22,
+    "routes": 11,
+    "swap_requests": 14,
+    "notifications": 148,
     "app_meta": 1,
     "drivers": 12,
-    "shifts": 117
+    "absences": 1,
+    "shifts": 297
   }
 }

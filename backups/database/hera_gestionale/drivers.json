@@ -8,13 +8,13 @@
     "group": "gruppo1",
     "vehicle_skills": [
       "9fef3d50-9b82-4bac-9561-0ae176659d11",
-      "4f57e9d0-68a0-4d48-af8c-59407f3eff3d",
       "e6c9e15d-50fb-423d-89c7-3ce36e18c1be",
       "ed25c806-f660-4c69-9ff0-437f4219465d",
       "bfae7452-1531-406e-bfe8-1f5328bc2f15",
       "56ba1042-7478-4985-aca8-9f36683ce1e9",
       "d065cbbc-7e6d-4311-ac2d-523f202250f1",
-      "a78e5539-c0b7-488d-8147-62459a52fa9c"
+      "a78e5539-c0b7-488d-8147-62459a52fa9c",
+      "4f57e9d0-68a0-4d48-af8c-59407f3eff3d"
     ],
     "route_skills": [
       "8a2739c4-6416-426b-a160-f03cd99eb5b8",
@@ -25,7 +25,9 @@
       "44da0f7e-12b7-479e-a125-8a908554170e",
       "4c971319-4824-4e27-bb21-00cf8c7395c9",
       "fc9993ce-efd6-4b5c-9fba-16f105505c98",
-      "094f76ef-2c81-4a30-9a3e-444d7f761bc8"
+      "094f76ef-2c81-4a30-9a3e-444d7f761bc8",
+      "1cd8c5b8-7f81-43dd-8a93-0228e69765c8",
+      "3fe065ad-0d96-4d78-bf21-3d3f852f489b"
     ],
     "licenses": [
       {
@@ -48,10 +50,10 @@
     "medical_kit": [
       {
         "name": "Disinfettante",
-        "expiry_date": "2028-10-16",
+        "expiry_date": "2028-10-24",
         "notes": "",
-        "needs_replacement": false,
-        "replacement_requested_at": null,
+        "needs_replacement": true,
+        "replacement_requested_at": "2026-10-24T06:56:57.261303+00:00",
         "replacement_note": ""
       },
       {
@@ -84,7 +86,7 @@
     "id": "52729506-03db-4078-aa37-6e0a3b329c6d",
     "name": "Giacomo Tassi",
     "email": "giacomo.tassi@gruppohera.it",
-    "phone": "",
+    "phone": "admin@hera.it",
     "active": true,
     "group": "gruppo2",
     "vehicle_skills": [
@@ -106,7 +108,73 @@
       "44da0f7e-12b7-479e-a125-8a908554170e",
       "4c971319-4824-4e27-bb21-00cf8c7395c9",
       "fc9993ce-efd6-4b5c-9fba-16f105505c98",
-      "094f76ef-2c81-4a30-9a3e-444d7f761bc8"
+      "094f76ef-2c81-4a30-9a3e-444d7f761bc8",
+      "3fe065ad-0d96-4d78-bf21-3d3f852f489b",
+      "1cd8c5b8-7f81-43dd-8a93-0228e69765c8"
+    ],
+    "medical_kit": [
+      {
+        "name": "Laccio emostatico",
+        "expiry_date": "2027-10-23",
+        "notes": "",
+        "needs_replacement": false,
+        "replacement_requested_at": null,
+        "replacement_note": ""
+      },
+      {
+        "name": "Disinfettante",
+        "expiry_date": "2027-10-23",
+        "notes": "",
+        "needs_replacement": false,
+        "replacement_requested_at": null,
+        "replacement_note": ""
+      },
+      {
+        "name": "Guanti monouso",
+        "expiry_date": "2027-10-23",
+        "notes": "",
+        "needs_replacement": false,
+        "replacement_requested_at": null,
+        "replacement_note": ""
+      },
+      {
+        "name": "Garze idrofile",
+        "expiry_date": "2027-10-23",
+        "notes": "",
+        "needs_replacement": false,
+        "replacement_requested_at": null,
+        "replacement_note": ""
+      },
+      {
+        "name": "Cerotti",
+        "expiry_date": "2027-10-23",
+        "notes": "",
+        "needs_replacement": false,
+        "replacement_requested_at": null,
+        "replacement_note": ""
+      },
+      {
+        "name": "Bende sterili",
+        "expiry_date": "2027-10-23",
+        "notes": "",
+        "needs_replacement": false,
+        "replacement_requested_at": null,
+        "replacement_note": ""
+      }
+    ],
+    "licenses": [
+      {
+        "name": "B",
+        "expiry_date": "2028-10-27"
+      },
+      {
+        "name": "C",
+        "expiry_date": "2028-10-27"
+      },
+      {
+        "name": "CQC Merci",
+        "expiry_date": "2027-10-15"
+      }
     ]
   },
   {
@@ -118,13 +186,13 @@
     "group": "gruppo1",
     "vehicle_skills": [
       "9fef3d50-9b82-4bac-9561-0ae176659d11",
-      "4f57e9d0-68a0-4d48-af8c-59407f3eff3d",
       "ed25c806-f660-4c69-9ff0-437f4219465d",
       "bfae7452-1531-406e-bfe8-1f5328bc2f15",
       "56ba1042-7478-4985-aca8-9f36683ce1e9",
       "a78e5539-c0b7-488d-8147-62459a52fa9c",
       "e6c9e15d-50fb-423d-89c7-3ce36e18c1be",
-      "d065cbbc-7e6d-4311-ac2d-523f202250f1"
+      "d065cbbc-7e6d-4311-ac2d-523f202250f1",
+      "4f57e9d0-68a0-4d48-af8c-59407f3eff3d"
     ],
     "route_skills": [
       "8a2739c4-6416-426b-a160-f03cd99eb5b8",
@@ -135,7 +203,9 @@
       "44da0f7e-12b7-479e-a125-8a908554170e",
       "4c971319-4824-4e27-bb21-00cf8c7395c9",
       "094f76ef-2c81-4a30-9a3e-444d7f761bc8",
-      "fc9993ce-efd6-4b5c-9fba-16f105505c98"
+      "fc9993ce-efd6-4b5c-9fba-16f105505c98",
+      "1cd8c5b8-7f81-43dd-8a93-0228e69765c8",
+      "3fe065ad-0d96-4d78-bf21-3d3f852f489b"
     ]
   },
   {
@@ -164,7 +234,9 @@
       "44da0f7e-12b7-479e-a125-8a908554170e",
       "4c971319-4824-4e27-bb21-00cf8c7395c9",
       "fc9993ce-efd6-4b5c-9fba-16f105505c98",
-      "094f76ef-2c81-4a30-9a3e-444d7f761bc8"
+      "094f76ef-2c81-4a30-9a3e-444d7f761bc8",
+      "3fe065ad-0d96-4d78-bf21-3d3f852f489b",
+      "1cd8c5b8-7f81-43dd-8a93-0228e69765c8"
     ],
     "licenses": []
   },
@@ -194,7 +266,9 @@
       "4c971319-4824-4e27-bb21-00cf8c7395c9",
       "44da0f7e-12b7-479e-a125-8a908554170e",
       "094f76ef-2c81-4a30-9a3e-444d7f761bc8",
-      "fc9993ce-efd6-4b5c-9fba-16f105505c98"
+      "fc9993ce-efd6-4b5c-9fba-16f105505c98",
+      "1cd8c5b8-7f81-43dd-8a93-0228e69765c8",
+      "3fe065ad-0d96-4d78-bf21-3d3f852f489b"
     ]
   },
   {
@@ -223,7 +297,9 @@
       "81b5234d-f5fa-4c2e-9622-4afdfd813b5e",
       "4c971319-4824-4e27-bb21-00cf8c7395c9",
       "fc9993ce-efd6-4b5c-9fba-16f105505c98",
-      "094f76ef-2c81-4a30-9a3e-444d7f761bc8"
+      "094f76ef-2c81-4a30-9a3e-444d7f761bc8",
+      "3fe065ad-0d96-4d78-bf21-3d3f852f489b",
+      "1cd8c5b8-7f81-43dd-8a93-0228e69765c8"
     ]
   },
   {
@@ -252,7 +328,9 @@
       "44da0f7e-12b7-479e-a125-8a908554170e",
       "4c971319-4824-4e27-bb21-00cf8c7395c9",
       "094f76ef-2c81-4a30-9a3e-444d7f761bc8",
-      "fc9993ce-efd6-4b5c-9fba-16f105505c98"
+      "fc9993ce-efd6-4b5c-9fba-16f105505c98",
+      "3fe065ad-0d96-4d78-bf21-3d3f852f489b",
+      "1cd8c5b8-7f81-43dd-8a93-0228e69765c8"
     ]
   },
   {
@@ -281,7 +359,9 @@
       "44da0f7e-12b7-479e-a125-8a908554170e",
       "81b5234d-f5fa-4c2e-9622-4afdfd813b5e",
       "fc9993ce-efd6-4b5c-9fba-16f105505c98",
-      "094f76ef-2c81-4a30-9a3e-444d7f761bc8"
+      "094f76ef-2c81-4a30-9a3e-444d7f761bc8",
+      "1cd8c5b8-7f81-43dd-8a93-0228e69765c8",
+      "3fe065ad-0d96-4d78-bf21-3d3f852f489b"
     ]
   },
   {
@@ -310,7 +390,9 @@
       "44da0f7e-12b7-479e-a125-8a908554170e",
       "4c971319-4824-4e27-bb21-00cf8c7395c9",
       "094f76ef-2c81-4a30-9a3e-444d7f761bc8",
-      "fc9993ce-efd6-4b5c-9fba-16f105505c98"
+      "fc9993ce-efd6-4b5c-9fba-16f105505c98",
+      "3fe065ad-0d96-4d78-bf21-3d3f852f489b",
+      "1cd8c5b8-7f81-43dd-8a93-0228e69765c8"
     ]
   },
   {
@@ -339,7 +421,9 @@
       "81b5234d-f5fa-4c2e-9622-4afdfd813b5e",
       "3a28f023-e2e8-48f9-a772-fd0460f15673",
       "094f76ef-2c81-4a30-9a3e-444d7f761bc8",
-      "fc9993ce-efd6-4b5c-9fba-16f105505c98"
+      "fc9993ce-efd6-4b5c-9fba-16f105505c98",
+      "1cd8c5b8-7f81-43dd-8a93-0228e69765c8",
+      "3fe065ad-0d96-4d78-bf21-3d3f852f489b"
     ]
   },
   {
@@ -435,7 +519,9 @@
       "3a28f023-e2e8-48f9-a772-fd0460f15673",
       "95ee4c80-cefe-45d7-a889-11ca5340d10b",
       "4e8804e6-e4f6-4248-bd18-cba940850c7b",
-      "8a2739c4-6416-426b-a160-f03cd99eb5b8"
+      "8a2739c4-6416-426b-a160-f03cd99eb5b8",
+      "3fe065ad-0d96-4d78-bf21-3d3f852f489b",
+      "1cd8c5b8-7f81-43dd-8a93-0228e69765c8"
     ]
   },
   {
@@ -531,7 +617,9 @@
       "3a28f023-e2e8-48f9-a772-fd0460f15673",
       "95ee4c80-cefe-45d7-a889-11ca5340d10b",
       "4e8804e6-e4f6-4248-bd18-cba940850c7b",
-      "8a2739c4-6416-426b-a160-f03cd99eb5b8"
+      "8a2739c4-6416-426b-a160-f03cd99eb5b8",
+      "1cd8c5b8-7f81-43dd-8a93-0228e69765c8",
+      "3fe065ad-0d96-4d78-bf21-3d3f852f489b"
     ]
   }
 ]
