@@ -19,7 +19,8 @@ import {
   X,
   ChevronRight,
   RefreshCw,
-  ShieldCheck
+  ShieldCheck,
+  Scale
 } from "lucide-react";
 import { initials } from "../lib/dates";
 
@@ -33,6 +34,7 @@ const PRIMARY_NAV = [
 
 const SECONDARY_NAV = [
   { to: "/archivio-checklist", label: "Archivio Checklist", icon: ClipboardCheck, tid: "nav-checklist" },
+  { to: "/archivio-pesi", label: "Archivio Pesi", icon: Scale, tid: "nav-weighings" },
   { to: "/assenze", label: "Assenze & Ferie", icon: CalendarOff, tid: "nav-absences" },
   { to: "/scambi", label: "Scambi Turno", icon: ArrowLeftRight, tid: "nav-swaps" },
   { to: "/formazioni", label: "Abilitazioni", icon: GraduationCap, tid: "nav-skills" },

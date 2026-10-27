@@ -1,10 +1,11 @@
-﻿import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import api, { apiError } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
 import { weekKey, weekLabel, shiftWeek, DAY_FULL, initials } from "../lib/dates";
 import ScheduleBoard from "../components/ScheduleBoard";
 import ChecklistModal from "../components/ChecklistModal";
+import WeighingModal from "../components/WeighingModal";
 import Logo from "../components/Logo";
 import { Button } from "../components/ui/button";
 import { Textarea } from "../components/ui/textarea";
@@ -13,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "../components/ui/dialog";
 import { requestNotificationPermission, triggerLocalNotification } from "../lib/pushNotifications";
 import { toast } from "sonner";
-import { ChevronLeft, ChevronRight, LogOut, LayoutDashboard, Clock, Bell, ArrowLeftRight, Check, X as XIcon, Info, RefreshCw, BriefcaseMedical, RotateCw, CheckCircle2, AlertTriangle, MessageSquarePlus, Award, ShieldCheck, Fuel } from "lucide-react";
+import { ChevronLeft, ChevronRight, LogOut, LayoutDashboard, Clock, Bell, ArrowLeftRight, Check, X as XIcon, Info, RefreshCw, BriefcaseMedical, RotateCw, CheckCircle2, AlertTriangle, MessageSquarePlus, Award, ShieldCheck, Fuel, Scale } from "lucide-react";
 import { getMedicalKitSummary, getMedicalItemStatus, getLicensesSummary, getLicenseStatus } from "./Drivers";
 
 const SLOT_TIME = { presto: "05:30 - 11:50", standard: "06:00 - 12:20", pomeriggio: "12:30 - 18:50", domenica: "06:00 - 12:20" };
@@ -41,6 +42,8 @@ export default function DriverView() {
   const [checklistModalOpen, setChecklistModalOpen] = useState(false);
   const [checklistMode, setChecklistMode] = useState("start");
   const [activeChecklistShift, setActiveChecklistShift] = useState(null);
+  const [weighingModalOpen, setWeighingModalOpen] = useState(false);
+  const [activeWeighingShift, setActiveWeighingShift] = useState(null);
   const [weekSwapOpen, setWeekSwapOpen] = useState(false);
   const [swapTo, setSwapTo] = useState("");
   const [swapNote, setSwapNote] = useState("");
@@ -541,6 +544,38 @@ export default function DriverView() {
                             <span>{s.end_checklist ? "Fine: Fatto" : "Fine Servizio"}</span>
                           </Button>
                         </div>
+
+                        {/* Gestione Pesi e Scarichi Rifiuti */}
+                        <div className="mt-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setActiveWeighingShift(s);
+                              setWeighingModalOpen(true);
+                            }}
+                            className={`h-9 w-full px-2 text-[11px] font-bold rounded-xl border flex items-center justify-between gap-1.5 transition-all ${
+                              (s.weighings_count > 0 || (s.weighings && s.weighings.length > 0))
+                                ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-800 dark:text-emerald-300 font-extrabold shadow-2xs"
+                                : "bg-secondary/20 hover:bg-emerald-500/10 hover:border-emerald-500/30 text-foreground"
+                            }`}
+                          >
+                            <div className="flex items-center gap-1.5">
+                              <Scale size={14} className={(s.weighings_count > 0 || (s.weighings && s.weighings.length > 0)) ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"} />
+                              <span>
+                                {(s.weighings_count > 0 || (s.weighings && s.weighings.length > 0))
+                                  ? `Scarichi Rifiuti (${s.weighings_count || s.weighings.length})`
+                                  : "Scarico & Pesi"}
+                              </span>
+                            </div>
+                            {s.total_net_weight_kg > 0 && (
+                              <span className="font-mono text-[10px] bg-emerald-500/20 text-emerald-900 dark:text-emerald-200 font-bold px-2 py-0.5 rounded-full">
+                                {s.total_net_weight_kg.toLocaleString("it-IT")} kg
+                              </span>
+                            )}
+                          </Button>
+                        </div>
                       </div>
                       {pendingSwap ? (
                         <div className="mt-3 text-xs font-mono text-amber-700 bg-amber-500/10 p-2 rounded-sm border border-amber-500/20 flex items-center gap-1.5">
@@ -1009,6 +1044,12 @@ export default function DriverView() {
         onOpenChange={setChecklistModalOpen}
         shift={activeChecklistShift}
         mode={checklistMode}
+        onSuccess={loadWeekData}
+      />
+      <WeighingModal
+        open={weighingModalOpen}
+        onOpenChange={setWeighingModalOpen}
+        shift={activeWeighingShift}
         onSuccess={loadWeekData}
       />
     </div>

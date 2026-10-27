@@ -331,6 +331,26 @@ class EndChecklistInput(BaseModel):
     notes: Optional[str] = ""
 
 
+class WeighingInput(BaseModel):
+    net_weight: float = Field(..., ge=0, description="Peso netto in kg comunicato dalla pesa")
+    destination: Optional[str] = ""
+    waste_type: Optional[str] = ""
+    entry_time: Optional[str] = ""
+    exit_time: Optional[str] = ""
+    duration_minutes: Optional[int] = None
+    notes: Optional[str] = ""
+
+
+class WeighingUpdateInput(BaseModel):
+    net_weight: Optional[float] = Field(None, ge=0)
+    destination: Optional[str] = None
+    waste_type: Optional[str] = None
+    entry_time: Optional[str] = None
+    exit_time: Optional[str] = None
+    duration_minutes: Optional[int] = None
+    notes: Optional[str] = None
+
+
 class SwapRequestInput(BaseModel):
     kind: str = "shift"  # "shift" | "week"
     shift_id: Optional[str] = None
@@ -1524,6 +1544,238 @@ async def get_checklist_archive(
     return shifts
 
 
+# ---------------------------------------------------------------------------
+# Gestione Pesi & Scarichi (Weighings / Discharges)
+# ---------------------------------------------------------------------------
+def _calc_duration_minutes(entry_str: Optional[str], exit_str: Optional[str]) -> Optional[int]:
+    if not entry_str or not exit_str:
+        return None
+    try:
+        e_h, e_m = map(int, entry_str.strip().split(":"))
+        x_h, x_m = map(int, exit_str.strip().split(":"))
+        diff = (x_h * 60 + x_m) - (e_h * 60 + e_m)
+        if diff < 0:
+            diff += 24 * 60
+        return diff
+    except Exception:
+        return None
+
+
+def _calc_shift_date(week_start: Optional[str], day: Optional[int]) -> str:
+    if not week_start:
+        return datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    try:
+        from datetime import datetime as dt_cls, timedelta
+        d = 0 if day is None else int(day)
+        return (dt_cls.strptime(week_start, "%Y-%m-%d") + timedelta(days=d)).strftime("%Y-%m-%d")
+    except Exception:
+        return week_start
+
+
+@api_router.get("/shifts/{sid}/weighings")
+async def list_shift_weighings(sid: str, user: dict = Depends(get_current_user)):
+    """Restituisce tutti gli scarichi registrati per il turno specificato."""
+    shift = await db.shifts.find_one({"id": sid})
+    if not shift:
+        raise HTTPException(status_code=404, detail="Turno non trovato")
+    weighings = await db.weighings.find({"shift_id": sid}, {"_id": 0}).sort("discharge_number", 1).to_list(100)
+    return weighings
+
+
+@api_router.post("/shifts/{sid}/weighings")
+async def create_shift_weighing(sid: str, data: WeighingInput, user: dict = Depends(get_current_user)):
+    """Registra una nuova pesata/scarico per il turno specificato."""
+    shift = await db.shifts.find_one({"id": sid})
+    if not shift:
+        raise HTTPException(status_code=404, detail="Turno non trovato")
+
+    if user.get("role") == "driver" and user.get("driver_id") != shift.get("driver_id"):
+        raise HTTPException(status_code=403, detail="Non sei l'autista assegnato a questo turno")
+
+    driver_id = shift.get("driver_id") or user.get("driver_id")
+    driver = await db.drivers.find_one({"id": driver_id}) if driver_id else None
+    driver_name = driver["name"] if driver else (user.get("name") or "Autista")
+
+    vehicle_id = shift.get("vehicle_id")
+    vehicle = await db.vehicles.find_one({"id": vehicle_id}) if vehicle_id else None
+    vehicle_plate = vehicle.get("plate", "") if vehicle else ""
+    vehicle_name = vehicle.get("name", "") if vehicle else ""
+
+    route_id = shift.get("route_id")
+    route = await db.routes.find_one({"id": route_id}) if route_id else None
+    route_code = route.get("code", "") if route else ""
+    route_name = route.get("name", "") if route else ""
+
+    existing_count = await db.weighings.count_documents({"shift_id": sid})
+    discharge_number = existing_count + 1
+
+    duration = data.duration_minutes
+    if duration is None:
+        duration = _calc_duration_minutes(data.entry_time, data.exit_time)
+
+    now_iso = datetime.now(timezone.utc).isoformat()
+    shift_date = _calc_shift_date(shift.get("week_start"), shift.get("day"))
+
+    weighing_doc = {
+        "id": str(uuid.uuid4()),
+        "shift_id": sid,
+        "discharge_number": discharge_number,
+        "date": shift_date,
+        "week_start": shift.get("week_start"),
+        "day": shift.get("day"),
+        "slot": shift.get("slot"),
+        "driver_id": driver_id,
+        "driver_name": driver_name,
+        "vehicle_id": vehicle_id,
+        "vehicle_plate": vehicle_plate,
+        "vehicle_name": vehicle_name,
+        "route_id": route_id,
+        "route_code": route_code,
+        "route_name": route_name,
+        "net_weight": float(data.net_weight),
+        "destination": (data.destination or "").strip(),
+        "waste_type": (data.waste_type or "").strip(),
+        "entry_time": (data.entry_time or "").strip(),
+        "exit_time": (data.exit_time or "").strip(),
+        "duration_minutes": duration,
+        "notes": (data.notes or "").strip(),
+        "created_at": now_iso,
+        "created_by": user.get("name") or user.get("email") or "Autista",
+    }
+
+    await db.weighings.insert_one(weighing_doc)
+
+    shift_weighings = await db.weighings.find({"shift_id": sid}, {"_id": 0}).sort("discharge_number", 1).to_list(100)
+    total_net_kg = sum(w.get("net_weight", 0) for w in shift_weighings)
+    await db.shifts.update_one(
+        {"id": sid},
+        {"$set": {
+            "weighings": shift_weighings,
+            "weighings_count": len(shift_weighings),
+            "total_net_weight_kg": total_net_kg,
+        }}
+    )
+
+    clean_doc = {k: v for k, v in weighing_doc.items() if k != "_id"}
+    return clean_doc
+
+
+@api_router.patch("/weighings/{wid}")
+async def update_weighing(wid: str, data: WeighingUpdateInput, user: dict = Depends(get_current_user)):
+    """Aggiorna un record di pesata/scarico."""
+    weighing = await db.weighings.find_one({"id": wid})
+    if not weighing:
+        raise HTTPException(status_code=404, detail="Scarico non trovato")
+
+    if user.get("role") == "driver" and user.get("driver_id") != weighing.get("driver_id"):
+        raise HTTPException(status_code=403, detail="Non autorizzato a modificare questo scarico")
+
+    updates = {}
+    if data.net_weight is not None:
+        updates["net_weight"] = float(data.net_weight)
+    if data.destination is not None:
+        updates["destination"] = data.destination.strip()
+    if data.waste_type is not None:
+        updates["waste_type"] = data.waste_type.strip()
+    if data.entry_time is not None:
+        updates["entry_time"] = data.entry_time.strip()
+    if data.exit_time is not None:
+        updates["exit_time"] = data.exit_time.strip()
+    if data.notes is not None:
+        updates["notes"] = data.notes.strip()
+
+    entry_val = updates.get("entry_time", weighing.get("entry_time", ""))
+    exit_val = updates.get("exit_time", weighing.get("exit_time", ""))
+    if data.duration_minutes is not None:
+        updates["duration_minutes"] = data.duration_minutes
+    elif data.entry_time is not None or data.exit_time is not None:
+        updates["duration_minutes"] = _calc_duration_minutes(entry_val, exit_val)
+
+    updates["updated_at"] = datetime.now(timezone.utc).isoformat()
+
+    await db.weighings.update_one({"id": wid}, {"$set": updates})
+
+    sid = weighing.get("shift_id")
+    if sid:
+        shift_weighings = await db.weighings.find({"shift_id": sid}, {"_id": 0}).sort("discharge_number", 1).to_list(100)
+        total_net_kg = sum(w.get("net_weight", 0) for w in shift_weighings)
+        await db.shifts.update_one(
+            {"id": sid},
+            {"$set": {
+                "weighings": shift_weighings,
+                "weighings_count": len(shift_weighings),
+                "total_net_weight_kg": total_net_kg,
+            }}
+        )
+
+    return await db.weighings.find_one({"id": wid}, {"_id": 0})
+
+
+@api_router.delete("/weighings/{wid}")
+async def delete_weighing(wid: str, user: dict = Depends(get_current_user)):
+    """Elimina un record di pesata/scarico."""
+    weighing = await db.weighings.find_one({"id": wid})
+    if not weighing:
+        raise HTTPException(status_code=404, detail="Scarico non trovato")
+
+    if user.get("role") == "driver" and user.get("driver_id") != weighing.get("driver_id"):
+        raise HTTPException(status_code=403, detail="Non autorizzato a eliminare questo scarico")
+
+    sid = weighing.get("shift_id")
+    await db.weighings.delete_one({"id": wid})
+
+    if sid:
+        shift_weighings = await db.weighings.find({"shift_id": sid}, {"_id": 0}).sort("discharge_number", 1).to_list(100)
+        for idx, w in enumerate(shift_weighings, start=1):
+            if w.get("discharge_number") != idx:
+                await db.weighings.update_one({"id": w["id"]}, {"$set": {"discharge_number": idx}})
+                w["discharge_number"] = idx
+
+        total_net_kg = sum(w.get("net_weight", 0) for w in shift_weighings)
+        await db.shifts.update_one(
+            {"id": sid},
+            {"$set": {
+                "weighings": shift_weighings,
+                "weighings_count": len(shift_weighings),
+                "total_net_weight_kg": total_net_kg,
+            }}
+        )
+
+    return {"ok": True, "deleted": wid}
+
+
+@api_router.get("/weighings")
+async def get_weighings_archive(
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    driver_id: Optional[str] = None,
+    vehicle_id: Optional[str] = None,
+    destination: Optional[str] = None,
+    waste_type: Optional[str] = None,
+    user: dict = Depends(require_staff)
+):
+    """Restituisce l'archivio completo delle pesate con filtri avanzati per la consultazione dello staff."""
+    query = {}
+    if start_date and end_date:
+        query["date"] = {"$gte": start_date, "$lte": end_date}
+    elif start_date:
+        query["date"] = {"$gte": start_date}
+    elif end_date:
+        query["date"] = {"$lte": end_date}
+
+    if driver_id:
+        query["driver_id"] = driver_id
+    if vehicle_id:
+        query["vehicle_id"] = vehicle_id
+    if destination:
+        query["destination"] = {"$regex": destination, "$options": "i"}
+    if waste_type:
+        query["waste_type"] = {"$regex": waste_type, "$options": "i"}
+
+    weighings = await db.weighings.find(query, {"_id": 0}).sort([("date", -1), ("created_at", -1)]).to_list(1000)
+    return weighings
+
+
 @api_router.get("/meta/slots")
 async def meta_slots(user: dict = Depends(get_current_user)):
     return {"slots": SHIFT_SLOTS, "days": DAYS}
@@ -1859,7 +2111,7 @@ async def decide_swap(swid: str, data: SwapDecision, user: dict = Depends(requir
 
 
 @api_router.delete("/swap-requests/{swid}")
-async def delete_swap(swid: str, user: dict = Depends(require_role("admin"))):
+async def delete_swap(swid: str, user: dict = Depends(require_admin)):
     sw = await db.swap_requests.find_one({"id": swid})
     if not sw:
         raise HTTPException(status_code=404, detail="Richiesta di cambio non trovata")

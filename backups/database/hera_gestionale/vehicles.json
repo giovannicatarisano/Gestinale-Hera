@@ -33,7 +33,12 @@
     "plate": "ws152wd",
     "type": "Scarrabile",
     "fault_note": "",
-    "status": "available"
+    "status": "available",
+    "current_km": 158952,
+    "last_km_updated_at": "2026-10-27T08:34:08.820022+00:00",
+    "last_km_updated_by": "Giovanni Catarisano",
+    "last_service_date": "2026-10-27",
+    "last_service_km": 158760
   },
   {
     "id": "ed25c806-f660-4c69-9ff0-437f4219465d",

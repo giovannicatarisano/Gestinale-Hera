@@ -14,6 +14,7 @@ import SkillMatrix from "./pages/SkillMatrix";
 import DriverView from "./pages/DriverView";
 import Assistants from "./pages/Assistants";
 import ChecklistArchive from "./pages/ChecklistArchive";
+import WeighingsArchive from "./pages/WeighingsArchive";
 import "./App.css";
 
 function Loader() {
@@ -71,6 +72,7 @@ function App() {
             <Route path="/mezzi" element={<Fleet />} />
             <Route path="/giri" element={<RoutesPage />} />
             <Route path="/archivio-checklist" element={<ChecklistArchive />} />
+            <Route path="/archivio-pesi" element={<WeighingsArchive />} />
             <Route path="/assenze" element={<Absences />} />
             <Route path="/scambi" element={<Swaps />} />
             <Route path="/formazioni" element={<SkillMatrix />} />

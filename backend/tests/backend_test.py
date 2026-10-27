@@ -561,3 +561,61 @@ class TestRegression:
             assert any(a["id"] == aid for a in lst)
         finally:
             requests.delete(f"{BASE_URL}/api/absences/{aid}", headers=H(admin_token))
+
+    def test_weighings_crud(self, admin_token):
+        wk = "2026-06-01"
+        requests.post(f"{BASE_URL}/api/shifts/generate", json={"week_start": wk}, headers=H(admin_token))
+        shifts = requests.get(f"{BASE_URL}/api/shifts?week_start={wk}", headers=H(admin_token)).json()
+        if not shifts:
+            pytest.skip("No shifts available")
+        sid = shifts[0]["id"]
+
+        # 1. Inserisci una prima pesata/scarico
+        payload = {
+            "net_weight": 2450.5,
+            "destination": "CDR Centro",
+            "waste_type": "Indifferenziato (RSU)",
+            "entry_time": "10:15",
+            "exit_time": "10:35",
+            "notes": "Scarico prova test"
+        }
+        res = requests.post(f"{BASE_URL}/api/shifts/{sid}/weighings", json=payload, headers=H(admin_token))
+        assert res.status_code == 200, res.text
+        w_data = res.json()
+        wid = w_data["id"]
+        assert w_data["discharge_number"] == 1
+        assert w_data["net_weight"] == 2450.5
+        assert w_data["duration_minutes"] == 20
+
+        try:
+            # 2. Inserisci un secondo scarico
+            payload2 = {
+                "net_weight": 1200.0,
+                "destination": "CDR Nord",
+                "waste_type": "Carta & Cartone",
+                "notes": "Secondo scarico"
+            }
+            res2 = requests.post(f"{BASE_URL}/api/shifts/{sid}/weighings", json=payload2, headers=H(admin_token))
+            assert res2.status_code == 200
+            w2_data = res2.json()
+            wid2 = w2_data["id"]
+
+            try:
+                # 3. Lista pesate del turno
+                lst = requests.get(f"{BASE_URL}/api/shifts/{sid}/weighings", headers=H(admin_token)).json()
+                assert len(lst) >= 2
+                assert any(x["id"] == wid for x in lst)
+                assert any(x["id"] == wid2 for x in lst)
+
+                # 4. Modifica pesata
+                patch_res = requests.patch(f"{BASE_URL}/api/weighings/{wid}", json={"net_weight": 2500.0, "notes": "Peso corretto"}, headers=H(admin_token))
+                assert patch_res.status_code == 200
+                assert patch_res.json()["net_weight"] == 2500.0
+
+                # 5. Archivio pesate
+                arch = requests.get(f"{BASE_URL}/api/weighings", headers=H(admin_token)).json()
+                assert any(x["id"] == wid for x in arch)
+            finally:
+                requests.delete(f"{BASE_URL}/api/weighings/{wid2}", headers=H(admin_token))
+        finally:
+            requests.delete(f"{BASE_URL}/api/weighings/{wid}", headers=H(admin_token))
