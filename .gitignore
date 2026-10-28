@@ -93,3 +93,7 @@ cloudflared.exe
 
 # Presentation drafts
 *.deckcraft
+
+# Database backups (contengono PII e password_hash)
+backups/
+*.bson

@@ -7,7 +7,7 @@ services:
     startCommand: uvicorn server:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: MONGO_URL
-        value: mongodb+srv://catarisanogiovanni51_db_user:KHPTMxTniGszmLhb@gestionale.ts1dkyz.mongodb.net/?appName=Gestionale
+        sync: false
       - key: DB_NAME
         value: hera_gestionale
       - key: JWT_SECRET
@@ -15,7 +15,7 @@ services:
       - key: ADMIN_EMAIL
         value: admin@hera.it
       - key: ADMIN_PASSWORD
-        value: admin123
+        sync: false
       - key: CORS_ORIGINS
         value: "*"
       - key: PORT

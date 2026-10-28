@@ -15,7 +15,9 @@ import uuid
 import bcrypt
 import jwt
 from datetime import datetime, timezone, timedelta, date
-
+from collections import defaultdict
+import re
+import time
 import certifi
 
 mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
@@ -23,18 +25,25 @@ if "mongodb+srv://" in mongo_url and "authsource=" not in mongo_url.lower():
     sep = "&" if "?" in mongo_url else "?"
     mongo_url = f"{mongo_url}{sep}authSource=admin"
 is_tls = "mongodb+srv://" in mongo_url or "tls=true" in mongo_url.lower() or "ssl=true" in mongo_url.lower()
+_pool_kwargs = {"serverSelectionTimeoutMS": 5000, "maxPoolSize": 100, "minPoolSize": 5}
 if is_tls:
     try:
         ca = certifi.where()
-        client = AsyncIOMotorClient(mongo_url, tlsCAFile=ca, serverSelectionTimeoutMS=5000)
+        client = AsyncIOMotorClient(mongo_url, tlsCAFile=ca, **_pool_kwargs)
     except Exception:
-        client = AsyncIOMotorClient(mongo_url, serverSelectionTimeoutMS=5000)
+        client = AsyncIOMotorClient(mongo_url, **_pool_kwargs)
 else:
-    client = AsyncIOMotorClient(mongo_url, serverSelectionTimeoutMS=5000)
+    client = AsyncIOMotorClient(mongo_url, **_pool_kwargs)
 db_name = os.environ.get('DB_NAME', 'hera_gestionale')
 db = client[db_name]
 
-app = FastAPI(title="Hera Turni API")
+IS_PROD = os.environ.get("ENV", "development").lower() == "production"
+app = FastAPI(
+    title="Hera Turni API",
+    docs_url=None if IS_PROD else "/docs",
+    redoc_url=None if IS_PROD else "/redoc",
+    openapi_url=None if IS_PROD else "/openapi.json",
+)
 api_router = APIRouter(prefix="/api")
 
 logging.basicConfig(level=logging.INFO)
@@ -45,6 +54,10 @@ logger = logging.getLogger("hera")
 # ---------------------------------------------------------------------------
 JWT_ALGORITHM = "HS256"
 JWT_SECRET = os.environ.get("JWT_SECRET", "hera_super_secret_jwt_key_2026_default")
+if IS_PROD and (JWT_SECRET == "hera_super_secret_jwt_key_2026_default" or len(JWT_SECRET) < 32):
+    raise RuntimeError("CRITICO: In produzione JWT_SECRET deve essere configurata con almeno 32 caratteri.")
+elif JWT_SECRET == "hera_super_secret_jwt_key_2026_default":
+    logger.warning("AVVISO SICUREZZA: JWT_SECRET utilizza il valore di default. Configura JWT_SECRET nel file .env.")
 
 SHIFT_SLOTS = {
     "presto": {"label": "Mattino Presto", "start": "05:30", "end": "11:50", "max_drivers": 3},
@@ -54,16 +67,38 @@ SHIFT_SLOTS = {
 }
 DAYS = ["Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato", "Domenica"]
 
+_LOGIN_ATTEMPTS: dict[str, list[float]] = defaultdict(list)
+MAX_LOGIN_ATTEMPTS = 8
+LOCKOUT_SECONDS = 300  # 5 minuti
+
+
+def parse_iso_date(date_str: str, field_name: str = "data") -> date:
+    try:
+        return datetime.strptime(date_str, "%Y-%m-%d").date()
+    except (ValueError, TypeError):
+        raise HTTPException(status_code=400, detail=f"Formato {field_name} non valido (atteso YYYY-MM-DD)")
+
 
 # ---------------------------------------------------------------------------
 # Funzioni di supporto per autenticazione e sicurezza
 # ---------------------------------------------------------------------------
 def hash_password(password: str) -> str:
-    return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+    pwd_bytes = (password or "").encode("utf-8")
+    if len(pwd_bytes) > 72:
+        raise HTTPException(status_code=400, detail="La password non può superare i 72 caratteri")
+    return bcrypt.hashpw(pwd_bytes, bcrypt.gensalt()).decode("utf-8")
 
 
 def verify_password(plain: str, hashed: str) -> bool:
-    return bcrypt.checkpw(plain.encode("utf-8"), hashed.encode("utf-8"))
+    if not plain or not hashed:
+        return False
+    plain_bytes = plain.encode("utf-8")
+    if len(plain_bytes) > 72:
+        return False
+    try:
+        return bcrypt.checkpw(plain_bytes, hashed.encode("utf-8"))
+    except ValueError:
+        return False
 
 
 def create_access_token(user_id: str, email: str, role: str) -> str:
@@ -88,9 +123,15 @@ async def get_current_user(request: Request) -> dict:
         raise HTTPException(status_code=401, detail="Non autenticato")
     try:
         payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        if payload.get("type") not in (None, "access"):
+            raise HTTPException(status_code=401, detail="Tipo di token non valido")
         user = await db.users.find_one({"id": payload["sub"]}, {"_id": 0, "password_hash": 0})
         if not user:
             raise HTTPException(status_code=401, detail="Utente non trovato")
+        if user.get("role") == "driver" and user.get("driver_id"):
+            driver = await db.drivers.find_one({"id": user["driver_id"]}, {"_id": 0, "active": 1})
+            if driver and not driver.get("active", True):
+                raise HTTPException(status_code=403, detail="Account autista disattivato")
         return user
     except jwt.ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="Token scaduto")
@@ -376,11 +417,27 @@ class NotifRead(BaseModel):
 # Endpoint di autenticazione
 # ---------------------------------------------------------------------------
 @api_router.post("/auth/login")
-async def login(data: LoginInput):
+async def login(data: LoginInput, request: Request):
     email = data.email.strip().lower()
+    client_ip = request.client.host if request.client else "unknown"
+    rate_key = f"{client_ip}:{email}"
+    now = time.time()
+
+    _LOGIN_ATTEMPTS[rate_key] = [t for t in _LOGIN_ATTEMPTS[rate_key] if now - t < LOCKOUT_SECONDS]
+    if len(_LOGIN_ATTEMPTS[rate_key]) >= MAX_LOGIN_ATTEMPTS:
+        raise HTTPException(status_code=429, detail="Troppi tentativi di accesso falliti. Riprova tra qualche minuto.")
+
     user = await db.users.find_one({"email": email})
     if not user or not verify_password(data.password, user["password_hash"]):
+        _LOGIN_ATTEMPTS[rate_key].append(now)
         raise HTTPException(status_code=401, detail="Credenziali non valide")
+
+    if user.get("role") == "driver" and user.get("driver_id"):
+        driver = await db.drivers.find_one({"id": user["driver_id"]}, {"_id": 0, "active": 1})
+        if driver and not driver.get("active", True):
+            raise HTTPException(status_code=403, detail="Account autista disattivato")
+
+    _LOGIN_ATTEMPTS.pop(rate_key, None)
     token = create_access_token(user["id"], user["email"], user["role"])
     return {
         "token": token,
@@ -570,6 +627,22 @@ async def delete_route(rid: str, user: dict = Depends(require_staff)):
 @api_router.get("/drivers")
 async def list_drivers(user: dict = Depends(get_current_user)):
     drivers = await db.drivers.find({}, {"_id": 0}).to_list(1000)
+    if user.get("role") not in ("admin", "assistant"):
+        my_did = user.get("driver_id")
+        # Agli autisti espone il proprio profilo completo e solo i campi operativi dei colleghi
+        return [
+            d if d["id"] == my_did else {
+                "id": d["id"],
+                "name": d["name"],
+                "active": d.get("active", True),
+                "group": d.get("group", ""),
+                "route_skills": d.get("route_skills", []),
+                "vehicle_skills": d.get("vehicle_skills", []),
+                "licenses": [],
+                "medical_kit": [],
+            }
+            for d in drivers
+        ]
     accounts = await db.users.find({"role": "driver"}, {"_id": 0, "driver_id": 1}).to_list(2000)
     linked = {a.get("driver_id") for a in accounts}
     for d in drivers:
@@ -581,6 +654,8 @@ async def _create_driver_account(driver: dict, password: str):
     email = (driver.get("email") or "").strip().lower()
     if not email:
         raise HTTPException(status_code=400, detail="Email autista obbligatoria per creare l'accesso")
+    if len((password or "").strip()) < 4:
+        raise HTTPException(status_code=400, detail="La password deve avere almeno 4 caratteri")
     existing = await db.users.find_one({"email": email})
     if existing and existing.get("driver_id") != driver["id"]:
         raise HTTPException(status_code=400, detail="Email già  utilizzata da un altro account")
@@ -607,6 +682,9 @@ async def create_driver(data: DriverInput, user: dict = Depends(require_staff)):
 
 @api_router.put("/drivers/{did}")
 async def update_driver(did: str, data: DriverInput, user: dict = Depends(require_staff)):
+    existing = await db.drivers.find_one({"id": did}, {"_id": 0})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Autista non trovato")
     payload = data.model_dump()
     password = payload.pop("password", None)
     await db.drivers.update_one({"id": did}, {"$set": payload})
@@ -784,7 +862,12 @@ async def update_skills(did: str, data: SkillsInput, user: dict = Depends(requir
 # ---------------------------------------------------------------------------
 @api_router.get("/absences")
 async def list_absences(user: dict = Depends(get_current_user)):
-    return await db.absences.find({}, {"_id": 0}).to_list(2000)
+    if user.get("role") in ("admin", "assistant"):
+        return await db.absences.find({}, {"_id": 0}).to_list(2000)
+    did = user.get("driver_id")
+    if not did:
+        return []
+    return await db.absences.find({"driver_id": did}, {"_id": 0}).to_list(500)
 
 
 @api_router.post("/absences")
@@ -926,7 +1009,7 @@ def route_days_for_week(route: dict, week_start: str) -> list:
     allowed = [6] if slot == "domenica" else [0, 1, 2, 3, 4, 5]
     if route.get("schedule_mode") == "frequency":
         interval = max(1, int(route.get("interval_days") or 1))
-        monday = datetime.strptime(week_start, "%Y-%m-%d").date()
+        monday = parse_iso_date(week_start, "week_start")
         start_d = None
         if route.get("start_date"):
             try:
@@ -956,7 +1039,7 @@ POMERIGGIO_SLOTS = {"pomeriggio"}
 
 
 def week_index(week_start: str) -> int:
-    monday = datetime.strptime(week_start, "%Y-%m-%d").date()
+    monday = parse_iso_date(week_start, "week_start")
     return (monday - ROTATION_EPOCH).days // 7
 
 
@@ -1044,13 +1127,13 @@ async def get_rotation(week_start: str, user: dict = Depends(get_current_user)):
 @api_router.post("/shifts/generate")
 async def generate_shifts(data: GenerateInput, user: dict = Depends(require_staff)):
     week_start = data.week_start
+    monday = parse_iso_date(week_start, "week_start")
     await db.shifts.delete_many({"week_start": week_start})
 
     vehicles = await db.vehicles.find({}, {"_id": 0}).to_list(1000)
     routes = await db.routes.find({}, {"_id": 0}).to_list(1000)
     drivers = [d for d in await db.drivers.find({}, {"_id": 0}).to_list(1000) if d.get("active", True)]
     absences = await db.absences.find({}, {"_id": 0}).to_list(2000)
-    monday = datetime.strptime(week_start, "%Y-%m-%d").date()
 
     # Rotazione settimanale: ciascun autista mantiene la stessa fascia oraria per tutta la settimana
     wslot = weekly_slot_map(week_start, drivers)
@@ -1403,7 +1486,7 @@ async def submit_start_checklist(sid: str, data: StartChecklistInput, user: dict
         "submitted_at": now_iso,
         "submitted_by_user": user.get("name") or user.get("email"),
         "km_start": data.km_start,
-        "items": [item.dict() for item in data.items],
+        "items": [item.model_dump() for item in data.items],
         "notes": data.notes or "",
         "has_anomalies": any(item.status == "NC" for item in data.items)
     }
@@ -1470,7 +1553,7 @@ async def submit_end_checklist(sid: str, data: EndChecklistInput, user: dict = D
         "fuel_notes": data.fuel_notes or "",
         "service_completed": data.service_completed,
         "service_notes": data.service_notes or "",
-        "items": [item.dict() for item in data.items],
+        "items": [item.model_dump() for item in data.items],
         "notes": data.notes or "",
         "has_anomalies": any(item.status == "NC" for item in data.items) or not data.fuel_done or not data.service_completed
     }
@@ -1578,6 +1661,8 @@ async def list_shift_weighings(sid: str, user: dict = Depends(get_current_user))
     shift = await db.shifts.find_one({"id": sid})
     if not shift:
         raise HTTPException(status_code=404, detail="Turno non trovato")
+    if user.get("role") == "driver" and user.get("driver_id") != shift.get("driver_id"):
+        raise HTTPException(status_code=403, detail="Non sei autorizzato a visualizzare gli scarichi di questo turno")
     weighings = await db.weighings.find({"shift_id": sid}, {"_id": 0}).sort("discharge_number", 1).to_list(100)
     return weighings
 
@@ -1768,9 +1853,11 @@ async def get_weighings_archive(
     if vehicle_id:
         query["vehicle_id"] = vehicle_id
     if destination:
-        query["destination"] = {"$regex": destination, "$options": "i"}
+        safe_dest = re.escape(destination.strip())
+        query["destination"] = {"$regex": safe_dest, "$options": "i"}
     if waste_type:
-        query["waste_type"] = {"$regex": waste_type, "$options": "i"}
+        safe_waste = re.escape(waste_type.strip())
+        query["waste_type"] = {"$regex": safe_waste, "$options": "i"}
 
     weighings = await db.weighings.find(query, {"_id": 0}).sort([("date", -1), ("created_at", -1)]).to_list(1000)
     return weighings
@@ -1827,14 +1914,6 @@ async def mark_notifications_read(data: NotifRead, user: dict = Depends(get_curr
         q["id"] = {"$in": data.ids}
     await db.notifications.update_many(q, {"$set": {"read": True}})
     return {"ok": True}
-    did = user.get("driver_id")
-    if not did:
-        return {"ok": True}
-    q = {"driver_id": did}
-    if data.ids:
-        q["id"] = {"$in": data.ids}
-    await db.notifications.update_many(q, {"$set": {"read": True}})
-    return {"ok": True}
 
 
 # ---------------------------------------------------------------------------
@@ -1862,10 +1941,12 @@ async def _enrich_swap(sw: dict) -> dict:
 
 @api_router.get("/swap-requests")
 async def list_swaps(user: dict = Depends(get_current_user)):
-    if user.get("role") == "admin":
+    if user.get("role") in ("admin", "assistant"):
         rows = await db.swap_requests.find({}, {"_id": 0}).sort("created_at", -1).to_list(500)
     else:
         did = user.get("driver_id")
+        if not did:
+            return []
         rows = await db.swap_requests.find(
             {"$or": [{"from_driver_id": did}, {"to_driver_id": did}]}, {"_id": 0}
         ).sort("created_at", -1).to_list(500)
@@ -2145,7 +2226,7 @@ async def seed_admin():
             "name": "Amministratore", "role": "admin",
             "created_at": datetime.now(timezone.utc).isoformat(),
         })
-    elif not verify_password(admin_password, existing["password_hash"]):
+    elif os.environ.get("FORCE_ADMIN_PASSWORD_RESET", "").lower() == "true" and not verify_password(admin_password, existing["password_hash"]):
         await db.users.update_one({"email": admin_email}, {"$set": {"password_hash": hash_password(admin_password)}})
 
 
@@ -2188,20 +2269,38 @@ async def health_check():
 async def on_startup():
     logger.info("Starting Hera Gestionale Backend...")
     try:
+        # Indici ad alte prestazioni per scalabilità multi-utente (ambiente enterprise Hera)
         await db.users.create_index("email", unique=True)
+        await db.users.create_index("id", unique=True)
+        await db.drivers.create_index("id", unique=True)
+        await db.vehicles.create_index("id", unique=True)
+        await db.routes.create_index("id", unique=True)
+        await db.shifts.create_index("id", unique=True)
+        await db.shifts.create_index([("week_start", 1), ("day", 1)])
+        await db.shifts.create_index([("driver_id", 1), ("week_start", 1)])
+        await db.weighings.create_index("id", unique=True)
+        await db.weighings.create_index([("shift_id", 1), ("discharge_number", 1)])
+        await db.weighings.create_index([("date", -1), ("created_at", -1)])
+        await db.notifications.create_index([("driver_id", 1), ("created_at", -1)])
+        await db.notifications.create_index([("target_role", 1), ("created_at", -1)])
+        await db.swap_requests.create_index("id", unique=True)
+        await db.swap_requests.create_index([("from_driver_id", 1), ("created_at", -1)])
+        await db.swap_requests.create_index([("to_driver_id", 1), ("created_at", -1)])
+        await db.absences.create_index([("driver_id", 1), ("start_date", 1), ("end_date", 1)])
         await seed_admin()
         await remove_demo_data()
-        logger.info("Database initialized successfully.")
+        logger.info("Database initialized successfully with enterprise indexes.")
     except Exception as e:
         logger.error(f"Initial DB seed error (will retry on incoming requests): {e}")
 
 
 app.include_router(api_router)
+_raw_origins = [o.strip() for o in os.environ.get('CORS_ORIGINS', '*').split(',') if o.strip()]
 app.add_middleware(
     CORSMiddleware,
-    allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
-    allow_methods=["*"],
+    allow_credentials="*" not in _raw_origins,
+    allow_origins=_raw_origins,
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
