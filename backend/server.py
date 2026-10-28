@@ -6,6 +6,7 @@ ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
 from fastapi import FastAPI, APIRouter, HTTPException, Request, Depends
+from fastapi.responses import PlainTextResponse
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import logging
@@ -45,6 +46,10 @@ app = FastAPI(
     openapi_url=None if IS_PROD else "/openapi.json",
 )
 api_router = APIRouter(prefix="/api")
+
+@app.get("/.well-known/strix-verify.txt", response_class=PlainTextResponse)
+async def strix_verify_file():
+    return "strix-verify-aceead87eb3d6a74f2773e9ffbdcecc7"
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("hera")
